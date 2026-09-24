@@ -1,0 +1,28 @@
+# How exercise names in the legacy Google Sheet map onto the exercise library.
+#
+# A name is resolved in this order:
+#   1. [library]  → the free-exercise-db id (see backend/data/free-exercise-db/exercises.json)
+#   2. an existing custom exercise of yours with the same name (e.g. from an earlier import)
+#   3. [custom]   → created as your own custom exercise
+#   4. a library exercise with exactly the same name (case-insensitive)
+# Anything else makes the import stop and list the unmapped names.
+
+[library]
+"Leg Curl" = "Seated_Leg_Curl"
+"Leg Extension" = "Leg_Extensions"
+"Lat Pulldown" = "Wide-Grip_Lat_Pulldown"
+"Seated Cable Row" = "Seated_Cable_Rows"
+"Overhead Cable Tricep Extension" = "Cable_Rope_Overhead_Triceps_Extension"
+"Dumbbell Press" = "Dumbbell_Bench_Press"
+"Incline Seated Bicep Curl" = "Incline_Dumbbell_Curl"
+"Preacher Curl" = "Preacher_Curl"
+# Exact name matches, no entry needed: Hack Squat, Triceps Pushdown, Incline Dumbbell Press
+
+# Rear-foot-elevated split squat; the library only has the both-feet-down version.
+[custom."Bulgarian Split Squat"]
+equipment = "dumbbell"
+category = "strength"
+mechanic = "compound"
+force = "push"
+primary_muscles = ["quadriceps", "glutes"]
+secondary_muscles = ["hamstrings", "adductors"]

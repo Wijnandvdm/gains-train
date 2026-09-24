@@ -2,15 +2,24 @@ import asyncio
 from collections.abc import AsyncIterator
 from pathlib import Path
 
+import httpx
 import pytest
 from alembic import command
 from alembic.config import Config
+from pydantic import SecretStr
 from sqlalchemy import make_url, text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, create_async_engine
 
 from app.config import settings
+from app.db import get_session
+from app.main import app
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
+
+# Tests must not depend on (or leak) the developer's .env secrets.
+settings.session_secret = SecretStr("test-session-secret-not-used-anywhere-else-0123456789")
+settings.google_client_id = "test-client-id.apps.googleusercontent.com"
+settings.allowed_emails = ""
 TEST_DB_URL = make_url(settings.database_url).set(
     database=f"{make_url(settings.database_url).database}_test"
 )
@@ -55,3 +64,17 @@ async def session(db_connection: AsyncConnection) -> AsyncIterator[AsyncSession]
     finally:
         await s.close()
         await trans.rollback()
+
+
+@pytest.fixture
+async def client(session: AsyncSession) -> AsyncIterator[httpx.AsyncClient]:
+    """HTTP client for the API, whose requests use the test's (rolled back) session."""
+
+    async def override_get_session() -> AsyncIterator[AsyncSession]:
+        yield session
+
+    app.dependency_overrides[get_session] = override_get_session
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+    app.dependency_overrides.clear()
