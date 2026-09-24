@@ -1,0 +1,95 @@
+# Install once:     pre-commit install --install-hooks -t pre-commit -t pre-push
+# Run on all files: pre-commit run --all-files
+#
+# Python tools run via `uv run` so they use the versions pinned in backend/uv.lock.
+# Frontend tools run from frontend/node_modules (run `npm install` in frontend/ first).
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [pre-commit]
+
+repos:
+  # --- Generic file hygiene -------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: ^frontend/tsconfig.*\.json$ # tsconfig allows comments (JSONC)
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: detect-private-key
+
+  # --- Secrets ---------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  # --- Backend (Python) ------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: uv-lock
+        name: uv lock (lockfile matches pyproject)
+        entry: uv lock --check --project backend
+        language: system
+        files: ^backend/(pyproject\.toml|uv\.lock)$
+        pass_filenames: false
+
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --project backend ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types_or: [python, pyi]
+
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --project backend ruff format
+        language: system
+        types_or: [python, pyi]
+
+      - id: mypy
+        name: mypy (strict)
+        entry: bash -c 'cd backend && uv run mypy app'
+        language: system
+        files: ^backend/.*\.py$
+        pass_filenames: false
+
+      - id: pytest
+        name: pytest
+        # Exit code 5 = no tests collected; don't fail on that while the suite is empty.
+        entry: bash -c 'cd backend && uv run pytest -q; rc=$?; [ $rc -eq 5 ] && exit 0 || exit $rc'
+        language: system
+        files: ^backend/
+        pass_filenames: false
+        stages: [pre-push]
+
+  # --- Frontend (TypeScript/React) -------------------------------------------
+  # scripts/frontend-run.sh runs each tool in frontend/ with the Node from frontend/.nvmrc.
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: scripts/frontend-run.sh npx prettier --write --ignore-unknown
+        language: system
+        files: ^frontend/
+        exclude: ^frontend/package-lock\.json$
+
+      - id: oxlint
+        name: oxlint
+        entry: scripts/frontend-run.sh npx oxlint --deny-warnings
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+
+      - id: tsc
+        name: tsc (typecheck)
+        entry: scripts/frontend-run.sh npx tsc -b
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false

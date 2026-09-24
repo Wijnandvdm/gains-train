@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Secrets / local config
+.env
+
+# Downloaded exercise dataset (fetched by scripts/seed_exercises.py)
+backend/data/
+
+.DS_Store
