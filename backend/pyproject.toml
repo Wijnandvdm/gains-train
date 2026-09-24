@@ -31,9 +31,15 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
+[tool.ruff.lint.isort]
+# The local alembic/ migrations folder would otherwise make ruff treat alembic as first-party.
+known-third-party = ["alembic"]
+
 [tool.mypy]
 strict = true
 plugins = []
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"

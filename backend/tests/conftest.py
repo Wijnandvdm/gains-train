@@ -1,0 +1,57 @@
+import asyncio
+from collections.abc import AsyncIterator
+from pathlib import Path
+
+import pytest
+from alembic import command
+from alembic.config import Config
+from sqlalchemy import make_url, text
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, create_async_engine
+
+from app.config import settings
+
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+TEST_DB_URL = make_url(settings.database_url).set(
+    database=f"{make_url(settings.database_url).database}_test"
+)
+
+
+async def _recreate_test_database() -> None:
+    admin = create_async_engine(TEST_DB_URL.set(database="postgres"), isolation_level="AUTOCOMMIT")
+    async with admin.connect() as conn:
+        await conn.execute(text(f'DROP DATABASE IF EXISTS "{TEST_DB_URL.database}" WITH (FORCE)'))
+        await conn.execute(text(f'CREATE DATABASE "{TEST_DB_URL.database}"'))
+    await admin.dispose()
+
+
+@pytest.fixture(scope="session")
+async def db_connection() -> AsyncIterator[AsyncConnection]:
+    """A fresh test database with all migrations applied (so migrations are tested too)."""
+    await _recreate_test_database()
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("script_location", str(BACKEND_DIR / "alembic"))
+    cfg.set_main_option("sqlalchemy.url", TEST_DB_URL.render_as_string(hide_password=False))
+    # Alembic's env.py calls asyncio.run(), which can't nest inside the test loop.
+    await asyncio.to_thread(command.upgrade, cfg, "head")
+
+    engine = create_async_engine(TEST_DB_URL)
+    async with engine.connect() as conn:
+        yield conn
+    await engine.dispose()
+
+
+@pytest.fixture
+async def session(db_connection: AsyncConnection) -> AsyncIterator[AsyncSession]:
+    """A session whose changes are rolled back after each test.
+
+    Commits inside the test only release a savepoint, so tests stay isolated.
+    """
+    trans = await db_connection.begin()
+    s = AsyncSession(
+        bind=db_connection, expire_on_commit=False, join_transaction_mode="create_savepoint"
+    )
+    try:
+        yield s
+    finally:
+        await s.close()
+        await trans.rollback()

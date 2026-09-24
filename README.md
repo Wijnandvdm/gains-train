@@ -41,6 +41,6 @@ pre-commit run --all-files  # run everything manually
 Or run the tools directly:
 
 ```bash
-cd backend && uv run pytest && uv run ruff check . && uv run mypy app
+cd backend && uv run pytest && uv run ruff check . && uv run mypy app tests
 cd frontend && npm run build && npm run lint
 ```
