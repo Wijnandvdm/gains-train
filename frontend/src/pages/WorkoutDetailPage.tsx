@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import type { WorkoutDetail } from '../api/schema'
 import { ExerciseThumb } from '../components/ExerciseImage'
@@ -12,11 +12,25 @@ import { setLabels } from '../workout/sets'
 export function WorkoutDetailPage() {
   const id = useParams().workoutId!
   const { data: workout, isPending, error, refetch } = useWorkout(id)
+  const navigate = useNavigate()
+  const cameFromApp = useLocation().key !== 'default'
 
   return (
     <section className="flex flex-col gap-4">
       <Link
-        to="/history"
+        // Back to exactly where you came from (the calendar day); the href is for when
+        // this page was opened directly.
+        onClick={(e) => {
+          if (cameFromApp) {
+            e.preventDefault()
+            navigate(-1)
+          }
+        }}
+        to={
+          workout
+            ? `/history?month=${workout.performed_on.slice(0, 7)}&day=${workout.performed_on}`
+            : '/history'
+        }
         className="-ml-2 flex w-fit items-center gap-1 rounded-lg px-2 py-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
       >
         <BackIcon />

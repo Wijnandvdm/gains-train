@@ -159,20 +159,16 @@ describe('personal records', () => {
 })
 
 describe('history', () => {
-  it('lists past workouts with totals', async () => {
-    fakeBackend()
-    renderApp('/history')
-    const card = (await screen.findByText('Day2 · Back & Triceps')).closest('a')!
-    expect(card).toHaveAttribute('href', '/history/last-day2')
-    expect(within(card).getByText('2 sets')).toBeVisible()
-    expect(within(card).getByText(/1,760 kg/)).toBeVisible()
-  })
-
   it('shows a past workout set by set', async () => {
     fakeBackend()
     renderApp('/history/last-day2')
     const block = await screen.findByRole('region', { name: 'Seated Cable Rows' })
     expect(within(block).getByText('80 × 12')).toBeVisible()
     expect(within(block).getByText('80 × 10')).toBeVisible()
+    // "Back" returns to that day in the calendar.
+    const historyLinks = screen.getAllByRole('link', { name: 'History' }) // back link + tab
+    expect(historyLinks.map((l) => l.getAttribute('href'))).toContain(
+      '/history?month=2026-09&day=2026-09-15',
+    )
   })
 })

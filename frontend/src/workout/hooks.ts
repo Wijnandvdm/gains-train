@@ -221,6 +221,20 @@ export function useWorkoutHistory() {
   })
 }
 
+/** All workouts between two dates (inclusive), e.g. one calendar month. */
+export function useWorkoutsInRange(from: string, to: string) {
+  return useQuery({
+    queryKey: [...workoutKeys.all, 'range', from, to],
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/workouts', {
+          params: { query: { performed_from: from, performed_to: to, limit: 100 } },
+        }),
+      ),
+    placeholderData: keepPreviousData, // keep the old month on screen while the next loads
+  })
+}
+
 export function useWorkout(id: string) {
   return useQuery({ queryKey: workoutKeys.detail(id), queryFn: () => fetchWorkout(id) })
 }

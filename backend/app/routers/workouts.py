@@ -11,7 +11,7 @@ from datetime import UTC, date, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from sqlalchemy import Select, delete, func, select
+from sqlalchemy import Select, and_, delete, func, select, true
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, selectinload
@@ -177,8 +177,14 @@ async def list_workouts(
     session: Session,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
+    performed_from: Annotated[date | None, Query(description="Inclusive, e.g. 2026-09-01")] = None,
+    performed_to: Annotated[date | None, Query(description="Inclusive, e.g. 2026-09-30")] = None,
 ) -> WorkoutPage:
-    mine = Workout.user_id == user.id
+    mine = and_(
+        Workout.user_id == user.id,
+        Workout.performed_on >= performed_from if performed_from else true(),
+        Workout.performed_on <= performed_to if performed_to else true(),
+    )
     total = await session.scalar(select(func.count()).select_from(Workout).where(mine)) or 0
     workouts = (
         await session.scalars(

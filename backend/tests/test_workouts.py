@@ -485,3 +485,27 @@ async def test_exercise_history_for_last_time_hints(
     limited = await auth_client.get(f"/api/exercises/{curl}/history", params={"limit": 1})
     assert len(limited.json()) == 1
     assert (await auth_client.get("/api/exercises/999999/history")).status_code == 404
+
+
+async def test_history_date_range(
+    auth_client: httpx.AsyncClient, session: AsyncSession, user: User
+) -> None:
+    curl = await exercise_id(session)
+    for day in (date(2026, 8, 31), date(2026, 9, 1), date(2026, 9, 30), date(2026, 10, 1)):
+        await make_workout(session, user, curl, day, [])
+    other = await create_user(session, "other@example.com")
+    await make_workout(session, other, curl, date(2026, 9, 15), [])
+
+    september: dict[str, str | int] = {
+        "performed_from": "2026-09-01",
+        "performed_to": "2026-09-30",
+        "limit": 100,
+    }
+    body = (await auth_client.get("/api/workouts", params=september)).json()
+    assert body["total"] == 2
+    assert [w["performed_on"] for w in body["items"]] == ["2026-09-30", "2026-09-01"]
+
+    since = (await auth_client.get("/api/workouts", params={"performed_from": "2026-09-30"})).json()
+    assert since["total"] == 2
+    bad = await auth_client.get("/api/workouts", params={"performed_from": "sept"})
+    assert bad.status_code == 422

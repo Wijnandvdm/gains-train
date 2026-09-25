@@ -1156,6 +1156,10 @@ export interface operations {
       query?: {
         limit?: number
         offset?: number
+        /** @description Inclusive, e.g. 2026-09-01 */
+        performed_from?: string | null
+        /** @description Inclusive, e.g. 2026-09-30 */
+        performed_to?: string | null
       }
       header?: never
       path?: never
