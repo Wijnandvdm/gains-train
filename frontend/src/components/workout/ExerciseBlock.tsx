@@ -3,7 +3,9 @@ import type { WorkoutExerciseOut } from '../../api/schema'
 import { formatDay } from '../../lib/format'
 import { uuid } from '../../lib/uuid'
 import { useLastTime, useWorkoutActions } from '../../workout/hooks'
+import { prsForSets } from '../../workout/prs'
 import { matchPrevious, setLabels } from '../../workout/sets'
+import { useExerciseStats } from '../../stats'
 import { ExerciseThumb } from '../ExerciseImage'
 import { SetRow } from './SetRow'
 
@@ -19,6 +21,7 @@ export function ExerciseBlock({ workoutId, workoutExercise, onSetCompleted }: Pr
   const lastTime = useLastTime(exercise.id).data
   const labels = setLabels(sets)
   const previous = matchPrevious(sets, lastTime?.sets ?? [])
+  const prs = prsForSets(sets, useExerciseStats(exercise.id).data?.records ?? null)
 
   function addSet() {
     // Start from the row above (same weight is the common case); else leave it to the hints.
@@ -80,6 +83,7 @@ export function ExerciseBlock({ workoutId, workoutExercise, onSetCompleted }: Pr
                 set={set}
                 label={labels[i]!}
                 previous={previous[i]}
+                prs={prs[i]!}
                 onSave={(next) => actions.saveSet(workoutId, next)}
                 onDelete={() => actions.deleteSet(workoutId, set)}
                 onCompleted={onSetCompleted}

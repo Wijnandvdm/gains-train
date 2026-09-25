@@ -61,6 +61,8 @@ export function useOutboxSync() {
     const stopDrained = outbox.onDrained(() => {
       void queryClient.invalidateQueries({ queryKey: workoutKeys.all })
       void queryClient.invalidateQueries({ queryKey: ['exercise-history'] })
+      void queryClient.invalidateQueries({ queryKey: ['exercise-stats'] })
+      void queryClient.invalidateQueries({ queryKey: ['stats-overview'] })
     })
     window.addEventListener('online', flush)
     document.addEventListener('visibilitychange', onVisible)

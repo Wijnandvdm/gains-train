@@ -66,3 +66,14 @@ Or run the tools directly:
 cd backend && uv run pytest && uv run ruff check . && uv run mypy app tests
 cd frontend && npm test && npm run build && npm run lint
 ```
+
+## TODOS:
+1. ugly kilo numbers 7.987 something
+2. ability to schedule your own days, so to create a day 1, day 2, day 3 with whatever exercises you want or start with the "standard" one I got from my stuff here: legacy_workout_logging
+3. see if there are pictures like this https://rdsdz.rochack.org/dumbbell-muscles-worked-dumbbell-workouts-25-best-exercises-routines-for-muscle-gain/ available for free
+4. more train puns and look, we're called the gains train damnit
+5. check for hardcoded things that repeat and replace them with variables (DRY)
+6. Are we applying KISS?
+7. Do we not have a shitload of redundant code?
+8. Walk me through every bit step by step, I'll decide whatever needs documenting or not
+9. Document the highover flow in a mermaid diagram

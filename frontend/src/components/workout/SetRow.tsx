@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { SetOut } from '../../api/schema'
 import { formatKg, formatSet, parseReps, parseWeight } from '../../lib/format'
+import { PR_LABELS, type PrKind } from '../../workout/prs'
 
 type Props = {
   set: SetOut
@@ -8,6 +9,8 @@ type Props = {
   label: string
   /** The matching set from last time, shown as a hint and used when ticking an empty row. */
   previous: SetOut | undefined
+  /** Records this set beat (empty if none). */
+  prs: PrKind[]
   onSave: (set: SetOut) => void
   onDelete: () => void
   onCompleted: () => void
@@ -15,7 +18,7 @@ type Props = {
 
 const toText = (value: number | null) => (value === null ? '' : formatKg(value))
 
-export function SetRow({ set, label, previous, onSave, onDelete, onCompleted }: Props) {
+export function SetRow({ set, label, previous, prs, onSave, onDelete, onCompleted }: Props) {
   // Typing edits a local draft; it's saved on blur or when ticking (not per keystroke).
   const [weight, setWeight] = useState(toText(set.weight_kg))
   const [reps, setReps] = useState(toText(set.reps))
@@ -67,8 +70,21 @@ export function SetRow({ set, label, previous, onSave, onDelete, onCompleted }: 
       >
         {label}
       </button>
-      <span className="truncate text-sm text-neutral-400 tabular-nums">
-        {previous ? formatSet(previous.weight_kg, previous.reps) : '–'}
+      <span className="flex min-w-0 items-center gap-1 text-sm text-neutral-400 tabular-nums">
+        {prs.length > 0 ? (
+          <span
+            role="img"
+            aria-label={`Personal record: ${prs.map((k) => PR_LABELS[k]).join(', ')}`}
+            title={prs.map((k) => PR_LABELS[k]).join(' · ')}
+            className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+          >
+            {prs.includes('weight') ? '🏆 PR' : 'PR'}
+          </span>
+        ) : (
+          <span className="truncate">
+            {previous ? formatSet(previous.weight_kg, previous.reps) : '–'}
+          </span>
+        )}
       </span>
       <input
         aria-label={`Set ${label} weight (kg)`}

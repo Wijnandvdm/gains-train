@@ -10,6 +10,18 @@
   --color-brand-900: oklch(0.32 0.08 150);
 }
 
+/* Chart chrome: recessive gridlines and the card surface (for the ring around dots). */
+:root {
+  --chart-grid: var(--color-neutral-200);
+  --chart-surface: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --chart-grid: var(--color-neutral-800);
+    --chart-surface: var(--color-neutral-900);
+  }
+}
+
 @layer base {
   html {
     color-scheme: light dark;

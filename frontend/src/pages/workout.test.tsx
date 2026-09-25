@@ -67,7 +67,7 @@ const summary = (w: WorkoutDetail): WorkoutSummary => ({
 })
 
 /** An in-memory stand-in for the workout API. `online=false` makes writes fail. */
-function fakeBackend() {
+function fakeBackend(extraHandlers: Parameters<typeof mockApi>[0] = {}) {
   const state = { active: null as WorkoutDetail | null, online: true, writes: [] as string[] }
   const library: Record<number, ExerciseSummary> = { [ROW.id]: ROW, [PULLDOWN.id]: PULLDOWN }
 
@@ -78,6 +78,7 @@ function fakeBackend() {
   }
 
   const requests = mockApi({
+    ...extraHandlers,
     'GET /api/me': () => ME,
     'GET /api/workouts/active': () => state.active,
     'GET /api/workouts': () => ({ items: [summary(LAST_DAY2)], total: 1, limit: 20, offset: 0 }),
@@ -250,6 +251,46 @@ describe('live workout', () => {
       'false',
     )
     expect(within(block).getByLabelText('Set 1 reps')).toHaveClass('border-red-500!')
+  })
+})
+
+describe('personal records', () => {
+  it('marks a set that beats your records as a PR, right when it is ticked', async () => {
+    fakeBackend({
+      'GET /api/stats/exercises/:id': () => ({
+        records: {
+          heaviest: { weight_kg: 80, reps: 12, performed_on: '2026-09-15' },
+          best_e1rm: { weight_kg: 80, reps: 12, performed_on: '2026-09-15' },
+          best_e1rm_kg: 112,
+          best_session_volume_kg: 1760,
+          best_session_volume_on: '2026-09-15',
+          rep_records: [{ weight_kg: 80, reps: 12, performed_on: '2026-09-15' }],
+        },
+        sessions: [],
+      }),
+    })
+    const user = userEvent.setup()
+    renderApp('/workout')
+
+    await user.click(await screen.findByRole('button', { name: /Day2 · Back & Triceps/ }))
+    const block = await screen.findByRole('region', { name: 'Seated Cable Rows' })
+    await user.click(within(block).getByRole('button', { name: '+ Add set' }))
+    await user.type(await within(block).findByLabelText('Set 1 weight (kg)'), '82.5')
+    // 82.5 × 12: heavier than 80 kg, and e1RM 115.5 beats 112.
+    await user.type(within(block).getByLabelText('Set 1 reps'), '12')
+    expect(within(block).queryByRole('img', { name: /Personal record/ })).toBeNull()
+
+    await user.click(within(block).getByRole('button', { name: 'Set 1 done' }))
+    expect(
+      await within(block).findByRole('img', {
+        name: 'Personal record: Heaviest weight, Best estimated 1RM',
+      }),
+    ).toHaveTextContent('🏆 PR')
+
+    // Same again: it only ties the set before it, so no second badge.
+    await user.click(within(block).getByRole('button', { name: '+ Add set' }))
+    await user.click(await within(block).findByRole('button', { name: 'Set 2 done' }))
+    expect(within(block).getAllByRole('img', { name: /Personal record/ })).toHaveLength(1)
   })
 })
 

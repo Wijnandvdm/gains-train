@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import type { ExerciseDetail } from '../api/schema'
+import { ExerciseProgress } from '../components/ExerciseProgress'
 import { BackIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
 import { useExercise } from '../exercises'
@@ -89,6 +90,8 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
 
       <MuscleList title="Primary muscles" muscles={exercise.primary_muscles} primary />
       <MuscleList title="Secondary muscles" muscles={exercise.secondary_muscles} />
+
+      <ExerciseProgress exerciseId={exercise.id} />
 
       {exercise.instructions.length > 0 && (
         <section>
