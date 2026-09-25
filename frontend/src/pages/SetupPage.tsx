@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DumbbellIcon } from '../components/icons'
+import { TrainIcon } from '../components/icons'
 import { useCompleteSetup, useRoutineFromHistory } from '../routine'
 import { useWorkoutHistory } from '../workout/hooks'
 import { recentRoutines } from '../workout/recent'
@@ -55,10 +55,12 @@ export function SetupPage() {
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 p-6 pt-[calc(2rem+env(safe-area-inset-top))]">
       <header className="flex flex-col items-center gap-3 text-center">
         <div className="rounded-2xl bg-brand-600 p-3 text-white">
-          <DumbbellIcon />
+          <TrainIcon className="h-10 w-10" />
         </div>
-        <h1 className="text-2xl font-bold">Let's set you up</h1>
-        <p className="text-neutral-500">Two questions, then every workout is one tap per set.</p>
+        <h1 className="text-2xl font-bold">Let's lay the tracks</h1>
+        <p className="text-neutral-500">
+          Two questions, then every workout is one tap per set. Choo choo.
+        </p>
       </header>
 
       <fieldset className="flex flex-col gap-2">
@@ -115,7 +117,7 @@ export function SetupPage() {
         disabled={!mode || saving}
         onClick={() => void finish()}
       >
-        {saving ? 'Saving…' : "Let's go"}
+        {saving ? 'Laying tracks…' : 'All aboard! 🚂'}
       </button>
     </main>
   )

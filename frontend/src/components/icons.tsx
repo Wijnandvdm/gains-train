@@ -23,6 +23,24 @@ export const DumbbellIcon = () => (
   </Icon>
 )
 
+/** The gains train: a locomotive whose wheels are weight plates on a bar. */
+export const TrainIcon = (props: SVGProps<SVGSVGElement>) => (
+  <Icon {...props}>
+    <circle cx="9.6" cy="2.4" r="1" />
+    <circle cx="12.4" cy="1.6" r="0.7" />
+    <path d="M5.2 4.8h4l-.7 4" />
+    <path d="M5.9 8.8l-.7-4" />
+    <rect x="2.5" y="8.8" width="10.5" height="6" rx="2" />
+    <path d="M13 14.8V6.2h7v8.6" />
+    <path d="M12.2 5.4h8.8" />
+    <rect x="15" y="7.8" width="3" height="2.8" rx=".5" />
+    <path d="M1.5 15.4h20" />
+    <circle cx="7" cy="18.9" r="2.6" />
+    <circle cx="17" cy="18.9" r="2.6" />
+    <path d="M2.6 18.9h18.8" />
+  </Icon>
+)
+
 export const HistoryIcon = () => (
   <Icon>
     <circle cx="12" cy="12" r="8.5" />

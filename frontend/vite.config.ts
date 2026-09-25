@@ -19,7 +19,7 @@ export default defineConfig({
       manifest: {
         name: 'gains-train',
         short_name: 'gains-train',
-        description: 'Log your lifts. Watch the numbers go up.',
+        description: 'All aboard the gains train! Log your lifts, watch the numbers go up.',
         start_url: '/workout',
         scope: '/',
         display: 'standalone',

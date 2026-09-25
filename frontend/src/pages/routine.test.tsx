@@ -24,7 +24,7 @@ describe('minimal clicks (routine)', () => {
     renderApp('/workout')
 
     // Nothing to start or pick: the day is ready, set 1 prefilled with last time's 80 × 12.
-    expect(await screen.findByText('Up next')).toBeVisible()
+    expect(await screen.findByText('Next stop')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Day2 · Back & Triceps' })).toBeVisible()
     await expectCard('Seated Cable Rows', '1 of 3', '80', '12')
     expect(backend.state.writes).toEqual([]) // just opening the app saves nothing
@@ -37,6 +37,12 @@ describe('minimal clicks (routine)', () => {
     // Tap 2, then tap 3 (last time had only 2 sets: set 3 repeats today's set 2).
     await user.click(within(card()).getByRole('button', { name: '✓ Done' }))
     await expectCard('Seated Cable Rows', '3 of 3', '80', '10')
+    // The train has moved 2 of 4 planned sets down the line, with a cheer on the way.
+    expect(screen.getByRole('progressbar', { name: 'Workout progress' })).toHaveAttribute(
+      'aria-valuetext',
+      '2 of 4 sets',
+    )
+    expect(screen.getByText('Full steam ahead!')).toBeVisible()
     await user.click(within(card()).getByRole('button', { name: '✓ Done' }))
 
     // Next exercise, first time ever: nothing to prefill, so it waits for numbers.
@@ -46,7 +52,7 @@ describe('minimal clicks (routine)', () => {
     await user.click(within(card()).getByRole('button', { name: '+ 1 reps' }))
     await user.click(within(card()).getByRole('button', { name: '✓ Done' }))
 
-    expect(await screen.findByText("That's everything you planned. 💪")).toBeVisible()
+    expect(await screen.findByText(/That's everything you planned/)).toBeVisible()
     // The table below shows what the card logged.
     const rows = screen.getByRole('region', { name: 'Seated Cable Rows' })
     expect(within(rows).getByLabelText('Set 3 reps')).toHaveValue('10')
@@ -83,14 +89,14 @@ describe('first open', () => {
     const user = userEvent.setup()
     const router = renderApp('/workout')
 
-    await screen.findByRole('heading', { name: "Let's set you up" })
+    await screen.findByRole('heading', { name: "Let's lay the tracks" })
     expect(router.state.location.pathname).toBe('/setup')
     // Your history's named workouts are offered as your split.
     await user.click(await screen.findByRole('radio', { name: /My usual split/ }))
     await user.click(screen.getByRole('button', { name: '2 min' }))
-    await user.click(screen.getByRole('button', { name: "Let's go" }))
+    await user.click(screen.getByRole('button', { name: 'All aboard! 🚂' }))
 
-    expect(await screen.findByText('Up next')).toBeVisible()
+    expect(await screen.findByText('Next stop')).toBeVisible()
     expect(router.state.location.pathname).toBe('/workout')
     expect(backend.state.writes).toEqual(['routine from history', 'setup done'])
     expect(localStorage.getItem('gains-train:rest-seconds')).toBe('120')
@@ -102,7 +108,7 @@ describe('first open', () => {
     const router = renderApp('/workout')
 
     await user.click(await screen.findByRole('radio', { name: /Build my own routine/ }))
-    await user.click(screen.getByRole('button', { name: "Let's go" }))
+    await user.click(screen.getByRole('button', { name: 'All aboard! 🚂' }))
     await screen.findByRole('heading', { name: 'Your routine' })
     expect(router.state.location.pathname).toBe('/routine')
 
@@ -115,7 +121,7 @@ describe('first open', () => {
     expect(screen.getByText('4 sets')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Save routine' }))
 
-    expect(await screen.findByText('Up next')).toBeVisible()
+    expect(await screen.findByText('Next stop')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Push' })).toBeVisible()
     expect(backend.state.writes).toEqual(['setup done', 'save routine Push'])
     expect(backend.state.routine?.days[0]?.exercises[0]?.sets).toBe(4)

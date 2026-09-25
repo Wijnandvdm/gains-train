@@ -6,7 +6,10 @@ import { ExercisePicker } from '../components/workout/ExercisePicker'
 import { FocusCard } from '../components/workout/FocusCard'
 import { RestTimerBar } from '../components/workout/RestTimerBar'
 import { SyncError, SyncStatus } from '../components/workout/SyncStatus'
+import { WorkoutTrack } from '../components/workout/WorkoutTrack'
+import { TrainIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
+import { cheer, ridesThisWeek, weekMessage } from '../copy'
 import { formatDay } from '../lib/format'
 import { uuid } from '../lib/uuid'
 import { useRoutine } from '../routine'
@@ -16,7 +19,7 @@ import {
   useWorkoutActions,
   useWorkoutHistory,
 } from '../workout/hooks'
-import { type NextSet, nextSet, type PlannedExercise } from '../workout/plan'
+import { type NextSet, nextSet, type PlannedExercise, plannedSetCount } from '../workout/plan'
 import { recentRoutines } from '../workout/recent'
 import { useRestTimer } from '../workout/restTimer'
 import { useSkipped } from '../workout/skipped'
@@ -66,16 +69,23 @@ export function WorkoutPage() {
 
 function FinishedBanner() {
   return (
-    <p
+    <div
       role="status"
-      className="rounded-lg bg-brand-50 px-4 py-3 text-brand-900 dark:bg-brand-900/40 dark:text-brand-100"
+      className="relative overflow-hidden rounded-lg bg-brand-50 px-4 pt-9 pb-3 text-brand-900 dark:bg-brand-900/40 dark:text-brand-100"
     >
-      Workout finished. Nice work! See it in{' '}
-      <Link to="/history" className="font-semibold underline">
-        History
-      </Link>
-      .
-    </p>
+      {/* Rolls across once; stays parked on the left with reduced motion. */}
+      <TrainIcon
+        aria-hidden="true"
+        className="absolute top-2 left-3 h-7 w-7 -scale-x-100 text-brand-600 motion-safe:animate-choo dark:text-brand-500"
+      />
+      <p>
+        <strong>End of the line!</strong> Workout saved. See it in{' '}
+        <Link to="/history" className="font-semibold underline">
+          History
+        </Link>
+        .
+      </p>
+    </div>
   )
 }
 
@@ -88,6 +98,8 @@ const focusKey = (next: NextSet) =>
 function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void }) {
   const actions = useWorkoutActions()
   const restTimer = useRestTimer()
+  const history = useWorkoutHistory()
+  const rides = ridesThisWeek(history.data?.pages.flatMap((p) => p.items) ?? [])
   const [dayId, setDayId] = useState(routine.next_day_id ?? routine.days[0]!.id)
   const day: RoutineDayOut = routine.days.find((d) => d.id === dayId) ?? routine.days[0]!
   const lastTimes = useLastTimes(day.exercises.map((re) => re.exercise.id))
@@ -107,9 +119,10 @@ function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void
     <>
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium text-brand-600 dark:text-brand-500">
-          {dayId === routine.next_day_id ? 'Up next' : 'Today'}
+          {dayId === routine.next_day_id ? 'Next stop' : 'Changing tracks'}
         </p>
         <h1 className="text-2xl font-bold">{day.name}</h1>
+        {history.data && <p className="text-sm text-neutral-500">{weekMessage(rides)}</p>}
         {routine.days.length > 1 && (
           <div
             role="group"
@@ -348,6 +361,24 @@ function ActiveWorkout({
 
       <SyncError />
 
+      <WorkoutTrack
+        stations={plan.map((item) => ({
+          name: item.exercise.name,
+          done: item.sets.filter((s) => s.completed_at && !s.is_warmup).length,
+          planned: skipped.has(item.key)
+            ? item.sets.filter((s) => s.completed_at && !s.is_warmup).length
+            : plannedSetCount(item),
+        }))}
+      />
+      {doneSets > 0 && (
+        <p
+          aria-live="polite"
+          className="-mt-2 text-center text-sm font-medium text-brand-700 dark:text-brand-500"
+        >
+          {cheer(doneSets)}
+        </p>
+      )}
+
       {next ? (
         <FocusCard
           key={focusKey(next)}
@@ -358,7 +389,7 @@ function ActiveWorkout({
       ) : (
         workout.exercises.length > 0 && (
           <div className="card flex flex-col items-center gap-3 p-4 text-center">
-            <p className="font-semibold">That's everything you planned. 💪</p>
+            <p className="font-semibold">End of the line! 🚂 That's everything you planned.</p>
             <button type="button" className="btn btn-primary w-full py-3" onClick={finish}>
               Finish workout
             </button>

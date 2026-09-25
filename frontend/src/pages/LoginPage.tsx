@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { meQueryKey, safeNext, useMe } from '../auth'
 import { GoogleSignInButton } from '../components/GoogleSignInButton'
-import { DumbbellIcon } from '../components/icons'
+import { TrainIcon } from '../components/icons'
+import { TAGLINE } from '../copy'
 import { Spinner } from '../components/Spinner'
 
 export function LoginPage() {
@@ -19,10 +20,11 @@ export function LoginPage() {
     <main className="flex min-h-dvh flex-col items-center justify-center gap-8 p-6">
       <div className="flex flex-col items-center gap-3 text-center">
         <div className="rounded-2xl bg-brand-600 p-3 text-white">
-          <DumbbellIcon />
+          <TrainIcon className="h-10 w-10" />
         </div>
         <h1 className="text-3xl font-bold tracking-tight">gains-train</h1>
-        <p className="text-neutral-500">Log your lifts. Watch the numbers go up.</p>
+        <p className="text-lg font-medium">{TAGLINE}</p>
+        <p className="text-neutral-500">Log your lifts. Next stop: PR city. 🚂</p>
       </div>
       <GoogleSignInButton
         onSignedIn={(signedIn) => {

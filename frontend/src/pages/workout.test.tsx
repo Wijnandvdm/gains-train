@@ -40,7 +40,7 @@ describe('live workout', () => {
     await waitFor(() => expect(screen.getByText('Saved')).toBeVisible())
 
     await user.click(screen.getByRole('button', { name: 'Finish' }))
-    expect(await screen.findByText(/Workout finished/)).toBeVisible()
+    expect(await screen.findByText(/Workout saved/)).toBeVisible()
     await waitFor(() => expect(backend.state.writes.at(-1)).toBe('finish'))
 
     expect(backend.state.writes).toEqual([

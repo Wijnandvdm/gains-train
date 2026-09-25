@@ -8,6 +8,20 @@
   --color-brand-600: oklch(0.58 0.16 150);
   --color-brand-700: oklch(0.5 0.14 150);
   --color-brand-900: oklch(0.32 0.08 150);
+
+  /* A train rolling across the "workout finished" banner. */
+  --animate-choo: choo 2.6s ease-in-out both;
+  /* Rolls in from the left and parks at the right end of its container. Animates `left`
+     (a % of the container), not `transform`: the icon is mirrored with `scale`, and a
+     transform would move in that mirrored space (i.e. drive backwards). */
+  @keyframes choo {
+    from {
+      left: -3rem;
+    }
+    to {
+      left: calc(100% - 2.5rem);
+    }
+  }
 }
 
 /* Chart chrome: recessive gridlines and the card surface (for the ring around dots). */

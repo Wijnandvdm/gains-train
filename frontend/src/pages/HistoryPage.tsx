@@ -22,9 +22,9 @@ export function HistoryPage() {
         </div>
       ) : workouts.length === 0 ? (
         <div className="py-8 text-center">
-          <p className="mb-3 text-neutral-500">No workouts yet.</p>
+          <p className="mb-3 text-neutral-500">No rides yet. The platform is waiting.</p>
           <Link to="/workout" className="btn btn-primary">
-            Start one
+            Start your first ride
           </Link>
         </div>
       ) : (

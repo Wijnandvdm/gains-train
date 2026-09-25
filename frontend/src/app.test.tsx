@@ -51,7 +51,7 @@ describe('auth', () => {
     })
     const router = renderApp('/exercises?muscle=biceps')
 
-    expect(await screen.findByText('Log your lifts. Watch the numbers go up.')).toBeVisible()
+    expect(await screen.findByText('All aboard the gains train!')).toBeVisible()
     expect(router.state.location.pathname).toBe('/login')
     expect(new URLSearchParams(router.state.location.search).get('next')).toBe(
       '/exercises?muscle=biceps',

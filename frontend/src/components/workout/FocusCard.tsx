@@ -81,9 +81,10 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
         <button
           type="button"
           onClick={onSkipExercise}
+          aria-label={`Skip ${exercise.name}`}
           className="-mt-2 text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
         >
-          Skip {exercise.name}
+          Skip this stop
         </button>
       )}
     </section>

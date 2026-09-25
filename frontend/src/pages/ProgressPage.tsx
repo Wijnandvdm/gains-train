@@ -13,7 +13,9 @@ export function ProgressPage() {
     <section className="flex flex-col gap-4">
       <div>
         <h1 className="text-2xl font-bold">Progress</h1>
-        <p className="text-neutral-500">Tap an exercise for its chart and records.</p>
+        <p className="text-neutral-500">
+          Keeping track of your gains. Tap an exercise for its chart and records.
+        </p>
       </div>
       {isPending ? (
         <Spinner />
