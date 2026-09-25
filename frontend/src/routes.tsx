@@ -4,7 +4,10 @@ import { RequireAuth } from './components/RequireAuth'
 import { ComingSoonPage, NotFoundPage } from './pages/ComingSoonPage'
 import { ExerciseDetailPage } from './pages/ExerciseDetailPage'
 import { ExercisesPage } from './pages/ExercisesPage'
+import { HistoryPage } from './pages/HistoryPage'
 import { LoginPage } from './pages/LoginPage'
+import { WorkoutDetailPage } from './pages/WorkoutDetailPage'
+import { WorkoutPage } from './pages/WorkoutPage'
 
 export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
@@ -14,28 +17,12 @@ export const routes: RouteObject[] = [
       {
         element: <AppLayout />,
         children: [
-          // Until live workouts exist (step 7), the exercise library is home.
-          { index: true, element: <Navigate to="/exercises" replace /> },
+          { index: true, element: <Navigate to="/workout" replace /> },
+          { path: 'workout', element: <WorkoutPage /> },
+          { path: 'history', element: <HistoryPage /> },
+          { path: 'history/:workoutId', element: <WorkoutDetailPage /> },
           { path: 'exercises', element: <ExercisesPage /> },
           { path: 'exercises/:exerciseId', element: <ExerciseDetailPage /> },
-          {
-            path: 'workout',
-            element: (
-              <ComingSoonPage
-                title="Workout"
-                description="Start a session, log your sets and get a rest timer. Coming soon."
-              />
-            ),
-          },
-          {
-            path: 'history',
-            element: (
-              <ComingSoonPage
-                title="History"
-                description="All your past workouts, including the ones imported from your sheet. Coming soon."
-              />
-            ),
-          },
           {
             path: 'progress',
             element: (

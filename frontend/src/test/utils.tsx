@@ -6,7 +6,8 @@ import type { ExerciseDetail, ExerciseSummary, UserOut } from '../api/schema'
 import { createQueryClient } from '../queryClient'
 import { routes } from '../routes'
 
-type Handler = (url: URL, request: Request) => unknown
+type Params = Record<string, string>
+type Handler = (url: URL, request: Request, params: Params) => unknown
 type Reply = { status: number; body: unknown }
 
 /** Reply with a non-200 status from a handler. */
@@ -16,21 +17,33 @@ export const reply = (status: number, body: unknown = { detail: 'error' }): Repl
 })
 
 /**
- * Fakes the backend: `handlers` maps "GET /api/me" style keys to functions returning a JSON
- * body (or `reply(status, body)`). Returns the list of requested URLs for assertions.
+ * Fakes the backend: `handlers` maps "GET /api/me" style keys (":name" segments match any
+ * value and are passed as params) to functions returning a JSON body, `reply(status, body)`,
+ * or a promise of either. Returns the list of requested URLs for assertions.
  */
 export function mockApi(handlers: Record<string, Handler>): URL[] {
   const requests: URL[] = []
+  const routes = Object.entries(handlers).map(([key, handler]) => {
+    const [method, path] = key.split(' ') as [string, string]
+    const names: string[] = []
+    const pattern = path.replace(/:(\w+)/g, (_, name: string) => {
+      names.push(name)
+      return '([^/]+)'
+    })
+    return { method, regex: new RegExp(`^${pattern}$`), names, handler }
+  })
+
   vi.stubGlobal('fetch', async (input: Request) => {
     const url = new URL(input.url)
     requests.push(url)
-    const handler = handlers[`${input.method} ${url.pathname}`]
-    if (!handler)
-      return json(404, {
-        detail: `No mock for ${input.method} ${url.pathname}`,
-      })
-    const result = handler(url, input)
-    return isReply(result) ? json(result.status, result.body) : json(200, result)
+    for (const route of routes) {
+      const match = input.method === route.method && route.regex.exec(url.pathname)
+      if (!match) continue
+      const params = Object.fromEntries(route.names.map((name, i) => [name, match[i + 1]!]))
+      const result = await route.handler(url, input, params)
+      return isReply(result) ? json(result.status, result.body) : json(200, result)
+    }
+    return json(404, { detail: `No mock for ${input.method} ${url.pathname}` })
   })
   return requests
 }

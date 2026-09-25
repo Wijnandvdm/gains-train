@@ -1,5 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useMe, useSignOut } from '../auth'
+import { useOutboxSync } from '../workout/hooks'
+import { outbox } from '../workout/sync'
 import { ChartIcon, DumbbellIcon, HistoryIcon, ListIcon } from './icons'
 
 const TABS = [
@@ -36,7 +38,13 @@ function AccountMenu() {
         <p className="truncate text-sm text-neutral-500">{user.email}</p>
         <button
           className="btn mt-3 w-full"
-          onClick={() => signOut.mutate()}
+          onClick={() => {
+            const { pending } = outbox.getStatus()
+            const lose = `${pending} change${pending === 1 ? " hasn't" : "s haven't"} synced yet and will be lost. Sign out anyway?`
+            if (pending > 0 && !window.confirm(lose)) return
+            outbox.clear()
+            signOut.mutate()
+          }}
           disabled={signOut.isPending}
         >
           Sign out
@@ -47,6 +55,7 @@ function AccountMenu() {
 }
 
 export function AppLayout() {
+  useOutboxSync()
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-neutral-50/90 px-4 py-2 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">
