@@ -4,6 +4,7 @@ import { ApiError } from '../api/client'
 import type { ExerciseDetail } from '../api/schema'
 import { ExerciseProgress } from '../components/ExerciseProgress'
 import { BackIcon } from '../components/icons'
+import { MuscleMap } from '../components/MuscleMap'
 import { Spinner } from '../components/Spinner'
 import { useExercise } from '../exercises'
 
@@ -88,8 +89,7 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
         </ul>
       </header>
 
-      <MuscleList title="Primary muscles" muscles={exercise.primary_muscles} primary />
-      <MuscleList title="Secondary muscles" muscles={exercise.secondary_muscles} />
+      <MusclesWorked primary={exercise.primary_muscles} secondary={exercise.secondary_muscles} />
 
       <ExerciseProgress exerciseId={exercise.id} />
 
@@ -107,31 +107,54 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
   )
 }
 
-function MuscleList({
-  title,
-  muscles,
-  primary = false,
-}: {
-  title: string
-  muscles: string[]
-  primary?: boolean
-}) {
-  if (muscles.length === 0) return null
+function MusclesWorked({ primary, secondary }: { primary: string[]; secondary: string[] }) {
+  if (primary.length + secondary.length === 0) return null
+  const chip = (muscle: string, isPrimary: boolean) => (
+    <li key={muscle}>
+      <Link
+        to={`/exercises?muscle=${encodeURIComponent(muscle)}`}
+        className={`chip ${isPrimary ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+      >
+        {muscle}
+      </Link>
+    </li>
+  )
   return (
-    <section>
-      <h2 className="mb-2 font-semibold">{title}</h2>
-      <ul className="flex flex-wrap gap-2">
-        {muscles.map((muscle) => (
-          <li key={muscle}>
-            <Link
-              to={`/exercises?muscle=${encodeURIComponent(muscle)}`}
-              className={`chip ${primary ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
-            >
-              {muscle}
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <section aria-labelledby="muscles-heading">
+      <h2 id="muscles-heading" className="mb-2 font-semibold">
+        Muscles worked
+      </h2>
+      <div className="flex items-center gap-4">
+        <MuscleMap primary={primary} secondary={secondary} />
+        <div className="flex min-w-0 flex-col gap-2">
+          <ul className="flex flex-wrap gap-2" aria-label="Primary muscles">
+            {primary.map((m) => chip(m, true))}
+          </ul>
+          {secondary.length > 0 && (
+            <ul className="flex flex-wrap gap-2" aria-label="Secondary muscles">
+              {secondary.map((m) => chip(m, false))}
+            </ul>
+          )}
+          <p className="flex gap-3 text-xs text-neutral-500">
+            <span className="flex items-center gap-1">
+              <span
+                className="h-2.5 w-2.5 rounded-sm"
+                style={{ background: 'var(--map-primary)' }}
+              />
+              primary
+            </span>
+            {secondary.length > 0 && (
+              <span className="flex items-center gap-1">
+                <span
+                  className="h-2.5 w-2.5 rounded-sm"
+                  style={{ background: 'var(--map-secondary)' }}
+                />
+                secondary
+              </span>
+            )}
+          </p>
+        </div>
+      </div>
     </section>
   )
 }

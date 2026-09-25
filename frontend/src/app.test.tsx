@@ -146,6 +146,9 @@ describe('exercise detail', () => {
       '/exercises?muscle=hamstrings',
     )
     expect(screen.getByRole('link', { name: 'calves' })).toBeVisible()
+    // The muscle map draws front + back, and describes itself for screen readers.
+    const map = screen.getByRole('img', { name: 'Muscles worked: hamstrings; also calves' })
+    expect(map.querySelectorAll('svg')).toHaveLength(2)
     expect(screen.getByRole('heading', { name: 'How to' })).toBeVisible()
     expect(screen.getByText('Curl your legs.')).toBeVisible()
     expect(document.querySelectorAll('img[src^="/img/"]')).toHaveLength(2)

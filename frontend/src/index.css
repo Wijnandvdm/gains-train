@@ -35,6 +35,10 @@
   --day-2: #eb6834;
   --day-3: #1baf7a;
   --day-other: var(--color-neutral-400);
+  /* Muscle map (one green ramp, validated): primary darkest, secondary lightest. */
+  --map-body: #d4d4d4;
+  --map-primary: #14532d;
+  --map-secondary: #22c55e;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -44,6 +48,10 @@
     --day-2: #d95926;
     --day-3: #199e70;
     --day-other: var(--color-neutral-500);
+    /* On dark, more work = brighter. */
+    --map-body: #404040;
+    --map-primary: #4ade80;
+    --map-secondary: #166534;
   }
 }
 
