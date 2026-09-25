@@ -126,6 +126,172 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/workouts': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List Workouts */
+    get: operations['list_workouts']
+    put?: never
+    /** Start Workout */
+    post: operations['start_workout']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/workouts/active': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Active Workout */
+    get: operations['active_workout']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/workouts/{workout_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Workout */
+    get: operations['get_workout']
+    put?: never
+    post?: never
+    /** Delete Workout */
+    delete: operations['delete_workout']
+    options?: never
+    head?: never
+    /** Update Workout */
+    patch: operations['update_workout']
+    trace?: never
+  }
+  '/api/workouts/{workout_id}/finish': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Finish Workout */
+    post: operations['finish_workout']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/workouts/{workout_id}/exercises': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Add Workout Exercise */
+    post: operations['add_workout_exercise']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/workouts/{workout_id}/exercises/order': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** Reorder Workout Exercises */
+    put: operations['reorder_workout_exercises']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/workout-exercises/{workout_exercise_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Remove Workout Exercise */
+    delete: operations['remove_workout_exercise']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/sets/{set_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Save Set
+     * @description Create or replace a set. The client picks the id, so retries are harmless.
+     */
+    put: operations['save_set']
+    post?: never
+    /**
+     * Delete Set
+     * @description Idempotent: deleting a set that's already gone also succeeds.
+     */
+    delete: operations['delete_set']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/exercises/{exercise_id}/history': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Exercise History
+     * @description Your previous (finished) sessions of an exercise, newest first.
+     */
+    get: operations['exercise_history']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/health': {
     parameters: {
       query?: never
@@ -193,6 +359,14 @@ export interface components {
       /** Categories */
       categories: string[]
     }
+    /**
+     * ExerciseOrder
+     * @description All of the workout's exercise ids, in the new order.
+     */
+    ExerciseOrder: {
+      /** Workout Exercise Ids */
+      workout_exercise_ids: string[]
+    }
     /** ExercisePage */
     ExercisePage: {
       /** Items */
@@ -203,6 +377,26 @@ export interface components {
       limit: number
       /** Offset */
       offset: number
+    }
+    /**
+     * ExerciseSession
+     * @description One past workout's sets for a single exercise (for "last time" hints).
+     */
+    ExerciseSession: {
+      /**
+       * Workout Id
+       * Format: uuid
+       */
+      workout_id: string
+      /** Workout Name */
+      workout_name: string | null
+      /**
+       * Performed On
+       * Format: date
+       */
+      performed_on: string
+      /** Sets */
+      sets: components['schemas']['SetOut'][]
     }
     /** ExerciseSummary */
     ExerciseSummary: {
@@ -241,6 +435,61 @@ export interface components {
       /** Detail */
       detail?: components['schemas']['ValidationError'][]
     }
+    /**
+     * SetIn
+     * @description Full state of a set (PUT semantics: fields left out are cleared).
+     */
+    SetIn: {
+      /**
+       * Workout Exercise Id
+       * Format: uuid
+       */
+      workout_exercise_id: string
+      /** Position */
+      position: number
+      /** Weight Kg */
+      weight_kg?: number | string | null
+      /** Reps */
+      reps?: number | null
+      /** Rpe */
+      rpe?: number | string | null
+      /**
+       * Is Warmup
+       * @default false
+       */
+      is_warmup: boolean
+      /** Notes */
+      notes?: string | null
+      /** Completed At */
+      completed_at?: string | null
+    }
+    /** SetOut */
+    SetOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /**
+       * Workout Exercise Id
+       * Format: uuid
+       */
+      workout_exercise_id: string
+      /** Position */
+      position: number
+      /** Weight Kg */
+      weight_kg: number | null
+      /** Reps */
+      reps: number | null
+      /** Rpe */
+      rpe: number | null
+      /** Is Warmup */
+      is_warmup: boolean
+      /** Notes */
+      notes: string | null
+      /** Completed At */
+      completed_at: string | null
+    }
     /** UserOut */
     UserOut: {
       /**
@@ -268,6 +517,124 @@ export interface components {
       /** Context */
       ctx?: Record<string, never>
     }
+    /** WorkoutCreate */
+    WorkoutCreate: {
+      /** Id */
+      id?: string | null
+      /** Name */
+      name?: string | null
+      /** Performed On */
+      performed_on?: string | null
+      /** Started At */
+      started_at?: string | null
+    }
+    /** WorkoutDetail */
+    WorkoutDetail: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /** Name */
+      name: string | null
+      /**
+       * Performed On
+       * Format: date
+       */
+      performed_on: string
+      status: components['schemas']['WorkoutStatus']
+      /** Started At */
+      started_at: string | null
+      /** Ended At */
+      ended_at: string | null
+      /** Notes */
+      notes: string | null
+      /** Exercises */
+      exercises: components['schemas']['WorkoutExerciseOut'][]
+    }
+    /** WorkoutExerciseIn */
+    WorkoutExerciseIn: {
+      /** Id */
+      id?: string | null
+      /** Exercise Id */
+      exercise_id: number
+      /** Notes */
+      notes?: string | null
+    }
+    /** WorkoutExerciseOut */
+    WorkoutExerciseOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /** Position */
+      position: number
+      /** Notes */
+      notes: string | null
+      exercise: components['schemas']['ExerciseSummary']
+      /** Sets */
+      sets: components['schemas']['SetOut'][]
+    }
+    /** WorkoutFinish */
+    WorkoutFinish: {
+      /** Ended At */
+      ended_at?: string | null
+    }
+    /** WorkoutPage */
+    WorkoutPage: {
+      /** Items */
+      items: components['schemas']['WorkoutSummary'][]
+      /** Total */
+      total: number
+      /** Limit */
+      limit: number
+      /** Offset */
+      offset: number
+    }
+    /**
+     * WorkoutStatus
+     * @enum {string}
+     */
+    WorkoutStatus: 'in_progress' | 'completed'
+    /** WorkoutSummary */
+    WorkoutSummary: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /** Name */
+      name: string | null
+      /**
+       * Performed On
+       * Format: date
+       */
+      performed_on: string
+      status: components['schemas']['WorkoutStatus']
+      /** Started At */
+      started_at: string | null
+      /** Ended At */
+      ended_at: string | null
+      /** Exercise Names */
+      exercise_names: string[]
+      /** Set Count */
+      set_count: number
+      /** Volume Kg */
+      volume_kg: number
+    }
+    /**
+     * WorkoutUpdate
+     * @description Only the fields that are sent are changed.
+     */
+    WorkoutUpdate: {
+      /** Name */
+      name?: string | null
+      /** Notes */
+      notes?: string | null
+      /** Performed On */
+      performed_on?: string | null
+    }
   }
   responses: never
   parameters: never
@@ -278,12 +645,25 @@ export interface components {
 export type AuthConfig = components['schemas']['AuthConfig']
 export type ExerciseDetail = components['schemas']['ExerciseDetail']
 export type ExerciseFilters = components['schemas']['ExerciseFilters']
+export type ExerciseOrder = components['schemas']['ExerciseOrder']
 export type ExercisePage = components['schemas']['ExercisePage']
+export type ExerciseSession = components['schemas']['ExerciseSession']
 export type ExerciseSummary = components['schemas']['ExerciseSummary']
 export type GoogleLogin = components['schemas']['GoogleLogin']
 export type HttpValidationError = components['schemas']['HTTPValidationError']
+export type SetIn = components['schemas']['SetIn']
+export type SetOut = components['schemas']['SetOut']
 export type UserOut = components['schemas']['UserOut']
 export type ValidationError = components['schemas']['ValidationError']
+export type WorkoutCreate = components['schemas']['WorkoutCreate']
+export type WorkoutDetail = components['schemas']['WorkoutDetail']
+export type WorkoutExerciseIn = components['schemas']['WorkoutExerciseIn']
+export type WorkoutExerciseOut = components['schemas']['WorkoutExerciseOut']
+export type WorkoutFinish = components['schemas']['WorkoutFinish']
+export type WorkoutPage = components['schemas']['WorkoutPage']
+export type WorkoutStatus = components['schemas']['WorkoutStatus']
+export type WorkoutSummary = components['schemas']['WorkoutSummary']
+export type WorkoutUpdate = components['schemas']['WorkoutUpdate']
 export type $defs = Record<string, never>
 export interface operations {
   auth_config: {
@@ -479,6 +859,454 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['ExerciseDetail']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  list_workouts: {
+    parameters: {
+      query?: {
+        limit?: number
+        offset?: number
+      }
+      header?: never
+      path?: never
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkoutPage']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  start_workout: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['WorkoutCreate']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkoutDetail']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  active_workout: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkoutDetail'] | null
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_workout: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        workout_id: string
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkoutDetail']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  delete_workout: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        workout_id: string
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  update_workout: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        workout_id: string
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['WorkoutUpdate']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkoutDetail']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  finish_workout: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        workout_id: string
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['WorkoutFinish']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkoutDetail']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  add_workout_exercise: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        workout_id: string
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['WorkoutExerciseIn']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkoutDetail']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  reorder_workout_exercises: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        workout_id: string
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ExerciseOrder']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkoutDetail']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  remove_workout_exercise: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        workout_exercise_id: string
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['WorkoutDetail']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  save_set: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        set_id: string
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetIn']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SetOut']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  delete_set: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        set_id: string
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  exercise_history: {
+    parameters: {
+      query?: {
+        limit?: number
+      }
+      header?: never
+      path: {
+        exercise_id: number
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ExerciseSession'][]
         }
       }
       /** @description Validation Error */

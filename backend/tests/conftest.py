@@ -10,9 +10,11 @@ from pydantic import SecretStr
 from sqlalchemy import make_url, text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, create_async_engine
 
+from app.auth import SESSION_COOKIE, create_session_token
 from app.config import settings
 from app.db import get_session
 from app.main import app
+from app.models import User
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 
@@ -78,3 +80,27 @@ async def client(session: AsyncSession) -> AsyncIterator[httpx.AsyncClient]:
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
         yield c
     app.dependency_overrides.clear()
+
+
+async def create_user(session: AsyncSession, email: str = "me@example.com") -> User:
+    user = User(email=email)
+    session.add(user)
+    await session.flush()
+    return user
+
+
+def sign_in(client: httpx.AsyncClient, user: User) -> None:
+    """Make the client's requests come from `user` (as if they'd signed in with Google)."""
+    client.cookies.set(SESSION_COOKIE, create_session_token(user.id))
+
+
+@pytest.fixture
+async def user(session: AsyncSession) -> User:
+    return await create_user(session)
+
+
+@pytest.fixture
+async def auth_client(client: httpx.AsyncClient, user: User) -> httpx.AsyncClient:
+    """The API client, signed in as `user`."""
+    sign_in(client, user)
+    return client

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.db import get_session
 from app.importers.free_exercise_db import IMAGES_DIR, dataset_dir
-from app.routers import auth, exercises
+from app.routers import auth, exercises, workouts
 from app.schemas.exercise import IMAGE_URL_PREFIX
 
 app = FastAPI(
@@ -29,6 +29,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(exercises.router)
+app.include_router(workouts.router)
 
 # Exercise images from the downloaded dataset (run `python -m app.cli seed-exercises` first).
 # check_dir=False: the app still starts (e.g. in tests) when the dataset isn't downloaded.

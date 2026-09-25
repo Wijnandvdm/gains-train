@@ -1,10 +1,9 @@
-import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import ColumnElement, Select, case, func, or_, select
+from sqlalchemy import ColumnElement, case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import InstrumentedAttribute, selectinload
+from sqlalchemy.orm import InstrumentedAttribute
 
 from app.auth import OptionalUserId
 from app.db import get_session
@@ -15,26 +14,15 @@ from app.schemas.exercise import (
     ExercisePage,
     ExerciseSummary,
 )
+from app.services.exercises import load_muscles, visible_to
 
 router = APIRouter(prefix="/api", tags=["exercises"])
 
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 
-def _visible_to(user_id: uuid.UUID | None) -> ColumnElement[bool]:
-    """Library exercises are visible to everyone; custom ones only to their owner."""
-    if user_id is None:
-        return Exercise.owner_id.is_(None)
-    return or_(Exercise.owner_id.is_(None), Exercise.owner_id == user_id)
-
-
 def _escape_like(term: str) -> str:
     return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-
-
-def _with_muscles(stmt: Select[tuple[Exercise]]) -> Select[tuple[Exercise]]:
-    # Async sessions can't lazy-load, so load muscle links + names up front (2 extra queries).
-    return stmt.options(selectinload(Exercise.muscles).selectinload(ExerciseMuscle.muscle))
 
 
 @router.get("/exercises", response_model=ExercisePage)
@@ -48,7 +36,7 @@ async def list_exercises(
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> ExercisePage:
-    conditions: list[ColumnElement[bool]] = [_visible_to(user_id)]
+    conditions: list[ColumnElement[bool]] = [visible_to(user_id)]
     words = q.split() if q else []
     # Every word must appear somewhere in the name: "incline curl" finds "Incline Dumbbell Curl".
     conditions += [Exercise.name.ilike(f"%{_escape_like(w)}%", escape="\\") for w in words]
@@ -78,7 +66,7 @@ async def list_exercises(
         .limit(limit)
         .offset(offset)
     )
-    exercises = (await session.scalars(_with_muscles(stmt))).all()
+    exercises = (await session.scalars(stmt.options(load_muscles()))).all()
     return ExercisePage(
         items=[ExerciseSummary.from_model(ex) for ex in exercises],
         total=total or 0,
@@ -89,7 +77,7 @@ async def list_exercises(
 
 @router.get("/exercises/filters", response_model=ExerciseFilters)
 async def exercise_filters(session: Session, user_id: OptionalUserId) -> ExerciseFilters:
-    visible = _visible_to(user_id)
+    visible = visible_to(user_id)
 
     async def distinct(column: InstrumentedAttribute[str | None]) -> list[str]:
         rows = await session.scalars(
@@ -109,8 +97,8 @@ async def exercise_filters(session: Session, user_id: OptionalUserId) -> Exercis
 async def get_exercise(
     exercise_id: int, session: Session, user_id: OptionalUserId
 ) -> ExerciseDetail:
-    stmt = select(Exercise).where(Exercise.id == exercise_id, _visible_to(user_id))
-    exercise = await session.scalar(_with_muscles(stmt))
+    stmt = select(Exercise).where(Exercise.id == exercise_id, visible_to(user_id))
+    exercise = await session.scalar(stmt.options(load_muscles()))
     if exercise is None:
         # Also for someone else's custom exercise: don't reveal that it exists.
         raise HTTPException(status_code=404, detail="Exercise not found")
