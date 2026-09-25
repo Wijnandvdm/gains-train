@@ -28,7 +28,12 @@ const start = (): Op => ({
   type: 'startWorkout',
   key: key(),
   workoutId: W,
-  workout: { name: 'Legs', performed_on: '2026-09-25', started_at: '2026-09-25T18:00:00Z' },
+  workout: {
+    name: 'Legs',
+    performed_on: '2026-09-25',
+    started_at: '2026-09-25T18:00:00Z',
+    routine_day_id: null,
+  },
 })
 const addExercise = (id = WE): Op => ({
   type: 'addExercise',

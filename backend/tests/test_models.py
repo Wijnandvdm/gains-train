@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +11,9 @@ from app.models import (
     ExerciseMuscle,
     Muscle,
     MuscleRole,
+    Routine,
+    RoutineDay,
+    RoutineExercise,
     User,
     Workout,
     WorkoutExercise,
@@ -158,3 +161,40 @@ async def test_deleting_user_cascades_to_their_data(session: AsyncSession) -> No
     assert await session.scalar(select(func.count()).select_from(WorkoutSet)) == 0
     # Library exercises are shared and must survive.
     assert await session.scalar(select(func.count()).select_from(Exercise)) == 1
+
+
+async def test_deleting_user_with_custom_exercises_in_use(session: AsyncSession) -> None:
+    """Their custom exercise is used by their workout and routine: all of it must go at once.
+    (With ON DELETE RESTRICT this failed, as Postgres checks it before the cascades finish.)"""
+    user = await make_user(session)
+    custom = Exercise(slug="custom-bss", name="Bulgarian Split Squat", owner_id=user.id)
+    session.add(custom)
+    await session.flush()
+    workout = Workout(user_id=user.id, performed_on=date(2026, 9, 24))
+    workout.exercises.append(WorkoutExercise(exercise_id=custom.id, position=1))
+    routine = Routine(user_id=user.id)
+    routine.days.append(
+        RoutineDay(
+            position=1, name="Legs", exercises=[RoutineExercise(position=1, exercise_id=custom.id)]
+        )
+    )
+    session.add_all([workout, routine])
+    await session.flush()
+
+    await session.execute(delete(User).where(User.id == user.id))
+    session.expunge_all()
+    assert await session.scalar(select(func.count()).select_from(Exercise)) == 0
+    assert await session.scalar(select(func.count()).select_from(RoutineExercise)) == 0
+
+
+async def test_exercise_in_use_cannot_be_deleted(session: AsyncSession) -> None:
+    user = await make_user(session)
+    exercise = await make_exercise(session)
+    workout = Workout(user_id=user.id, performed_on=date(2026, 9, 24))
+    workout.exercises.append(WorkoutExercise(exercise_id=exercise.id, position=1))
+    session.add(workout)
+    await session.flush()
+    await session.execute(delete(Exercise).where(Exercise.id == exercise.id))
+    # The check is deferred to commit; force it now (tests roll back instead of committing).
+    with pytest.raises(IntegrityError, match="fk_workout_exercises_exercise_id_exercises"):
+        await session.execute(text("SET CONSTRAINTS ALL IMMEDIATE"))

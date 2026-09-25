@@ -90,6 +90,8 @@ class WorkoutCreate(BaseModel):
     # The client's local date; defaults to the server's date.
     performed_on: date | None = None
     started_at: datetime | None = None
+    # When doing a day of your routine (decides which day is up next).
+    routine_day_id: uuid.UUID | None = None
 
 
 class WorkoutUpdate(BaseModel):
@@ -107,6 +109,7 @@ class WorkoutFinish(BaseModel):
 class WorkoutSummary(BaseModel):
     id: uuid.UUID
     name: str | None
+    routine_day_id: uuid.UUID | None
     performed_on: date
     status: WorkoutStatus
     started_at: datetime | None
@@ -127,6 +130,7 @@ class WorkoutPage(BaseModel):
 class WorkoutDetail(BaseModel):
     id: uuid.UUID
     name: str | None
+    routine_day_id: uuid.UUID | None
     performed_on: date
     status: WorkoutStatus
     started_at: datetime | None

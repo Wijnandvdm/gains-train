@@ -56,6 +56,10 @@ class Workout(UUIDPrimaryKey, Timestamps, Base):
     notes: Mapped[str | None] = mapped_column(Text)
     # Set only for imported workouts, e.g. "legacy-sheet:2026-07-30:Day1".
     import_key: Mapped[str | None] = mapped_column(String(200))
+    # The routine day this workout was (e.g. "Day2"); decides which day is up next.
+    routine_day_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("routine_days.id", ondelete="SET NULL"), index=True
+    )
 
     exercises: Mapped[list["WorkoutExercise"]] = relationship(
         back_populates="workout",
@@ -82,7 +86,11 @@ class WorkoutExercise(UUIDPrimaryKey, Base):
         ForeignKey("workouts.id", ondelete="CASCADE"), index=True
     )
     exercise_id: Mapped[int] = mapped_column(
-        ForeignKey("exercises.id", ondelete="RESTRICT"), index=True
+        # An exercise in your history can't be deleted. Checked at commit (DEFERRED), so
+        # deleting a user can cascade through their workouts and custom exercises in any
+        # order: an immediate check (RESTRICT) could fire before the workouts are gone.
+        ForeignKey("exercises.id", deferrable=True, initially="DEFERRED"),
+        index=True,
     )
     position: Mapped[int] = mapped_column(Integer)
     notes: Mapped[str | None] = mapped_column(Text)

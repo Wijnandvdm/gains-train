@@ -72,7 +72,8 @@ export interface paths {
     delete?: never
     options?: never
     head?: never
-    patch?: never
+    /** Update Me */
+    patch: operations['update_me']
     trace?: never
   }
   '/api/exercises': {
@@ -329,6 +330,49 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/routine': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Routine */
+    get: operations['get_routine']
+    /**
+     * Save Routine
+     * @description Replace the routine. Days sent with their existing id keep it, so workouts stay
+     *     linked to them (and the rotation keeps its place); days left out are deleted.
+     */
+    put: operations['save_routine']
+    post?: never
+    /** Delete Routine */
+    delete: operations['delete_routine']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/routine/from-history': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Create Routine From History
+     * @description Turn your named workouts (e.g. Day1/Day2/Day3) into your routine.
+     */
+    post: operations['create_routine_from_history']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/health': {
     parameters: {
       query?: never
@@ -497,6 +541,11 @@ export interface components {
       /** Detail */
       detail?: components['schemas']['ValidationError'][]
     }
+    /** MeUpdate */
+    MeUpdate: {
+      /** Setup Completed */
+      setup_completed?: boolean | null
+    }
     /** RecordsOut */
     RecordsOut: {
       heaviest: components['schemas']['SetRecordOut']
@@ -512,6 +561,68 @@ export interface components {
       best_session_volume_on: string
       /** Rep Records */
       rep_records: components['schemas']['SetRecordOut'][]
+    }
+    /** RoutineDayIn */
+    RoutineDayIn: {
+      /** Id */
+      id?: string | null
+      /** Name */
+      name: string
+      /**
+       * Exercises
+       * @default []
+       */
+      exercises: components['schemas']['RoutineExerciseIn'][]
+    }
+    /** RoutineDayOut */
+    RoutineDayOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /** Position */
+      position: number
+      /** Name */
+      name: string
+      /** Exercises */
+      exercises: components['schemas']['RoutineExerciseOut'][]
+    }
+    /** RoutineExerciseIn */
+    RoutineExerciseIn: {
+      /** Exercise Id */
+      exercise_id: number
+      /**
+       * Sets
+       * @default 3
+       */
+      sets: number
+    }
+    /** RoutineExerciseOut */
+    RoutineExerciseOut: {
+      exercise: components['schemas']['ExerciseSummary']
+      /** Sets */
+      sets: number
+    }
+    /**
+     * RoutineIn
+     * @description The whole routine; days are in rotation order.
+     */
+    RoutineIn: {
+      /** Days */
+      days: components['schemas']['RoutineDayIn'][]
+    }
+    /** RoutineOut */
+    RoutineOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /** Days */
+      days: components['schemas']['RoutineDayOut'][]
+      /** Next Day Id */
+      next_day_id: string | null
     }
     /** SessionPoint */
     SessionPoint: {
@@ -616,6 +727,8 @@ export interface components {
       name: string | null
       /** Avatar Url */
       avatar_url: string | null
+      /** Setup Completed At */
+      setup_completed_at: string | null
     }
     /** ValidationError */
     ValidationError: {
@@ -640,6 +753,8 @@ export interface components {
       performed_on?: string | null
       /** Started At */
       started_at?: string | null
+      /** Routine Day Id */
+      routine_day_id?: string | null
     }
     /** WorkoutDetail */
     WorkoutDetail: {
@@ -650,6 +765,8 @@ export interface components {
       id: string
       /** Name */
       name: string | null
+      /** Routine Day Id */
+      routine_day_id: string | null
       /**
        * Performed On
        * Format: date
@@ -719,6 +836,8 @@ export interface components {
       id: string
       /** Name */
       name: string | null
+      /** Routine Day Id */
+      routine_day_id: string | null
       /**
        * Performed On
        * Format: date
@@ -766,7 +885,14 @@ export type ExerciseStats = components['schemas']['ExerciseStats']
 export type ExerciseSummary = components['schemas']['ExerciseSummary']
 export type GoogleLogin = components['schemas']['GoogleLogin']
 export type HttpValidationError = components['schemas']['HTTPValidationError']
+export type MeUpdate = components['schemas']['MeUpdate']
 export type RecordsOut = components['schemas']['RecordsOut']
+export type RoutineDayIn = components['schemas']['RoutineDayIn']
+export type RoutineDayOut = components['schemas']['RoutineDayOut']
+export type RoutineExerciseIn = components['schemas']['RoutineExerciseIn']
+export type RoutineExerciseOut = components['schemas']['RoutineExerciseOut']
+export type RoutineIn = components['schemas']['RoutineIn']
+export type RoutineOut = components['schemas']['RoutineOut']
 export type SessionPoint = components['schemas']['SessionPoint']
 export type SetIn = components['schemas']['SetIn']
 export type SetOut = components['schemas']['SetOut']
@@ -865,6 +991,41 @@ export interface operations {
       }
     }
     requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserOut']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  update_me: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MeUpdate']
+      }
+    }
     responses: {
       /** @description Successful Response */
       200: {
@@ -1489,6 +1650,132 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['ExerciseStats']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_routine: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['RoutineOut'] | null
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  save_routine: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RoutineIn']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['RoutineOut']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  delete_routine: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  create_routine_from_history: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['RoutineOut']
         }
       }
       /** @description Validation Error */

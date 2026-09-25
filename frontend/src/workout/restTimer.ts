@@ -25,6 +25,11 @@ function write(key: string, value: unknown): void {
   }
 }
 
+/** The default rest between sets (chosen during setup; ±15s on the timer also changes it). */
+export function setDefaultRestSeconds(seconds: number): void {
+  write(SECONDS_KEY, seconds)
+}
+
 let audio: AudioContext | undefined
 
 /** Browsers only allow sound after a user gesture, so this runs when a set is ticked. */

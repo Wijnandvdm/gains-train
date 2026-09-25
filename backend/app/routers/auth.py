@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -17,7 +18,7 @@ from app.auth import (
 from app.config import settings
 from app.db import get_session
 from app.models import User
-from app.schemas.user import UserOut
+from app.schemas.user import MeUpdate, UserOut
 
 router = APIRouter(prefix="/api", tags=["auth"])
 
@@ -87,4 +88,14 @@ async def logout(response: Response) -> None:
 
 @router.get("/me", response_model=UserOut)
 async def me(user: CurrentUser) -> UserOut:
+    return UserOut.model_validate(user)
+
+
+@router.patch("/me", response_model=UserOut)
+async def update_me(
+    body: MeUpdate, user: CurrentUser, session: Annotated[AsyncSession, Depends(get_session)]
+) -> UserOut:
+    if body.setup_completed is not None:
+        user.setup_completed_at = datetime.now(UTC) if body.setup_completed else None
+    await session.commit()
     return UserOut.model_validate(user)

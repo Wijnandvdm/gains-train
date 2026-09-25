@@ -1,52 +1,182 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { WorkoutDetail, WorkoutSummary } from '../api/schema'
+import type { RoutineDayOut, RoutineOut, WorkoutDetail } from '../api/schema'
 import { ExerciseBlock } from '../components/workout/ExerciseBlock'
 import { ExercisePicker } from '../components/workout/ExercisePicker'
+import { FocusCard } from '../components/workout/FocusCard'
 import { RestTimerBar } from '../components/workout/RestTimerBar'
 import { SyncError, SyncStatus } from '../components/workout/SyncStatus'
 import { Spinner } from '../components/Spinner'
 import { formatDay } from '../lib/format'
-import { useActiveWorkout, useWorkoutActions, useWorkoutHistory } from '../workout/hooks'
+import { uuid } from '../lib/uuid'
+import { useRoutine } from '../routine'
+import {
+  useActiveWorkout,
+  useLastTimes,
+  useWorkoutActions,
+  useWorkoutHistory,
+} from '../workout/hooks'
+import { type NextSet, nextSet, type PlannedExercise } from '../workout/plan'
+import { recentRoutines } from '../workout/recent'
 import { useRestTimer } from '../workout/restTimer'
+import { useSkipped } from '../workout/skipped'
 
 export function WorkoutPage() {
-  const { data: active, isPending, isError, refetch } = useActiveWorkout()
+  const active = useActiveWorkout()
+  const routine = useRoutine()
   const [justFinished, setJustFinished] = useState(false)
+  // With a routine, the next day is shown ready to go; this switches to the other options.
+  const [choosing, setChoosing] = useState(false)
 
-  if (isPending) return <Spinner />
-  if (isError && active === undefined) {
+  if (active.isPending || routine.isPending) return <Spinner />
+  if (active.isError && active.data === undefined) {
     return (
       <div className="py-8 text-center">
         <p className="mb-3">Couldn't load your workout. Are you online?</p>
-        <button className="btn" onClick={() => refetch()}>
+        <button className="btn" onClick={() => active.refetch()}>
           Try again
         </button>
       </div>
     )
   }
-  if (!active) return <StartWorkout justFinished={justFinished} />
-  return <ActiveWorkout workout={active} onFinished={() => setJustFinished(true)} />
+  if (active.data) {
+    return (
+      <ActiveWorkout
+        workout={active.data}
+        routine={routine.data ?? null}
+        onFinished={() => {
+          setJustFinished(true)
+          setChoosing(false)
+        }}
+      />
+    )
+  }
+  const hasRoutine = Boolean(routine.data?.days.length)
+  return (
+    <section className="flex flex-col gap-6">
+      {justFinished && <FinishedBanner />}
+      {hasRoutine && !choosing ? (
+        <UpNext routine={routine.data!} onOther={() => setChoosing(true)} />
+      ) : (
+        <StartWorkout onBack={hasRoutine ? () => setChoosing(false) : undefined} />
+      )}
+    </section>
+  )
 }
 
-// --- Starting -----------------------------------------------------------------------------
-
-/** The most recent workout for each distinct name, e.g. your Day1 / Day2 / Day3 split. */
-function recentRoutines(workouts: WorkoutSummary[], max = 4): WorkoutSummary[] {
-  const seen = new Set<string>()
-  return workouts
-    .filter((w) => {
-      if (!w.name || w.status !== 'completed' || seen.has(w.name)) return false
-      seen.add(w.name)
-      return true
-    })
-    .slice(0, max)
+function FinishedBanner() {
+  return (
+    <p
+      role="status"
+      className="rounded-lg bg-brand-50 px-4 py-3 text-brand-900 dark:bg-brand-900/40 dark:text-brand-100"
+    >
+      Workout finished. Nice work! See it in{' '}
+      <Link to="/history" className="font-semibold underline">
+        History
+      </Link>
+      .
+    </p>
+  )
 }
 
-function StartWorkout({ justFinished }: { justFinished: boolean }) {
+/** A stable key per set: remounting the focus card resets its prefilled numbers. */
+const focusKey = (next: NextSet) =>
+  `${next.item.key}-${next.setNumber}-${next.prefill.weight}-${next.prefill.reps}`
+
+// --- Up next (routine) --------------------------------------------------------------------
+
+function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void }) {
+  const actions = useWorkoutActions()
+  const restTimer = useRestTimer()
+  const [dayId, setDayId] = useState(routine.next_day_id ?? routine.days[0]!.id)
+  const day: RoutineDayOut = routine.days.find((d) => d.id === dayId) ?? routine.days[0]!
+  const lastTimes = useLastTimes(day.exercises.map((re) => re.exercise.id))
+
+  // The day as it would be, before anything is saved: nothing is created until the first ✓.
+  const plan: PlannedExercise[] = day.exercises.map((re, i) => ({
+    key: `${re.exercise.id}-${i}`,
+    exercise: re.exercise,
+    workoutExerciseId: null,
+    routineSets: re.sets,
+    sets: [],
+    lastTime: lastTimes.get(re.exercise.id) ?? [],
+  }))
+  const next = nextSet(plan, new Set())
+
+  return (
+    <>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-brand-600 dark:text-brand-500">
+          {dayId === routine.next_day_id ? 'Up next' : 'Today'}
+        </p>
+        <h1 className="text-2xl font-bold">{day.name}</h1>
+        {routine.days.length > 1 && (
+          <div
+            role="group"
+            aria-label="Routine day"
+            className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4"
+          >
+            {routine.days.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                aria-pressed={d.id === day.id}
+                onClick={() => setDayId(d.id)}
+                className={`chip normal-case ${d.id === day.id ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+              >
+                {d.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {next ? (
+        <FocusCard
+          key={focusKey(next)}
+          next={next}
+          onConfirm={(values) => {
+            actions.startDay(day, values)
+            restTimer.start() // picked up by the workout screen that replaces this one
+          }}
+        />
+      ) : (
+        <p className="text-neutral-500">
+          This day has no exercises yet.{' '}
+          <Link to="/routine" className="font-medium underline">
+            Add some
+          </Link>
+        </p>
+      )}
+
+      {day.exercises.length > 1 && (
+        <ol className="flex flex-col gap-1 text-sm text-neutral-500">
+          {day.exercises.map((re, i) => (
+            <li key={i}>
+              {re.sets} × {re.exercise.name}
+            </li>
+          ))}
+        </ol>
+      )}
+
+      <p className="flex gap-4 text-sm">
+        <Link to="/routine" className="text-neutral-500 underline">
+          Edit routine
+        </Link>
+        <button type="button" onClick={onOther} className="text-neutral-500 underline">
+          Other workout
+        </button>
+      </p>
+    </>
+  )
+}
+
+// --- Starting without a routine -----------------------------------------------------------
+
+function StartWorkout({ onBack }: { onBack?: () => void }) {
   const actions = useWorkoutActions()
   const history = useWorkoutHistory()
-  const routines = recentRoutines(history.data?.pages.flatMap((p) => p.items) ?? [])
+  const recent = recentRoutines(history.data?.pages.flatMap((p) => p.items) ?? [])
   const [starting, setStarting] = useState(false)
 
   async function start(options: { name?: string; copyFrom?: string } = {}) {
@@ -59,20 +189,7 @@ function StartWorkout({ justFinished }: { justFinished: boolean }) {
   }
 
   return (
-    <section className="flex flex-col gap-6">
-      {justFinished && (
-        <p
-          role="status"
-          className="rounded-lg bg-brand-50 px-4 py-3 text-brand-900 dark:bg-brand-900/40 dark:text-brand-100"
-        >
-          Workout finished. Nice work! See it in{' '}
-          <Link to="/history" className="font-semibold underline">
-            History
-          </Link>
-          .
-        </p>
-      )}
-
+    <>
       <div>
         <h1 className="mb-1 text-2xl font-bold">Workout</h1>
         <p className="text-neutral-500">Start fresh, or repeat a recent session.</p>
@@ -87,11 +204,11 @@ function StartWorkout({ justFinished }: { justFinished: boolean }) {
         Start empty workout
       </button>
 
-      {routines.length > 0 && (
+      {recent.length > 0 && (
         <div className="flex flex-col gap-2">
           <h2 className="font-semibold">Repeat a recent workout</h2>
           <ul className="flex flex-col gap-2">
-            {routines.map((w) => (
+            {recent.map((w) => (
               <li key={w.id}>
                 <button
                   type="button"
@@ -114,7 +231,17 @@ function StartWorkout({ justFinished }: { justFinished: boolean }) {
           </ul>
         </div>
       )}
-    </section>
+
+      {onBack ? (
+        <button type="button" onClick={onBack} className="text-sm text-neutral-500 underline">
+          Back to your routine
+        </button>
+      ) : (
+        <Link to="/routine" className="text-center text-sm text-neutral-500 underline">
+          Set up a routine
+        </Link>
+      )}
+    </>
   )
 }
 
@@ -132,18 +259,54 @@ function useElapsedMinutes(startedAt: string | null): number | null {
 
 function ActiveWorkout({
   workout,
+  routine,
   onFinished,
 }: {
   workout: WorkoutDetail
+  routine: RoutineOut | null
   onFinished: () => void
 }) {
   const actions = useWorkoutActions()
   const restTimer = useRestTimer()
   const [picking, setPicking] = useState(false)
+  const [skipped, skip] = useSkipped(workout.id)
   const minutes = useElapsedMinutes(workout.started_at)
+  const lastTimes = useLastTimes(workout.exercises.map((we) => we.exercise.id))
+
+  const routineDay = routine?.days.find((d) => d.id === workout.routine_day_id)
+  const plan: PlannedExercise[] = workout.exercises.map((we) => ({
+    key: we.id,
+    exercise: we.exercise,
+    workoutExerciseId: we.id,
+    routineSets: routineDay?.exercises.find((re) => re.exercise.id === we.exercise.id)?.sets,
+    sets: we.sets,
+    lastTime: lastTimes.get(we.exercise.id) ?? [],
+  }))
+  const next = nextSet(plan, skipped)
 
   const allSets = workout.exercises.flatMap((we) => we.sets)
   const doneSets = allSets.filter((s) => s.completed_at).length
+
+  function confirm(target: NextSet, values: { weight_kg: number; reps: number }) {
+    const completed_at = new Date().toISOString()
+    const sets = target.item.sets
+    actions.saveSet(
+      workout.id,
+      target.openSet
+        ? { ...target.openSet, ...values, completed_at }
+        : {
+            id: uuid(),
+            workout_exercise_id: target.item.workoutExerciseId!,
+            position: Math.max(0, ...sets.map((s) => s.position)) + 1,
+            ...values,
+            rpe: null,
+            is_warmup: false,
+            notes: null,
+            completed_at,
+          },
+    )
+    restTimer.start()
+  }
 
   function finish() {
     const open = allSets.length - doneSets
@@ -184,6 +347,24 @@ function ActiveWorkout({
       </header>
 
       <SyncError />
+
+      {next ? (
+        <FocusCard
+          key={focusKey(next)}
+          next={next}
+          onConfirm={(values) => confirm(next, values)}
+          onSkipExercise={() => skip(next.item.key)}
+        />
+      ) : (
+        workout.exercises.length > 0 && (
+          <div className="card flex flex-col items-center gap-3 p-4 text-center">
+            <p className="font-semibold">That's everything you planned. 💪</p>
+            <button type="button" className="btn btn-primary w-full py-3" onClick={finish}>
+              Finish workout
+            </button>
+          </div>
+        )
+      )}
 
       {workout.exercises.length === 0 && (
         <p className="py-4 text-center text-neutral-500">Add your first exercise to get going.</p>

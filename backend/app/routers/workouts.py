@@ -21,6 +21,8 @@ from app.db import get_session
 from app.models import (
     Exercise,
     ExerciseMuscle,
+    Routine,
+    RoutineDay,
     User,
     Workout,
     WorkoutExercise,
@@ -44,6 +46,7 @@ from app.schemas.workout import (
 )
 from app.services.exercises import visible_to
 from app.services.sets import performed_set
+from app.services.workouts import newest_first
 
 router = APIRouter(prefix="/api", tags=["workouts"])
 
@@ -86,6 +89,7 @@ async def _workout_detail(session: AsyncSession, workout_id: uuid.UUID) -> Worko
     return WorkoutDetail(
         id=workout.id,
         name=workout.name,
+        routine_day_id=workout.routine_day_id,
         performed_on=workout.performed_on,
         status=workout.status,
         started_at=workout.started_at,
@@ -127,10 +131,20 @@ async def start_workout(body: WorkoutCreate, user: CurrentUser, session: Session
                 raise HTTPException(status.HTTP_409_CONFLICT, "Workout id already in use")
             return await _workout_detail(session, existing.id)  # a retried request
 
+    if body.routine_day_id is not None:
+        owned_day = await session.scalar(
+            select(RoutineDay.id)
+            .join(Routine)
+            .where(RoutineDay.id == body.routine_day_id, Routine.user_id == user.id)
+        )
+        if owned_day is None:
+            raise _not_found("Routine day")
+
     workout = Workout(
         id=body.id or uuid.uuid4(),
         user_id=user.id,
         name=body.name,
+        routine_day_id=body.routine_day_id,
         performed_on=body.performed_on or date.today(),
         started_at=body.started_at or datetime.now(UTC),
         status=WorkoutStatus.IN_PROGRESS,
@@ -168,15 +182,7 @@ async def list_workouts(
     total = await session.scalar(select(func.count()).select_from(Workout).where(mine)) or 0
     workouts = (
         await session.scalars(
-            select(Workout)
-            .where(mine)
-            .order_by(
-                Workout.performed_on.desc(),
-                Workout.started_at.desc().nulls_last(),
-                Workout.created_at.desc(),
-            )
-            .limit(limit)
-            .offset(offset)
+            select(Workout).where(mine).order_by(*newest_first()).limit(limit).offset(offset)
         )
     ).all()
     ids = [w.id for w in workouts]
@@ -214,6 +220,7 @@ async def list_workouts(
             WorkoutSummary(
                 id=w.id,
                 name=w.name,
+                routine_day_id=w.routine_day_id,
                 performed_on=w.performed_on,
                 status=w.status,
                 started_at=w.started_at,

@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Link, Navigate, NavLink, Outlet } from 'react-router-dom'
 import { useMe, useSignOut } from '../auth'
 import { useOutboxSync } from '../workout/hooks'
 import { outbox } from '../workout/sync'
@@ -36,8 +36,11 @@ function AccountMenu() {
       <div className="card absolute right-0 z-20 mt-2 w-60 p-3 shadow-lg">
         <p className="truncate font-medium">{user.name ?? user.email}</p>
         <p className="truncate text-sm text-neutral-500">{user.email}</p>
+        <Link to="/routine" className="btn mt-3 w-full">
+          Edit routine
+        </Link>
         <button
-          className="btn mt-3 w-full"
+          className="btn mt-2 w-full"
           onClick={() => {
             const { pending } = outbox.getStatus()
             const lose = `${pending} change${pending === 1 ? " hasn't" : "s haven't"} synced yet and will be lost. Sign out anyway?`
@@ -56,6 +59,9 @@ function AccountMenu() {
 
 export function AppLayout() {
   useOutboxSync()
+  const { data: user } = useMe()
+  // First open: ask the setup questions before anything else.
+  if (user && !user.setup_completed_at) return <Navigate to="/setup" replace />
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-neutral-50/90 px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">

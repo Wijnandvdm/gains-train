@@ -1,4 +1,6 @@
-from sqlalchemy import String
+from datetime import datetime
+
+from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, Timestamps, UUIDPrimaryKey
@@ -13,3 +15,5 @@ class User(UUIDPrimaryKey, Timestamps, Base):
     google_sub: Mapped[str | None] = mapped_column(String(255), unique=True)
     name: Mapped[str | None] = mapped_column(String(200))
     avatar_url: Mapped[str | None] = mapped_column(String(2048))
+    # Set once the first-open questions (routine, rest time) have been answered.
+    setup_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

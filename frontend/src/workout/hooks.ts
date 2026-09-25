@@ -2,12 +2,13 @@ import {
   keepPreviousData,
   useInfiniteQuery,
   useMutation,
+  useQueries,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
 import { useEffect, useSyncExternalStore } from 'react'
 import { api, unwrap } from '../api/client'
-import type { ExerciseSummary, SetOut, WorkoutDetail } from '../api/schema'
+import type { ExerciseSummary, RoutineDayOut, SetOut, WorkoutDetail } from '../api/schema'
 import { localDateString } from '../lib/format'
 import { uuid } from '../lib/uuid'
 import { applyOp, applyOps, type Op } from './ops'
@@ -43,6 +44,23 @@ export function useLastTime(exerciseId: number) {
     select: (sessions) => sessions[0] ?? null,
     staleTime: 5 * 60 * 1000,
   })
+}
+
+/** Last time's sets for several exercises at once (exercise id → sets). */
+export function useLastTimes(exerciseIds: number[]): Map<number, SetOut[]> {
+  const results = useQueries({
+    queries: exerciseIds.map((id) => ({
+      queryKey: historyKey(id),
+      queryFn: () =>
+        unwrap(
+          api.GET('/api/exercises/{exercise_id}/history', {
+            params: { path: { exercise_id: id }, query: { limit: 1 } },
+          }),
+        ),
+      staleTime: 5 * 60 * 1000,
+    })),
+  })
+  return new Map(exerciseIds.map((id, i) => [id, results[i]?.data?.[0]?.sets ?? []]))
 }
 
 export function useOutboxStatus() {
@@ -89,6 +107,45 @@ export function useWorkoutActions() {
   }
 
   return {
+    /**
+     * Start a routine day in one tap: creates the workout with the day's exercises and
+     * logs the first set (the one the focus card showed).
+     */
+    startDay(day: RoutineDayOut, firstSet: { weight_kg: number; reps: number }) {
+      const workoutId = uuid()
+      run({
+        type: 'startWorkout',
+        key: uuid(),
+        workoutId,
+        workout: {
+          name: day.name,
+          performed_on: localDateString(),
+          started_at: new Date().toISOString(),
+          routine_day_id: day.id,
+        },
+      })
+      day.exercises.forEach(({ exercise }, i) => {
+        const workoutExerciseId = uuid()
+        run({ type: 'addExercise', key: uuid(), workoutId, workoutExerciseId, exercise })
+        if (i === 0) {
+          run({
+            type: 'putSet',
+            key: uuid(),
+            workoutId,
+            set: {
+              id: uuid(),
+              workout_exercise_id: workoutExerciseId,
+              position: 1,
+              ...firstSet,
+              rpe: null,
+              is_warmup: false,
+              notes: null,
+              completed_at: new Date().toISOString(),
+            },
+          })
+        }
+      })
+    },
     /** Start a workout; optionally with the same exercises as a previous one. */
     async start({ name, copyFrom }: { name?: string | null; copyFrom?: string } = {}) {
       const workoutId = uuid()
@@ -112,6 +169,7 @@ export function useWorkoutActions() {
           name: name ?? null,
           performed_on: localDateString(),
           started_at: new Date().toISOString(),
+          routine_day_id: null,
         },
       })
       for (const exercise of exercises) {

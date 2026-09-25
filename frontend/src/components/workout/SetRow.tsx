@@ -23,6 +23,14 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
   const [weight, setWeight] = useState(toText(set.weight_kg))
   const [reps, setReps] = useState(toText(set.reps))
   const [needsReps, setNeedsReps] = useState(false)
+  // When the saved values change elsewhere (e.g. the focus card filled this row), show them.
+  // (React's "adjust state when a prop changes" pattern: no remount, so focus is kept.)
+  const [saved, setSaved] = useState({ weight: set.weight_kg, reps: set.reps })
+  if (saved.weight !== set.weight_kg || saved.reps !== set.reps) {
+    setSaved({ weight: set.weight_kg, reps: set.reps })
+    setWeight(toText(set.weight_kg))
+    setReps(toText(set.reps))
+  }
   const done = set.completed_at !== null
 
   function commitDraft() {

@@ -13,7 +13,12 @@ export type Op = Base &
   (
     | {
         type: 'startWorkout'
-        workout: { name: string | null; performed_on: string; started_at: string }
+        workout: {
+          name: string | null
+          performed_on: string
+          started_at: string
+          routine_day_id: string | null
+        }
       }
     | { type: 'addExercise'; workoutExerciseId: string; exercise: ExerciseSummary }
     | { type: 'removeExercise'; workoutExerciseId: string }
@@ -34,6 +39,7 @@ export function applyOp(active: WorkoutDetail | null, op: Op): WorkoutDetail | n
     return {
       id: op.workoutId,
       name: op.workout.name,
+      routine_day_id: op.workout.routine_day_id,
       performed_on: op.workout.performed_on,
       started_at: op.workout.started_at,
       ended_at: null,

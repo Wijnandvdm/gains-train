@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
@@ -10,3 +11,8 @@ class UserOut(BaseModel):
     email: str
     name: str | None
     avatar_url: str | None
+    setup_completed_at: datetime | None
+
+
+class MeUpdate(BaseModel):
+    setup_completed: bool | None = None

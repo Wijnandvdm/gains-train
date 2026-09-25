@@ -77,6 +77,7 @@ export const ME: UserOut = {
   email: 'me@example.com',
   name: 'Me',
   avatar_url: null,
+  setup_completed_at: '2026-09-01T00:00:00Z',
 }
 
 export function exercise(

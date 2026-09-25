@@ -7,6 +7,8 @@ import { HistoryPage } from './pages/HistoryPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { ProgressPage } from './pages/ProgressPage'
+import { RoutinePage } from './pages/RoutinePage'
+import { SetupPage } from './pages/SetupPage'
 import { WorkoutDetailPage } from './pages/WorkoutDetailPage'
 import { WorkoutPage } from './pages/WorkoutPage'
 
@@ -15,6 +17,7 @@ export const routes: RouteObject[] = [
   {
     element: <RequireAuth />,
     children: [
+      { path: 'setup', element: <SetupPage /> },
       {
         element: <AppLayout />,
         children: [
@@ -25,6 +28,7 @@ export const routes: RouteObject[] = [
           { path: 'exercises', element: <ExercisesPage /> },
           { path: 'exercises/:exerciseId', element: <ExerciseDetailPage /> },
           { path: 'progress', element: <ProgressPage /> },
+          { path: 'routine', element: <RoutinePage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },
