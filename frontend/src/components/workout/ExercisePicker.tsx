@@ -65,6 +65,11 @@ export function ExercisePicker({
         <div className="-mx-4 flex-1 overflow-y-auto px-4 pb-4">
           {results.isPending ? (
             <Spinner />
+          ) : results.isError && exercises.length === 0 ? (
+            <p className="py-8 text-center text-neutral-500">
+              Can't search right now. Are you offline? Exercises you've browsed before still show up
+              here, and anything you log is saved once you're back online.
+            </p>
           ) : exercises.length === 0 ? (
             <p className="py-8 text-center text-neutral-500">No exercises found.</p>
           ) : (

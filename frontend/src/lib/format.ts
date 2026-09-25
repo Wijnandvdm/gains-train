@@ -48,6 +48,13 @@ export function formatDay(isoDate: string, now = new Date()): string {
   return (date.getFullYear() === now.getFullYear() ? dayFormat : dayWithYearFormat).format(date)
 }
 
+const shortDayFormat = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' })
+
+/** "15 Sep" / "Sep 15" (per locale): for tight spaces. */
+export function formatShortDay(isoDate: string): string {
+  return shortDayFormat.format(parseLocalDate(isoDate))
+}
+
 /** Seconds → "1:05" (or "1:02:05" past an hour) */
 export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.round(totalSeconds))

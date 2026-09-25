@@ -15,6 +15,9 @@ export function createQueryClient(): QueryClient {
     }),
     defaultOptions: {
       queries: {
+        // Always run the request, even when the phone says it's offline: the service
+        // worker may answer from its cache. (The default would just pause the query.)
+        networkMode: 'offlineFirst',
         // Don't retry client errors (e.g. 404); do retry network hiccups and 5xx twice.
         retry: (failureCount, error) =>
           !(error instanceof ApiError && error.status < 500) && failureCount < 2,

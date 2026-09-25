@@ -11,7 +11,15 @@ import {
   YAxis,
 } from 'recharts'
 import type { SessionPoint } from '../api/schema'
-import { formatDay, formatKg, formatSet, formatVolume, parseLocalDate } from '../lib/format'
+import {
+  formatDay,
+  formatKg,
+  formatSet,
+  formatShortDay,
+  formatVolume,
+  localDateString,
+  parseLocalDate,
+} from '../lib/format'
 
 const METRICS = {
   e1rm: {
@@ -34,8 +42,6 @@ const METRICS = {
   },
 } as const
 type Metric = keyof typeof METRICS
-
-const shortDay = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' })
 
 export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }) {
   const [metric, setMetric] = useState<Metric>('e1rm')
@@ -68,7 +74,7 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
               type="number"
               scale="time"
               domain={['dataMin', 'dataMax']}
-              tickFormatter={(t: number) => shortDay.format(t)}
+              tickFormatter={(t: number) => formatShortDay(localDateString(new Date(t)))}
               tick={{ fill: 'var(--color-neutral-500)', fontSize: 12 }}
               tickLine={false}
               axisLine={{ stroke: 'var(--chart-grid)' }}

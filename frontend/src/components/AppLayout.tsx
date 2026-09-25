@@ -58,7 +58,7 @@ export function AppLayout() {
   useOutboxSync()
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-neutral-50/90 px-4 py-2 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-neutral-50/90 px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">
         <span className="font-bold tracking-tight">gains-train</span>
         <AccountMenu />
       </header>

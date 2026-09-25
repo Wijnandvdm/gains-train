@@ -30,6 +30,22 @@ npm install                 # first time only
 npm run dev
 ```
 
+## Installable app (PWA) and offline use
+
+`npm run dev` runs without the service worker. To try the real, installable app:
+
+```bash
+cd frontend
+npm run build && npm run preview   # → http://localhost:4173 (proxies /api to the API)
+```
+
+- The app shell is cached up front, exercise images when first seen, and your data
+  (network first, cached copy as offline fallback; cleared on sign-out).
+- Sets logged offline are queued and synced when the connection returns.
+- A new deploy shows a "New version available · Reload" banner instead of reloading mid-workout.
+- Installing on a phone needs HTTPS (e.g. Tailscale or a Cloudflare Tunnel in front of this VM).
+- App icons are generated from `frontend/public/favicon.svg`: `npx @vite-pwa/assets-generator@1`.
+
 ## Importing the legacy Google Sheets log
 
 Export the sheet's **Log** tab as CSV, then (from `backend/`):
@@ -77,3 +93,5 @@ cd frontend && npm test && npm run build && npm run lint
 7. Do we not have a shitload of redundant code?
 8. Walk me through every bit step by step, I'll decide whatever needs documenting or not
 9. Document the highover flow in a mermaid diagram
+10. Let's make the history thing a calendar
+11. Are we making sure that we're going for absolutely minimal clicks? Once you open the app for the first time, you should be asked a few questions. So opening the app if you've already configured that you're going for a standard set of exercises for a standard set of days should result in the app checking what your last day was and opening the new day already with the first exercise and your weights and reps for that first set already prefilled. You only have to press an button to confirm that this was your performance now to move on to the next set, which also has your weight and reps from the previous second set prefilled.

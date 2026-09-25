@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import type { ExerciseOverviewOut, ExerciseStats } from '../api/schema'
-import { formatDay } from '../lib/format'
+import { formatShortDay } from '../lib/format'
 import { exercise, exerciseDetail, ME, mockApi, renderApp } from '../test/utils'
 
 const PULLDOWN = exercise(11, 'Wide-Grip Lat Pulldown', { primary_muscles: ['lats'] })
@@ -73,7 +73,7 @@ describe('progress', () => {
 
     const progress = await screen.findByRole('region', { name: 'Your progress' })
     expect(await within(progress).findByText('Heaviest')).toBeVisible()
-    expect(within(progress).getByText(`× 12 · ${formatDay('2026-09-07')}`)).toBeVisible()
+    expect(within(progress).getByText(`× 12 · ${formatShortDay('2026-09-07')}`)).toBeVisible()
     expect(within(progress).getByText('Rep records')).toBeVisible()
     expect(within(progress).getByRole('cell', { name: '80 kg' })).toBeVisible()
     expect(within(progress).getByRole('cell', { name: '14' })).toBeVisible()

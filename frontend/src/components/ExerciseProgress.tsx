@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import type { ExerciseStats } from '../api/schema'
-import { formatDay, formatKg, formatSet, formatVolume } from '../lib/format'
+import { formatDay, formatKg, formatSet, formatShortDay, formatVolume } from '../lib/format'
 import { useExerciseStats } from '../stats'
 import { Spinner } from './Spinner'
 
@@ -38,7 +38,7 @@ function Progress({ stats }: { stats: ExerciseStats }) {
         <StatTile
           label="Heaviest"
           value={`${formatKg(records.heaviest.weight_kg)} kg`}
-          detail={`× ${records.heaviest.reps} · ${formatDay(records.heaviest.performed_on)}`}
+          detail={`× ${records.heaviest.reps} · ${formatShortDay(records.heaviest.performed_on)}`}
         />
         <StatTile
           label="Best e1RM"
@@ -48,7 +48,7 @@ function Progress({ stats }: { stats: ExerciseStats }) {
         <StatTile
           label="Best session"
           value={formatVolume(records.best_session_volume_kg)}
-          detail={formatDay(records.best_session_volume_on)}
+          detail={formatShortDay(records.best_session_volume_on)}
         />
       </dl>
 

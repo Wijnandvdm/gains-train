@@ -30,6 +30,14 @@
   body {
     @apply bg-neutral-50 text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
   }
+  /* iOS Safari zooms the page when a field with text under 16px is tapped. */
+  @media (pointer: coarse) {
+    input,
+    select,
+    textarea {
+      font-size: max(16px, 1em);
+    }
+  }
 }
 
 @layer components {

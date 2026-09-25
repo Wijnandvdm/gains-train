@@ -24,9 +24,11 @@ export function useSignOut() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: () => unwrap(api.POST('/api/auth/logout')),
-    onSuccess: () => {
+    onSuccess: async () => {
       // Stop Google One Tap from silently signing straight back in.
       window.google?.accounts.id.disableAutoSelect()
+      // Forget the offline copy of this user's data (see the service worker config).
+      await globalThis.caches?.delete('api')
       queryClient.clear()
       queryClient.setQueryData(meQueryKey, null)
     },

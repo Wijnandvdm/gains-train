@@ -89,7 +89,7 @@ export function ExercisesPage() {
             <select
               value={search.equipment ?? ''}
               onChange={(e) => setParam('equipment', e.target.value || undefined)}
-              className="input w-auto py-1 capitalize"
+              className="input w-auto py-1 text-base capitalize"
             >
               <option value="">Any</option>
               {filters.data?.equipment.map((equipment) => (
