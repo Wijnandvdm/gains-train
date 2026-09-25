@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { SetOut } from '../../api/schema'
-import { formatKg, formatSet, parseReps, parseWeight } from '../../lib/format'
+import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/format'
 import { PR_LABELS, type PrKind } from '../../workout/prs'
 
 type Props = {
@@ -16,7 +16,7 @@ type Props = {
   onCompleted: () => void
 }
 
-const toText = (value: number | null) => (value === null ? '' : formatKg(value))
+const toText = weightInputText
 
 export function SetRow({ set, label, previous, prs, onSave, onDelete, onCompleted }: Props) {
   // Typing edits a local draft; it's saved on blur or when ticking (not per keystroke).
@@ -98,7 +98,7 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
         aria-label={`Set ${label} weight (kg)`}
         inputMode="decimal"
         value={weight}
-        placeholder={previous?.weight_kg !== null && previous ? formatKg(previous.weight_kg) : 'kg'}
+        placeholder={previous?.weight_kg != null ? weightInputText(previous.weight_kg) : 'kg'}
         onChange={(e) => setWeight(e.target.value)}
         onBlur={commitDraft}
         onFocus={(e) => e.target.select()}

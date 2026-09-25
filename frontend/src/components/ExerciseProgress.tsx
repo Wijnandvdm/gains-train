@@ -1,6 +1,13 @@
 import { lazy, Suspense } from 'react'
 import type { ExerciseStats } from '../api/schema'
-import { formatDay, formatKg, formatSet, formatShortDay, formatVolume } from '../lib/format'
+import {
+  formatDay,
+  formatE1rm,
+  formatSet,
+  formatShortDay,
+  formatVolume,
+  formatWeight,
+} from '../lib/format'
 import { useExerciseStats } from '../stats'
 import { Spinner } from './Spinner'
 
@@ -37,12 +44,12 @@ function Progress({ stats }: { stats: ExerciseStats }) {
       <dl className="grid grid-cols-3 gap-2">
         <StatTile
           label="Heaviest"
-          value={`${formatKg(records.heaviest.weight_kg)} kg`}
+          value={formatWeight(records.heaviest.weight_kg)}
           detail={`× ${records.heaviest.reps} · ${formatShortDay(records.heaviest.performed_on)}`}
         />
         <StatTile
           label="Best e1RM"
-          value={`${formatKg(Math.round(records.best_e1rm_kg * 10) / 10)} kg`}
+          value={formatE1rm(records.best_e1rm_kg)}
           detail={formatSet(records.best_e1rm.weight_kg, records.best_e1rm.reps)}
         />
         <StatTile
@@ -76,7 +83,7 @@ function Progress({ stats }: { stats: ExerciseStats }) {
           <tbody className="tabular-nums">
             {records.rep_records.map((r) => (
               <tr key={r.weight_kg} className="border-t border-neutral-200 dark:border-neutral-800">
-                <td className="px-3 py-1.5">{formatKg(r.weight_kg)} kg</td>
+                <td className="px-3 py-1.5">{formatWeight(r.weight_kg)}</td>
                 <td className="px-3 py-1.5">{r.reps}</td>
                 <td className="px-3 py-1.5 text-right text-neutral-500">
                   {formatDay(r.performed_on)}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatKg, formatSet, parseReps, parseWeight } from '../../lib/format'
+import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/format'
 import { type NextSet, weightStep } from '../../workout/plan'
 import { ExerciseThumb } from '../ExerciseImage'
 
@@ -9,7 +9,7 @@ type Props = {
   onSkipExercise?: () => void
 }
 
-const toText = (value: number | null) => (value === null ? '' : formatKg(value))
+const toText = weightInputText
 
 /**
  * The set to do now, prefilled from last time: one tap on ✓ logs it. Mount it with a
@@ -27,7 +27,7 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
 
   function nudge(value: string, delta: number, parse: (v: string) => number | null) {
     const current = parse(value) ?? 0
-    return formatKg(Math.max(0, Math.round((current + delta) * 100) / 100))
+    return weightInputText(Math.max(0, current + delta))
   }
 
   return (

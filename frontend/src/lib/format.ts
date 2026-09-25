@@ -1,13 +1,32 @@
-/** 82.5 → "82.5", 85 → "85", 8.75 → "8.75" */
-export function formatKg(kg: number): string {
-  return String(Math.round(kg * 100) / 100)
+// Numbers look the same on every phone, whatever its language: a dot for decimals and a
+// narrow no-break space between thousands ("11 664 kg", "65.8 kg"). A locale's "11.664"
+// would read as eleven-point-something next to weights like "8.75".
+const THOUSANDS = '\u202f' // narrow no-break space: never wraps mid-number
+
+/** 11664 → "11 664", 82.5 → "82.5", 8.754 → "8.75" (at most `maxDecimals` decimals). */
+export function formatNumber(value: number, maxDecimals = 2): string {
+  const factor = 10 ** maxDecimals
+  const rounded = Math.round(Math.abs(value) * factor) / factor
+  const [whole, decimals] = String(rounded).split('.')
+  const grouped = whole!.replace(/\B(?=(\d{3})+(?!\d))/g, THOUSANDS)
+  return `${value < 0 && rounded !== 0 ? '-' : ''}${grouped}${decimals ? `.${decimals}` : ''}`
 }
 
-const volumeFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 })
+/** A weight without unit, for "85 × 10" and chart ticks: 82.5 → "82.5". */
+export const formatKg = (kg: number): string => formatNumber(kg, 2)
 
-/** 5675 → "5,675 kg" (separator per the user's locale) */
-export function formatVolume(kg: number): string {
-  return `${volumeFormat.format(kg)} kg`
+/** 82.5 → "82.5 kg" */
+export const formatWeight = (kg: number): string => `${formatKg(kg)} kg`
+
+/** Estimated 1RMs are estimates: one decimal is plenty. 113.333 → "113.3 kg" */
+export const formatE1rm = (kg: number): string => `${formatNumber(kg, 1)} kg`
+
+/** Volume (weight × reps) in whole kilos: 11664.4 → "11 664 kg" */
+export const formatVolume = (kg: number): string => `${formatNumber(kg, 0)} kg`
+
+/** For text inputs: no thousands separator, so the value parses back. 1000 → "1000" */
+export function weightInputText(kg: number | null): string {
+  return kg === null ? '' : String(Math.round(kg * 100) / 100)
 }
 
 /** "85 × 10", "85 × –" or "– × 10" */

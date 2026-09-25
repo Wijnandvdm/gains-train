@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import type { ExerciseOverviewOut } from '../api/schema'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { Spinner } from '../components/Spinner'
-import { formatDay, formatKg, formatVolume } from '../lib/format'
+import { formatDay, formatE1rm, formatVolume, formatWeight } from '../lib/format'
 import { useStatsOverview } from '../stats'
 
 /** Every exercise you've done: last session, best, and totals (your old Dashboard tab). */
@@ -62,9 +62,9 @@ function OverviewCard({ row }: { row: ExerciseOverviewOut }) {
           </span>
         </p>
         <dl className="flex flex-wrap gap-x-3 text-sm">
-          <Figure label="Last" value={`${formatKg(row.last_top_weight_kg)} kg`} />
-          <Figure label="Max" value={`${formatKg(row.max_weight_kg)} kg`} />
-          <Figure label="e1RM" value={`${formatKg(Math.round(row.best_e1rm_kg * 10) / 10)} kg`} />
+          <Figure label="Last" value={formatWeight(row.last_top_weight_kg)} />
+          <Figure label="Max" value={formatWeight(row.max_weight_kg)} />
+          <Figure label="e1RM" value={formatE1rm(row.best_e1rm_kg)} />
         </dl>
         <p className="text-xs text-neutral-500">
           {row.sets_logged} sets · {formatVolume(row.total_volume_kg)} total

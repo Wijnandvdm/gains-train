@@ -60,7 +60,7 @@ describe('calendar history', () => {
     const month = requests.findLast((u) => u.pathname === '/api/workouts')!
     expect(month.searchParams.get('performed_from')).toBe('2026-09-01')
     expect(month.searchParams.get('performed_to')).toBe('2026-09-30')
-    expect(await screen.findByText('3 rides · 27 sets · 15,000 kg')).toBeVisible()
+    expect(await screen.findByText('3 rides · 27 sets · 15 000 kg')).toBeVisible()
 
     // Each day's button names its workouts (colour is never the only cue).
     expect(day('2026-09-15')).toHaveAccessibleName(
@@ -93,7 +93,7 @@ describe('calendar history', () => {
 
     await user.click(screen.getByRole('button', { name: 'Previous month' }))
     expect(await screen.findByRole('heading', { name: /august 2026/i })).toBeVisible()
-    expect(await screen.findByText('1 ride · 9 sets · 5,000 kg')).toBeVisible()
+    expect(await screen.findByText('1 ride · 9 sets · 5 000 kg')).toBeVisible()
     expect(router.state.location.search).toBe('?month=2026-08')
   })
 
