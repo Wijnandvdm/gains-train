@@ -1,1 +1,49 @@
 @import 'tailwindcss';
+
+/* Brand colour; everything else uses Tailwind's neutral palette. */
+@theme {
+  --color-brand-50: oklch(0.97 0.03 150);
+  --color-brand-100: oklch(0.94 0.06 150);
+  --color-brand-500: oklch(0.68 0.17 150);
+  --color-brand-600: oklch(0.58 0.16 150);
+  --color-brand-700: oklch(0.5 0.14 150);
+  --color-brand-900: oklch(0.32 0.08 150);
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-neutral-50 text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800;
+  }
+  .btn-primary {
+    @apply border-transparent bg-brand-600 text-white hover:bg-brand-700 dark:hover:bg-brand-700;
+  }
+  .card {
+    @apply rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900;
+  }
+  .chip {
+    @apply inline-flex shrink-0 items-center rounded-full border border-neutral-300 px-3 py-1 text-sm whitespace-nowrap capitalize transition dark:border-neutral-700;
+  }
+  .chip-active {
+    @apply border-brand-600 bg-brand-600 text-white;
+  }
+  .input {
+    @apply w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 dark:border-neutral-700 dark:bg-neutral-900;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

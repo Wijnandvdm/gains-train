@@ -12,7 +12,12 @@ from app.importers.free_exercise_db import IMAGES_DIR, dataset_dir
 from app.routers import auth, exercises
 from app.schemas.exercise import IMAGE_URL_PREFIX
 
-app = FastAPI(title="gains-train API")
+app = FastAPI(
+    title="gains-train API",
+    # Use the function name as the OpenAPI operationId ("list_exercises" rather than
+    # "list_exercises_api_exercises_get"); it shows up in the generated frontend types.
+    generate_unique_id_function=lambda route: route.name,
+)
 
 app.add_middleware(
     CORSMiddleware,

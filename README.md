@@ -44,6 +44,12 @@ the library via [`legacy_exercise_map.toml`](backend/app/importers/legacy_exerci
 The exercise library comes from [free-exercise-db](https://github.com/yuhonas/free-exercise-db)
 (public domain).
 
+## API types
+
+The frontend's API types (`frontend/src/api/schema.d.ts`) are generated from the backend's
+OpenAPI spec. After changing backend routes or schemas, run `scripts/gen-api.sh`; pre-commit
+also regenerates them and fails the commit if they changed, so stage the updated file.
+
 ## Checks
 
 [pre-commit](https://pre-commit.com) runs formatting, linting, type checks and secret scanning on
@@ -58,5 +64,5 @@ Or run the tools directly:
 
 ```bash
 cd backend && uv run pytest && uv run ruff check . && uv run mypy app tests
-cd frontend && npm run build && npm run lint
+cd frontend && npm test && npm run build && npm run lint
 ```

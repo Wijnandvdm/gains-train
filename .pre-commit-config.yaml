@@ -69,6 +69,18 @@ repos:
         pass_filenames: false
         stages: [pre-push]
 
+  # --- API contract ----------------------------------------------------------
+  # Regenerates the frontend's API types from the backend; the commit fails if they changed,
+  # so stage the updated frontend/src/api/schema.d.ts and commit again.
+  - repo: local
+    hooks:
+      - id: api-types
+        name: API types up to date
+        entry: scripts/gen-api.sh
+        language: system
+        files: ^(backend/app/.*\.py|frontend/src/api/schema\.d\.ts)$
+        pass_filenames: false
+
   # --- Frontend (TypeScript/React) -------------------------------------------
   # scripts/frontend-run.sh runs each tool in frontend/ with the Node from frontend/.nvmrc.
   - repo: local
@@ -93,3 +105,11 @@ repos:
         language: system
         files: ^frontend/.*\.(ts|tsx)$
         pass_filenames: false
+
+      - id: vitest
+        name: vitest
+        entry: scripts/frontend-run.sh npx vitest run
+        language: system
+        files: ^frontend/
+        pass_filenames: false
+        stages: [pre-push]
