@@ -37,11 +37,16 @@ export function useDeleteRoutine() {
   })
 }
 
-/** Marks the first-open questions as answered. */
+/** Marks the first-open questions as answered (and saves your default rest). */
 export function useCompleteSetup() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: () => unwrap(api.PATCH('/api/me', { body: { setup_completed: true } })),
+    mutationFn: (defaultRestSeconds: number) =>
+      unwrap(
+        api.PATCH('/api/me', {
+          body: { setup_completed: true, default_rest_seconds: defaultRestSeconds },
+        }),
+      ),
     onSuccess: (me) => queryClient.setQueryData(meQueryKey, me),
   })
 }

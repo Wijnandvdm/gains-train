@@ -4,7 +4,7 @@ import { TrainIcon } from '../components/icons'
 import { useCompleteSetup, useRoutineFromHistory } from '../routine'
 import { useWorkoutHistory } from '../workout/hooks'
 import { recentRoutines } from '../workout/recent'
-import { DEFAULT_REST_SECONDS, setDefaultRestSeconds } from '../workout/restTimer'
+import { DEFAULT_REST_SECONDS } from '../lib/rest'
 
 type Mode = 'split' | 'build' | 'free'
 const REST_OPTIONS = [60, 90, 120, 180]
@@ -24,8 +24,7 @@ export function SetupPage() {
 
   async function finish() {
     if (mode === 'split') await fromHistory.mutateAsync(undefined)
-    setDefaultRestSeconds(rest)
-    await completeSetup.mutateAsync()
+    await completeSetup.mutateAsync(rest)
     navigate(mode === 'build' ? '/routine' : '/workout', { replace: true })
   }
 

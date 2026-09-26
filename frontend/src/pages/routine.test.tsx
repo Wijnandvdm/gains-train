@@ -99,7 +99,7 @@ describe('first open', () => {
     expect(await screen.findByText('Next stop')).toBeVisible()
     expect(router.state.location.pathname).toBe('/workout')
     expect(backend.state.writes).toEqual(['routine from history', 'setup done'])
-    expect(localStorage.getItem('gains-train:rest-seconds')).toBe('120')
+    expect(backend.state.me.default_rest_seconds).toBe(120) // saved to your account
   })
 
   it('lets you build your own routine', async () => {

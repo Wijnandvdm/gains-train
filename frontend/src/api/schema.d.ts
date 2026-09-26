@@ -373,6 +373,47 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/exercise-preferences': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List Exercise Preferences
+     * @description All your per-exercise settings (only the exercises you changed something for).
+     */
+    get: operations['list_exercise_preferences']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/exercise-preferences/{exercise_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** Save Exercise Preference */
+    put: operations['save_exercise_preference']
+    post?: never
+    /**
+     * Reset Exercise Preference
+     * @description Back to the automatic rest time. Idempotent.
+     */
+    delete: operations['reset_exercise_preference']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/health': {
     parameters: {
       query?: never
@@ -478,6 +519,18 @@ export interface components {
       /** Offset */
       offset: number
     }
+    /** ExercisePreferenceIn */
+    ExercisePreferenceIn: {
+      /** Rest Seconds */
+      rest_seconds: number
+    }
+    /** ExercisePreferenceOut */
+    ExercisePreferenceOut: {
+      /** Exercise Id */
+      exercise_id: number
+      /** Rest Seconds */
+      rest_seconds: number
+    }
     /**
      * ExerciseSession
      * @description One past workout's sets for a single exercise (for "last time" hints).
@@ -541,10 +594,17 @@ export interface components {
       /** Detail */
       detail?: components['schemas']['ValidationError'][]
     }
-    /** MeUpdate */
+    /**
+     * MeUpdate
+     * @description Only the fields that are sent are changed.
+     */
     MeUpdate: {
       /** Setup Completed */
       setup_completed?: boolean | null
+      /** Rest Timer Enabled */
+      rest_timer_enabled?: boolean | null
+      /** Default Rest Seconds */
+      default_rest_seconds?: number | null
     }
     /** RecordsOut */
     RecordsOut: {
@@ -729,6 +789,10 @@ export interface components {
       avatar_url: string | null
       /** Setup Completed At */
       setup_completed_at: string | null
+      /** Rest Timer Enabled */
+      rest_timer_enabled: boolean
+      /** Default Rest Seconds */
+      default_rest_seconds: number
     }
     /** ValidationError */
     ValidationError: {
@@ -880,6 +944,8 @@ export type ExerciseFilters = components['schemas']['ExerciseFilters']
 export type ExerciseOrder = components['schemas']['ExerciseOrder']
 export type ExerciseOverviewOut = components['schemas']['ExerciseOverviewOut']
 export type ExercisePage = components['schemas']['ExercisePage']
+export type ExercisePreferenceIn = components['schemas']['ExercisePreferenceIn']
+export type ExercisePreferenceOut = components['schemas']['ExercisePreferenceOut']
 export type ExerciseSession = components['schemas']['ExerciseSession']
 export type ExerciseStats = components['schemas']['ExerciseStats']
 export type ExerciseSummary = components['schemas']['ExerciseSummary']
@@ -1781,6 +1847,105 @@ export interface operations {
         content: {
           'application/json': components['schemas']['RoutineOut']
         }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  list_exercise_preferences: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ExercisePreferenceOut'][]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  save_exercise_preference: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        exercise_id: number
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ExercisePreferenceIn']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ExercisePreferenceOut']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  reset_exercise_preference: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        exercise_id: number
+      }
+      cookie?: {
+        gt_session?: string | null
+      }
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
       /** @description Validation Error */
       422: {

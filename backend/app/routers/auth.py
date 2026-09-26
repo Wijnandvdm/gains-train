@@ -97,5 +97,9 @@ async def update_me(
 ) -> UserOut:
     if body.setup_completed is not None:
         user.setup_completed_at = datetime.now(UTC) if body.setup_completed else None
+    if body.rest_timer_enabled is not None:
+        user.rest_timer_enabled = body.rest_timer_enabled
+    if body.default_rest_seconds is not None:
+        user.default_rest_seconds = body.default_rest_seconds
     await session.commit()
     return UserOut.model_validate(user)

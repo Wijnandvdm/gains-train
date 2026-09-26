@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-type Timer = { endsAt: number; seconds: number }
+/** exerciseId: whose rest this is (so ±15s can be remembered for that exercise). */
+type Timer = { endsAt: number; seconds: number; exerciseId: number | null }
 
 const TIMER_KEY = 'gains-train:rest-timer'
-const SECONDS_KEY = 'gains-train:rest-seconds'
-export const DEFAULT_REST_SECONDS = 90
 const DONE_BANNER_MS = 4_000
 
 function read<T>(key: string): T | null {
@@ -23,11 +22,6 @@ function write(key: string, value: unknown): void {
   } catch {
     // Storage unavailable: the timer still works, it just won't survive a reload.
   }
-}
-
-/** The default rest between sets (chosen during setup; ±15s on the timer also changes it). */
-export function setDefaultRestSeconds(seconds: number): void {
-  write(SECONDS_KEY, seconds)
 }
 
 let audio: AudioContext | undefined
@@ -60,10 +54,12 @@ function alertRestOver(): void {
 /**
  * A rest countdown. It stores the *end time* (not a ticking counter), so it stays right
  * when the phone sleeps or the tab is in the background, and survives reloads.
+ * `onAdjust` is called when ±15s changes the rest time (to remember it for the exercise).
  */
-export function useRestTimer() {
+export function useRestTimer({
+  onAdjust,
+}: { onAdjust?: (exerciseId: number, seconds: number) => void } = {}) {
   const [timer, setTimer] = useState<Timer | null>(() => read<Timer>(TIMER_KEY))
-  const [seconds, setSeconds] = useState(() => read<number>(SECONDS_KEY) ?? DEFAULT_REST_SECONDS)
   const [now, setNow] = useState(() => Date.now())
   const alertedFor = useRef<number | null>(null)
 
@@ -94,26 +90,24 @@ export function useRestTimer() {
   return {
     /** null when no timer is running */
     remaining: timer ? remaining : null,
-    total: timer?.seconds ?? seconds,
+    total: timer?.seconds ?? 0,
     done,
-    start: useCallback(() => {
-      unlockAudio()
-      update({ endsAt: Date.now() + seconds * 1000, seconds })
-    }, [seconds, update]),
-    /** ±15s now, and remembered as the new default rest. */
+    start: useCallback(
+      (seconds: number, exerciseId: number | null = null) => {
+        unlockAudio()
+        update({ endsAt: Date.now() + seconds * 1000, seconds, exerciseId })
+      },
+      [update],
+    ),
+    /** ±15s now, and remembered for the exercise this rest belongs to. */
     adjust: useCallback(
       (delta: number) => {
-        const nextSeconds = Math.min(600, Math.max(15, seconds + delta))
-        setSeconds(nextSeconds)
-        write(SECONDS_KEY, nextSeconds)
-        if (timer) {
-          update({
-            endsAt: Math.max(Date.now(), timer.endsAt + delta * 1000),
-            seconds: nextSeconds,
-          })
-        }
+        if (!timer) return
+        const seconds = Math.min(600, Math.max(15, timer.seconds + delta))
+        update({ ...timer, endsAt: Math.max(Date.now(), timer.endsAt + delta * 1000), seconds })
+        if (timer.exerciseId !== null) onAdjust?.(timer.exerciseId, seconds)
       },
-      [seconds, timer, update],
+      [timer, update, onAdjust],
     ),
     stop: useCallback(() => update(null), [update]),
   }

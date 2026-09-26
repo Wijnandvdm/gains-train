@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import type { WorkoutExerciseOut } from '../../api/schema'
+import type { ExerciseSummary, WorkoutExerciseOut } from '../../api/schema'
 import { formatDay } from '../../lib/format'
 import { uuid } from '../../lib/uuid'
 import { useLastTime, useWorkoutActions } from '../../workout/hooks'
@@ -7,12 +7,14 @@ import { prsForSets } from '../../workout/prs'
 import { matchPrevious, setLabels } from '../../workout/sets'
 import { useExerciseStats } from '../../stats'
 import { ExerciseThumb } from '../ExerciseImage'
+import { RestPicker } from './RestPicker'
 import { SetRow } from './SetRow'
 
 type Props = {
   workoutId: string
   workoutExercise: WorkoutExerciseOut
-  onSetCompleted: () => void
+  /** Starts the rest timer for this exercise. */
+  onSetCompleted: (exercise: ExerciseSummary) => void
 }
 
 export function ExerciseBlock({ workoutId, workoutExercise, onSetCompleted }: Props) {
@@ -56,6 +58,7 @@ export function ExerciseBlock({ workoutId, workoutExercise, onSetCompleted }: Pr
           <p className="truncate text-sm text-neutral-500">
             {lastTime ? `Last time: ${formatDay(lastTime.performed_on)}` : 'First time'}
           </p>
+          <RestPicker exercise={exercise} />
         </div>
         <button
           type="button"
@@ -86,7 +89,7 @@ export function ExerciseBlock({ workoutId, workoutExercise, onSetCompleted }: Pr
                 prs={prs[i]!}
                 onSave={(next) => actions.saveSet(workoutId, next)}
                 onDelete={() => actions.deleteSet(workoutId, set)}
-                onCompleted={onSetCompleted}
+                onCompleted={() => onSetCompleted(exercise)}
               />
             ))}
           </ol>

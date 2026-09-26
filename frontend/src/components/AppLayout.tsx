@@ -1,5 +1,6 @@
 import { Link, Navigate, NavLink, Outlet } from 'react-router-dom'
 import { useMe, useSignOut } from '../auth'
+import { useUpdateMe } from '../preferences'
 import { useOutboxSync } from '../workout/hooks'
 import { outbox } from '../workout/sync'
 import { ChartIcon, DumbbellIcon, HistoryIcon, ListIcon, TrainIcon } from './icons'
@@ -36,6 +37,7 @@ function AccountMenu() {
       <div className="card absolute right-0 z-20 mt-2 w-60 p-3 shadow-lg">
         <p className="truncate font-medium">{user.name ?? user.email}</p>
         <p className="truncate text-sm text-neutral-500">{user.email}</p>
+        <RestTimerSwitch enabled={user.rest_timer_enabled} />
         <Link to="/routine" className="btn mt-3 w-full">
           Edit routine
         </Link>
@@ -54,6 +56,31 @@ function AccountMenu() {
         </button>
       </div>
     </details>
+  )
+}
+
+/** Turns the automatic rest timer on or off (per-exercise times are set on each card). */
+function RestTimerSwitch({ enabled }: { enabled: boolean }) {
+  const updateMe = useUpdateMe()
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      disabled={updateMe.isPending}
+      onClick={() => updateMe.mutate({ rest_timer_enabled: !enabled })}
+      className="mt-3 flex w-full items-center justify-between rounded-lg py-1 text-sm"
+    >
+      Rest timer
+      <span
+        aria-hidden="true"
+        className={`relative h-6 w-11 rounded-full transition ${enabled ? 'bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+      >
+        <span
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left] ${enabled ? 'left-5.5' : 'left-0.5'}`}
+        />
+      </span>
+    </button>
   )
 }
 

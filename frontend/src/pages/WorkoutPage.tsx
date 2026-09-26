@@ -21,7 +21,7 @@ import {
 } from '../workout/hooks'
 import { type NextSet, nextSet, type PlannedExercise, plannedSetCount } from '../workout/plan'
 import { recentRoutines } from '../workout/recent'
-import { useRestTimer } from '../workout/restTimer'
+import { useExerciseRestTimer } from '../preferences'
 import { useSkipped } from '../workout/skipped'
 
 export function WorkoutPage() {
@@ -97,7 +97,7 @@ const focusKey = (next: NextSet) =>
 
 function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void }) {
   const actions = useWorkoutActions()
-  const restTimer = useRestTimer()
+  const restTimer = useExerciseRestTimer()
   const history = useWorkoutHistory()
   const rides = ridesThisWeek(history.data?.pages.flatMap((p) => p.items) ?? [])
   const [dayId, setDayId] = useState(routine.next_day_id ?? routine.days[0]!.id)
@@ -150,7 +150,8 @@ function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void
           next={next}
           onConfirm={(values) => {
             actions.startDay(day, values)
-            restTimer.start() // picked up by the workout screen that replaces this one
+            // Picked up by the workout screen that replaces this one.
+            restTimer.startFor(day.exercises[0]!.exercise)
           }}
         />
       ) : (
@@ -280,7 +281,7 @@ function ActiveWorkout({
   onFinished: () => void
 }) {
   const actions = useWorkoutActions()
-  const restTimer = useRestTimer()
+  const restTimer = useExerciseRestTimer()
   const [picking, setPicking] = useState(false)
   const [skipped, skip] = useSkipped(workout.id)
   const minutes = useElapsedMinutes(workout.started_at)
@@ -318,7 +319,7 @@ function ActiveWorkout({
             completed_at,
           },
     )
-    restTimer.start()
+    restTimer.startFor(target.item.exercise)
   }
 
   function finish() {
@@ -405,7 +406,7 @@ function ActiveWorkout({
           key={we.id}
           workoutId={workout.id}
           workoutExercise={we}
-          onSetCompleted={restTimer.start}
+          onSetCompleted={restTimer.startFor}
         />
       ))}
 

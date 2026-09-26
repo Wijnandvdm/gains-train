@@ -78,6 +78,8 @@ export const ME: UserOut = {
   name: 'Me',
   avatar_url: null,
   setup_completed_at: '2026-09-01T00:00:00Z',
+  rest_timer_enabled: true,
+  default_rest_seconds: 90,
 }
 
 export function exercise(

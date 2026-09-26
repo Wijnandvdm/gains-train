@@ -2,6 +2,7 @@
 import type {
   ExerciseSession,
   ExerciseSummary,
+  MeUpdate,
   RoutineIn,
   RoutineOut,
   SetOut,
@@ -78,6 +79,8 @@ export function fakeBackend(
     online: true,
     writes: [] as string[],
     routine,
+    /** exercise id → rest seconds (your own settings) */
+    restPrefs: new Map<number, number>(),
     me: { ...ME, setup_completed_at: setupDone ? ME.setup_completed_at : null } as UserOut,
   }
   const library: Record<number, ExerciseSummary> = { [ROW.id]: ROW, [PULLDOWN.id]: PULLDOWN }
@@ -91,11 +94,31 @@ export function fakeBackend(
   const requests = mockApi({
     ...extraHandlers,
     'GET /api/me': () => state.me,
-    'PATCH /api/me': () =>
-      write('setup done', () => {
-        state.me = { ...state.me, setup_completed_at: new Date().toISOString() }
+    'PATCH /api/me': async (_u, request) => {
+      const body = (await request.json()) as MeUpdate
+      return write(body.setup_completed ? 'setup done' : 'update me', () => {
+        state.me = {
+          ...state.me,
+          ...(body.setup_completed ? { setup_completed_at: new Date().toISOString() } : {}),
+          ...(body.rest_timer_enabled != null
+            ? { rest_timer_enabled: body.rest_timer_enabled }
+            : {}),
+          ...(body.default_rest_seconds != null
+            ? { default_rest_seconds: body.default_rest_seconds }
+            : {}),
+        }
         return state.me
-      }),
+      })
+    },
+    'GET /api/exercise-preferences': () =>
+      [...state.restPrefs].map(([exercise_id, rest_seconds]) => ({ exercise_id, rest_seconds })),
+    'PUT /api/exercise-preferences/:id': async (_u, request, { id }) => {
+      const { rest_seconds } = (await request.json()) as { rest_seconds: number }
+      return write(`rest ${id}=${rest_seconds}`, () => {
+        state.restPrefs.set(Number(id), rest_seconds)
+        return { exercise_id: Number(id), rest_seconds }
+      })
+    },
     'GET /api/routine': () => state.routine,
     'PUT /api/routine': async (_u, request) => {
       const body = (await request.json()) as RoutineIn
