@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { RoutineDayOut, RoutineOut, WorkoutDetail } from '../api/schema'
+import type { RoutineDayOut, RoutineOut, WorkoutDetail } from '../data/types'
 import { ExerciseBlock } from '../components/workout/ExerciseBlock'
 import { ExercisePicker } from '../components/workout/ExercisePicker'
 import { FocusCard } from '../components/workout/FocusCard'
 import { RestTimerBar } from '../components/workout/RestTimerBar'
-import { SyncError, SyncStatus } from '../components/workout/SyncStatus'
 import { WorkoutTrack } from '../components/workout/WorkoutTrack'
 import { TrainIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
@@ -17,7 +16,7 @@ import {
   useActiveWorkout,
   useLastTimes,
   useWorkoutActions,
-  useWorkoutHistory,
+  useWorkoutSummaries,
 } from '../workout/hooks'
 import { type NextSet, nextSet, type PlannedExercise, plannedSetCount } from '../workout/plan'
 import { recentRoutines } from '../workout/recent'
@@ -32,16 +31,6 @@ export function WorkoutPage() {
   const [choosing, setChoosing] = useState(false)
 
   if (active.isPending || routine.isPending) return <Spinner />
-  if (active.isError && active.data === undefined) {
-    return (
-      <div className="py-8 text-center">
-        <p className="mb-3">Couldn't load your workout. Are you online?</p>
-        <button className="btn" onClick={() => active.refetch()}>
-          Try again
-        </button>
-      </div>
-    )
-  }
   if (active.data) {
     return (
       <ActiveWorkout
@@ -98,8 +87,8 @@ const focusKey = (next: NextSet) =>
 function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void }) {
   const actions = useWorkoutActions()
   const restTimer = useExerciseRestTimer()
-  const history = useWorkoutHistory()
-  const rides = ridesThisWeek(history.data?.pages.flatMap((p) => p.items) ?? [])
+  const { data: history } = useWorkoutSummaries()
+  const rides = ridesThisWeek(history ?? [])
   const [dayId, setDayId] = useState(routine.next_day_id ?? routine.days[0]!.id)
   const day: RoutineDayOut = routine.days.find((d) => d.id === dayId) ?? routine.days[0]!
   const lastTimes = useLastTimes(day.exercises.map((re) => re.exercise.id))
@@ -122,7 +111,7 @@ function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void
           {dayId === routine.next_day_id ? 'Next stop' : 'Changing tracks'}
         </p>
         <h1 className="text-2xl font-bold">{day.name}</h1>
-        {history.data && <p className="text-sm text-neutral-500">{weekMessage(rides)}</p>}
+        {history && <p className="text-sm text-neutral-500">{weekMessage(rides)}</p>}
         {routine.days.length > 1 && (
           <div
             role="group"
@@ -189,8 +178,8 @@ function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void
 
 function StartWorkout({ onBack }: { onBack?: () => void }) {
   const actions = useWorkoutActions()
-  const history = useWorkoutHistory()
-  const recent = recentRoutines(history.data?.pages.flatMap((p) => p.items) ?? [])
+  const { data: history = [] } = useWorkoutSummaries()
+  const recent = recentRoutines(history)
   const [starting, setStarting] = useState(false)
 
   async function start(options: { name?: string; copyFrom?: string } = {}) {
@@ -352,15 +341,12 @@ function ActiveWorkout({
             <span>
               {doneSets} set{doneSets === 1 ? '' : 's'} done
             </span>
-            <SyncStatus />
           </p>
         </div>
         <button type="button" className="btn btn-primary shrink-0" onClick={finish}>
           Finish
         </button>
       </header>
-
-      <SyncError />
 
       <WorkoutTrack
         stations={plan.map((item) => ({

@@ -1,4 +1,4 @@
-import type { WorkoutSummary } from '../api/schema'
+import type { WorkoutSummary } from '../data/types'
 
 /** The most recent workout for each distinct name, e.g. your Day1 / Day2 / Day3 split. */
 export function recentRoutines(workouts: WorkoutSummary[], max = 4): WorkoutSummary[] {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { SetOut } from '../../api/schema'
+import type { SetOut } from '../../data/types'
 import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/format'
 import { PR_LABELS, type PrKind } from '../../workout/prs'
 
@@ -25,11 +25,12 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
   const [needsReps, setNeedsReps] = useState(false)
   // When the saved values change elsewhere (e.g. the focus card filled this row), show them.
   // (React's "adjust state when a prop changes" pattern: no remount, so focus is kept.)
+  // Per field: saving the weight lands a moment later and mustn't wipe reps being typed.
   const [saved, setSaved] = useState({ weight: set.weight_kg, reps: set.reps })
   if (saved.weight !== set.weight_kg || saved.reps !== set.reps) {
     setSaved({ weight: set.weight_kg, reps: set.reps })
-    setWeight(toText(set.weight_kg))
-    setReps(toText(set.reps))
+    if (saved.weight !== set.weight_kg) setWeight(toText(set.weight_kg))
+    if (saved.reps !== set.reps) setReps(toText(set.reps))
   }
   const done = set.completed_at !== null
 

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { ExerciseSummary, RoutineOut } from '../api/schema'
+import type { ExerciseSummary, RoutineOut } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { Spinner } from '../components/Spinner'
 import { ExercisePicker } from '../components/workout/ExercisePicker'
+import { useAction } from '../lib/useAction'
 import { uuid } from '../lib/uuid'
-import { useDeleteRoutine, useRoutine, useSaveRoutine } from '../routine'
+import { deleteRoutine, saveRoutine, useRoutine } from '../routine'
 import { DEFAULT_PLANNED_SETS } from '../workout/plan'
 
 type DraftExercise = { key: string; exercise: ExerciseSummary; sets: number }
@@ -36,8 +37,7 @@ export function RoutinePage() {
 
 function RoutineEditor({ routine }: { routine: RoutineOut | null }) {
   const navigate = useNavigate()
-  const save = useSaveRoutine()
-  const remove = useDeleteRoutine()
+  const save = useAction(saveRoutine)
   const [days, setDays] = useState<DraftDay[]>(() => toDraft(routine))
   const [pickingFor, setPickingFor] = useState<string | null>(null)
 
@@ -47,7 +47,7 @@ function RoutineEditor({ routine }: { routine: RoutineOut | null }) {
   const valid = days.every((d) => d.name.trim())
 
   async function onSave() {
-    await save.mutateAsync({
+    await save.run({
       days: days.map((d) => ({
         id: d.id,
         name: d.name.trim(),
@@ -59,7 +59,7 @@ function RoutineEditor({ routine }: { routine: RoutineOut | null }) {
 
   async function onDelete() {
     if (!window.confirm('Stop using a routine? Your past workouts are kept.')) return
-    await remove.mutateAsync(undefined)
+    await deleteRoutine()
     navigate('/workout')
   }
 
@@ -183,7 +183,7 @@ function RoutineEditor({ routine }: { routine: RoutineOut | null }) {
         + Add day
       </button>
 
-      {save.isError && (
+      {save.error && (
         <p role="alert" className="text-sm text-red-600">
           Couldn't save: {save.error.message}
         </p>
@@ -192,7 +192,7 @@ function RoutineEditor({ routine }: { routine: RoutineOut | null }) {
         type="button"
         className="btn btn-primary py-3 text-base"
         disabled={!valid || save.isPending}
-        onClick={() => void onSave()}
+        onClick={() => void onSave().catch(() => {})}
       >
         {save.isPending ? 'Saving…' : 'Save routine'}
       </button>

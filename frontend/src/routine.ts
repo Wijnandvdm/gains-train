@@ -1,52 +1,25 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, unwrap } from './api/client'
-import type { RoutineIn, RoutineOut } from './api/schema'
-import { meQueryKey } from './auth'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { useMemo } from 'react'
+import { db, getStoredRoutine } from './data/db'
+import { hydrateRoutine } from './data/routine'
+import type { RoutineOut } from './data/types'
+import { useExerciseLookup } from './exercises'
 
-export const routineKey = ['routine'] as const
+export { deleteRoutine, routineFromHistory, saveRoutine } from './data/routine'
 
 /** Your routine (null if you train without one), including which day is up next. */
-export function useRoutine() {
-  return useQuery({
-    queryKey: routineKey,
-    queryFn: () => unwrap(api.GET('/api/routine')),
-  })
-}
-
-function useRoutineMutation<T>(mutationFn: (arg: T) => Promise<RoutineOut | null | undefined>) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn,
-    onSuccess: (routine) => queryClient.setQueryData(routineKey, routine ?? null),
-  })
-}
-
-export function useSaveRoutine() {
-  return useRoutineMutation((body: RoutineIn) => unwrap(api.PUT('/api/routine', { body })))
-}
-
-/** Turn the named workouts in your history (e.g. Day1/2/3) into your routine. */
-export function useRoutineFromHistory() {
-  return useRoutineMutation(() => unwrap(api.POST('/api/routine/from-history')))
-}
-
-export function useDeleteRoutine() {
-  return useRoutineMutation(async () => {
-    await unwrap(api.DELETE('/api/routine'))
-    return null
-  })
-}
-
-/** Marks the first-open questions as answered (and saves your default rest). */
-export function useCompleteSetup() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (defaultRestSeconds: number) =>
-      unwrap(
-        api.PATCH('/api/me', {
-          body: { setup_completed: true, default_rest_seconds: defaultRestSeconds },
-        }),
-      ),
-    onSuccess: (me) => queryClient.setQueryData(meQueryKey, me),
-  })
+export function useRoutine(): { data: RoutineOut | null | undefined; isPending: boolean } {
+  const lookup = useExerciseLookup()
+  const stored = useLiveQuery(async () => {
+    const routine = await getStoredRoutine()
+    return routine ? { routine, workouts: await db.workouts.toArray() } : null
+  }, [])
+  const data = useMemo(
+    () =>
+      stored === undefined || !lookup
+        ? undefined
+        : stored && hydrateRoutine(stored.routine, stored.workouts, lookup),
+    [stored, lookup],
+  )
+  return { data, isPending: data === undefined }
 }

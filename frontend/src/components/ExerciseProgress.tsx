@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import type { ExerciseStats } from '../api/schema'
+import type { ExerciseStats } from '../data/types'
 import {
   formatDay,
   formatE1rm,
@@ -14,18 +14,16 @@ import { Spinner } from './Spinner'
 const ProgressChart = lazy(() => import('./ProgressChart'))
 
 /** "Your progress" on an exercise page: records, a chart, and rep records. */
-export function ExerciseProgress({ exerciseId }: { exerciseId: number }) {
-  const { data, isPending, isError } = useExerciseStats(exerciseId)
+export function ExerciseProgress({ exerciseId }: { exerciseId: string }) {
+  const { data } = useExerciseStats(exerciseId)
 
   return (
     <section aria-labelledby="progress-heading" className="flex flex-col gap-3">
       <h2 id="progress-heading" className="font-semibold">
         Your progress
       </h2>
-      {isPending ? (
+      {!data ? (
         <Spinner />
-      ) : isError ? (
-        <p className="text-sm text-neutral-500">Couldn't load your progress.</p>
       ) : !data.records ? (
         <p className="text-sm text-neutral-500">
           You haven't logged this exercise yet. Your records and chart will show up here.

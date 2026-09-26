@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import type { RoutineOut, WorkoutSummary } from '../api/schema'
+import type { RoutineOut, WorkoutSummary } from '../data/types'
 import { BackIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
 import {
@@ -15,7 +15,7 @@ import {
 } from '../lib/calendar'
 import { formatDay, formatVolume, localDateString, parseLocalDate } from '../lib/format'
 import { useRoutine } from '../routine'
-import { useWorkoutsInRange } from '../workout/hooks'
+import { useWorkoutSummaries } from '../workout/hooks'
 
 /** Routine day → colour token; days past the third (and non-routine workouts) are "other". */
 const DAY_COLORS = ['var(--day-1)', 'var(--day-2)', 'var(--day-3)']
@@ -35,11 +35,10 @@ export function HistoryPage() {
   const month: Month = isValidMonth(params.get('month')) ? params.get('month')! : currentMonth()
   const { from, to } = monthRange(month)
 
-  const { data, isPending, isError, refetch, isPlaceholderData } = useWorkoutsInRange(from, to)
+  const { data: workouts = [], isPending } = useWorkoutSummaries(from, to)
   const { data: routine } = useRoutine()
   const colors = dayColors(routine)
 
-  const workouts = data?.items ?? []
   const byDay = new Map<string, WorkoutSummary[]>()
   for (const w of [...workouts].reverse()) {
     byDay.set(w.performed_on, [...(byDay.get(w.performed_on) ?? []), w])
@@ -116,7 +115,6 @@ export function HistoryPage() {
           colors={colors}
           selected={selected}
           today={today}
-          dim={isPlaceholderData}
           onSelect={(day) => go({ day })}
         />
 
@@ -143,13 +141,6 @@ export function HistoryPage() {
 
       {isPending ? (
         <Spinner />
-      ) : isError ? (
-        <div className="py-4 text-center">
-          <p className="mb-3">Couldn't load your history.</p>
-          <button className="btn" onClick={() => refetch()}>
-            Try again
-          </button>
-        </div>
       ) : (
         <>
           <p className="text-sm text-neutral-500">
@@ -187,7 +178,6 @@ function CalendarGrid({
   colors,
   selected,
   today,
-  dim,
   onSelect,
 }: {
   month: Month
@@ -195,14 +185,11 @@ function CalendarGrid({
   colors: Map<string, string>
   selected: string | null
   today: string
-  dim: boolean
   onSelect: (day: string) => void
 }) {
   const weekdays = weekdayLabels()
   return (
-    <table
-      className={`w-full table-fixed border-separate border-spacing-0.5 transition-opacity ${dim ? 'opacity-50' : ''}`}
-    >
+    <table className="w-full table-fixed border-separate border-spacing-0.5">
       <thead>
         <tr>
           {weekdays.map((d) => (

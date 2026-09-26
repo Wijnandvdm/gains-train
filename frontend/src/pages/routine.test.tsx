@@ -1,7 +1,17 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { DAY2_ROUTINE, fakeBackend } from '../test/fakeBackend'
+import { db } from '../data/db'
+import {
+  DAY2_ROUTINE,
+  getSettings,
+  getStoredRoutine,
+  LAST_DAY2,
+  loggedSets,
+  PULLDOWN,
+  ROW,
+  seedDevice,
+} from '../test/device'
 import { renderApp } from '../test/utils'
 
 const card = () => screen.getByRole('region', { name: 'Current set' })
@@ -18,7 +28,7 @@ async function expectCard(exercise: string, set: string, kg: string, reps: strin
 
 describe('minimal clicks (routine)', () => {
   it('opens on the next day, prefilled from last time: one tap per set', async () => {
-    const backend = fakeBackend({}, { routine: DAY2_ROUTINE })
+    await seedDevice({ routine: DAY2_ROUTINE, workouts: [LAST_DAY2] })
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
     renderApp('/workout')
@@ -27,7 +37,7 @@ describe('minimal clicks (routine)', () => {
     expect(await screen.findByText('Next stop')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Day2 · Back & Triceps' })).toBeVisible()
     await expectCard('Seated Cable Rows', '1 of 3', '80', '12')
-    expect(backend.state.writes).toEqual([]) // just opening the app saves nothing
+    expect(await db.workouts.count()).toBe(1) // just opening the app saves nothing
 
     // Tap 1: starts the workout and logs set 1. The card moves on to last time's set 2.
     await user.click(within(card()).getByRole('button', { name: '✓ Done' }))
@@ -58,34 +68,34 @@ describe('minimal clicks (routine)', () => {
     expect(within(rows).getByLabelText('Set 3 reps')).toHaveValue('10')
 
     await user.click(screen.getByRole('button', { name: 'Finish workout' }))
-    await waitFor(() => expect(backend.state.writes.at(-1)).toBe('finish'))
-    expect(backend.state.writes).toEqual([
-      'start Day2 · Back & Triceps',
-      'add Seated Cable Rows',
-      'set 80×12 ✓', // set 1 is logged as soon as its exercise exists
-      'add Wide-Grip Lat Pulldown',
-      'set 80×10 ✓',
-      'set 80×10 ✓',
-      'set 85×1 ✓',
-      'finish',
-    ])
+    await waitFor(async () =>
+      expect(await loggedSets('completed')).toEqual([
+        `${ROW.id}: 80×12 ✓`,
+        `${ROW.id}: 80×10 ✓`,
+        `${ROW.id}: 80×10 ✓`,
+        `${PULLDOWN.id}: 85×1 ✓`,
+      ]),
+    )
+    const [done] = await db.workouts.where('status').equals('completed').toArray()
+    expect(done).toMatchObject({ name: 'Day2 · Back & Triceps', routine_day_id: 'day2' })
   })
 
   it('can skip an exercise', async () => {
-    fakeBackend({}, { routine: DAY2_ROUTINE })
+    await seedDevice({ routine: DAY2_ROUTINE, workouts: [LAST_DAY2] })
     const user = userEvent.setup()
     renderApp('/workout')
 
     await expectCard('Seated Cable Rows', '1 of 3', '80', '12')
     await user.click(within(card()).getByRole('button', { name: '✓ Done' }))
-    await user.click(await within(card()).findByRole('button', { name: 'Skip Seated Cable Rows' }))
+    await expectCard('Seated Cable Rows', '2 of 3', '80', '10')
+    await user.click(within(card()).getByRole('button', { name: 'Skip Seated Cable Rows' }))
     await expectCard('Wide-Grip Lat Pulldown', '1 of 1', '', '')
   })
 })
 
 describe('first open', () => {
   it('asks how you train, then opens straight on your next day', async () => {
-    const backend = fakeBackend({}, { setupDone: false })
+    await seedDevice({ setupDone: false, workouts: [LAST_DAY2] })
     const user = userEvent.setup()
     const router = renderApp('/workout')
 
@@ -98,12 +108,12 @@ describe('first open', () => {
 
     expect(await screen.findByText('Next stop')).toBeVisible()
     expect(router.state.location.pathname).toBe('/workout')
-    expect(backend.state.writes).toEqual(['routine from history', 'setup done'])
-    expect(backend.state.me.default_rest_seconds).toBe(120) // saved to your account
+    expect((await getStoredRoutine())?.days.map((d) => d.name)).toEqual(['Day2 · Back & Triceps'])
+    expect(await getSettings()).toMatchObject({ default_rest_seconds: 120 })
   })
 
   it('lets you build your own routine', async () => {
-    const backend = fakeBackend({}, { setupDone: false })
+    await seedDevice({ setupDone: false, workouts: [LAST_DAY2] })
     const user = userEvent.setup()
     const router = renderApp('/workout')
 
@@ -123,7 +133,9 @@ describe('first open', () => {
 
     expect(await screen.findByText('Next stop')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Push' })).toBeVisible()
-    expect(backend.state.writes).toEqual(['setup done', 'save routine Push'])
-    expect(backend.state.routine?.days[0]?.exercises[0]?.sets).toBe(4)
+    expect((await getSettings()).setup_completed_at).not.toBeNull()
+    expect((await getStoredRoutine())?.days).toEqual([
+      { id: expect.any(String), name: 'Push', exercises: [{ exercise_id: ROW.id, sets: 4 }] },
+    ])
   })
 })

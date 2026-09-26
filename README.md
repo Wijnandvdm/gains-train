@@ -2,77 +2,60 @@
 
 Mobile-first workout tracker: exercise library, live workout logging, progress charts and PRs.
 
-- **backend/**: FastAPI + SQLAlchemy 2 (async) + Postgres, managed with [uv](https://docs.astral.sh/uv/)
-- **frontend/**: React + TypeScript (Vite), Tailwind, installable as a PWA
+Everything lives **on your phone**: no accounts, no server, and nothing is ever sent anywhere.
+The app is plain static files (React + TypeScript, Vite, Tailwind), installable as a PWA, and
+keeps its data in the browser's IndexedDB (via [Dexie](https://dexie.org)). Friends who want to
+track their own progress just open the same app on their own phone.
 
 ## Prerequisites
 
-- Docker with the Compose plugin
-- uv (installs Python 3.12 for the project automatically)
 - Node 22 (`nvm install 22`)
 
 ## Run locally
 
 ```bash
-cp backend/.env.example backend/.env   # first time only: fill in GOOGLE_CLIENT_ID etc.
-scripts/dev.sh
+scripts/dev.sh   # → http://localhost:5173
 ```
 
-That starts Postgres (Docker), applies database migrations, and runs the API
-(http://localhost:8001, Swagger docs at `/docs`, auto-reload) and the frontend
-(http://localhost:5173, proxies `/api` to the API) in one terminal. The first run also installs
-the frontend packages and downloads the exercise library (~100 MB). Ctrl-C stops everything.
+The first run installs the frontend packages and downloads the exercise library (~100 MB,
+[free-exercise-db](https://github.com/yuhonas/free-exercise-db), public domain) into
+`frontend/public/exercises/` (not committed; `scripts/fetch-exercises.sh` pins the version).
 
-<details>
-<summary>Doing it by hand instead</summary>
-
-```bash
-docker compose up -d db
-cd backend
-uv run alembic upgrade head                     # apply database migrations
-uv run python -m app.cli seed-exercises         # first time only: exercise library
-uv run uvicorn app.main:app --reload --port 8001
-# in a second terminal:
-cd frontend && npm install && npm run dev
-```
-
-</details>
-
-## Installable app (PWA) and offline use
-
-`npm run dev` runs without the service worker. To try the real, installable app:
+## Build and host
 
 ```bash
 cd frontend
-npm run build && npm run preview   # → http://localhost:4173 (proxies /api to the API)
+npm run build     # → frontend/dist/, the whole app including the exercise photos
+npm run preview   # try the production build → http://localhost:4173
 ```
 
-- The app shell is cached up front, exercise images when first seen, and your data
-  (network first, cached copy as offline fallback; cleared on sign-out).
-- Sets logged offline are queued and synced when the connection returns.
+Serve `frontend/dist/` from any static host (or this VM), with unknown paths falling back to
+`index.html` (app routes like `/history` are handled in the browser). Installing it on a phone
+needs HTTPS, e.g. Tailscale or a Cloudflare Tunnel in front of the VM.
+
+- The app and the exercise list are cached up front, so it opens instantly and works offline;
+  each exercise photo is cached the first time it's shown.
 - A new deploy shows a "New version available · Reload" banner instead of reloading mid-workout.
-- Installing on a phone needs HTTPS (e.g. Tailscale or a Cloudflare Tunnel in front of this VM).
 - App icons are generated from `frontend/public/favicon.svg`: `npx @vite-pwa/assets-generator@1`.
+
+## Your data: backups
+
+Since the data only exists on the phone, losing the phone or clearing the site's data loses
+it. In the app, **Settings → Export backup** saves a `gains-train-backup-YYYY-MM-DD.json` file
+(on a phone via the share sheet, e.g. to Google Drive or Files); **Import backup** restores
+it, on the same or a new phone (it replaces what's there). A new phone's first screen also
+offers "Restore a backup".
+
+Add the app to your home screen: browsers (especially Safari) may clear data of websites you
+haven't opened for a while, but not of installed apps. Settings shows whether the phone has
+granted persistent storage.
 
 ## Importing the legacy Google Sheets log
 
-Export the sheet's **Log** tab as CSV, then (from `backend/`):
-
-```bash
-uv run python -m app.cli import-legacy --email you@example.com --dry-run "gainz - Log.csv"
-uv run python -m app.cli import-legacy --email you@example.com "gainz - Log.csv"
-```
-
-Re-running is safe: workouts are updated in place, not duplicated. Exercise names are mapped to
-the library via [`legacy_exercise_map.toml`](backend/app/importers/legacy_exercise_map.toml).
-The exercise library comes from [free-exercise-db](https://github.com/yuhonas/free-exercise-db)
-(public domain).
-
-## API types
-
-The frontend's API types (`frontend/src/api/schema.d.ts`) are generated from the backend's
-OpenAPI spec. After changing backend routes or schemas, run `scripts/gen-api.sh`; pre-commit
-also regenerates them and fails the commit if they changed, so stage the updated file.
+Export the sheet's **Log** tab as CSV and pick it under **Settings → Import your old sheet**
+(or "Import my old sheet" on first open). Re-importing is safe: workouts are updated, not
+duplicated. Exercise names are mapped to the library by `LEGACY_MAPPING` in
+[`legacyImport.ts`](frontend/src/data/legacyImport.ts).
 
 ## Checks
 
@@ -87,8 +70,7 @@ pre-commit run --all-files  # run everything manually
 Or run the tools directly:
 
 ```bash
-cd backend && uv run pytest && uv run ruff check . && uv run mypy app tests
-cd frontend && npm test && npm run build && npm run lint
+cd frontend && npm test && npm run lint && npm run build
 ```
 
 ## TODOS:
@@ -98,6 +80,4 @@ cd frontend && npm test && npm run build && npm run lint
 7. Do we not have a shitload of redundant code?
 8. Walk me through every bit step by step, I'll decide whatever needs documenting or not
 9. Document the highover flow in a mermaid diagram
-13. Data should be stored on the device itself as much as possible
 14. A feature like the streak from a certain language training app, which ofcourse does follow the train theme, e.g. with tickets "can you make it to the next station?" or something
-15. option to export the current logs in a way that they're easily imported in the future, rendering the legacy import way obsolete

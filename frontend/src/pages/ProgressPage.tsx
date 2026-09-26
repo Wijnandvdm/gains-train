@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import type { ExerciseOverviewOut } from '../api/schema'
+import type { ExerciseOverviewOut } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { Spinner } from '../components/Spinner'
 import { formatDay, formatE1rm, formatVolume, formatWeight } from '../lib/format'
@@ -7,7 +7,7 @@ import { useStatsOverview } from '../stats'
 
 /** Every exercise you've done: last session, best, and totals (your old Dashboard tab). */
 export function ProgressPage() {
-  const { data: rows, isPending, isError, refetch } = useStatsOverview()
+  const { data: rows } = useStatsOverview()
 
   return (
     <section className="flex flex-col gap-4">
@@ -17,15 +17,8 @@ export function ProgressPage() {
           Keeping track of your gains. Tap an exercise for its chart and records.
         </p>
       </div>
-      {isPending ? (
+      {!rows ? (
         <Spinner />
-      ) : isError ? (
-        <div className="py-8 text-center">
-          <p className="mb-3">Couldn't load your progress.</p>
-          <button className="btn" onClick={() => refetch()}>
-            Try again
-          </button>
-        </div>
       ) : rows.length === 0 ? (
         <div className="py-8 text-center">
           <p className="mb-3 text-neutral-500">Finish a workout to see your progress here.</p>

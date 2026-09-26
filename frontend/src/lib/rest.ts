@@ -1,4 +1,4 @@
-import type { ExerciseSummary } from '../api/schema'
+import type { ExerciseSummary } from '../data/types'
 
 export const DEFAULT_REST_SECONDS = 90
 
@@ -23,7 +23,7 @@ export function smartRestSeconds(exercise: ExerciseSummary, fallback: number): n
 /** Your rest for an exercise: your own setting if you made one (0 = no timer), else smart. */
 export function restSecondsFor(
   exercise: ExerciseSummary,
-  preferences: ReadonlyMap<number, number>,
+  preferences: ReadonlyMap<string, number>,
   fallback: number,
 ): number {
   return preferences.get(exercise.id) ?? smartRestSeconds(exercise, fallback)

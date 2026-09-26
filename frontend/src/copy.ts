@@ -1,8 +1,8 @@
 /**
  * The gains train's voice. Puns go where they add fun (greetings, milestones, celebrations),
- * never where clarity matters mid-set (buttons, numbers, sync status).
+ * never where clarity matters mid-set (buttons, numbers, errors).
  */
-import type { WorkoutSummary } from './api/schema'
+import type { WorkoutSummary } from './data/types'
 import { localDateString } from './lib/format'
 
 export const TAGLINE = 'All aboard the gains train!'

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { SetOut } from '../api/schema'
+import type { SetOut } from '../data/types'
 import { exercise } from '../test/utils'
 import { nextSet, type PlannedExercise, plannedSetCount } from './plan'
 
@@ -19,8 +19,8 @@ const s = (
   completed_at: done ? '2026-09-25T18:00:00Z' : null,
 })
 
-const ROWS = exercise(1, 'Seated Cable Rows')
-const PULLDOWN = exercise(2, 'Wide-Grip Lat Pulldown')
+const ROWS = exercise('1', 'Seated Cable Rows')
+const PULLDOWN = exercise('2', 'Wide-Grip Lat Pulldown')
 
 function item(overrides: Partial<PlannedExercise> = {}): PlannedExercise {
   return {

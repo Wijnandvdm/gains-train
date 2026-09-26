@@ -1,30 +1,36 @@
-import { useQuery } from '@tanstack/react-query'
-import { api, unwrap } from './api/client'
-
-export const statsKeys = {
-  overview: ['stats-overview'] as const,
-  exercise: (id: number) => ['exercise-stats', id] as const,
-}
+import { useLiveQuery } from 'dexie-react-hooks'
+import { useMemo } from 'react'
+import { db } from './data/db'
+import { exerciseStats, overview } from './data/stats'
+import type { ExerciseOverviewOut, ExerciseStats } from './data/types'
+import { useExerciseLookup } from './exercises'
 
 /** Records and per-session progress for one exercise (finished workouts only). */
-export function useExerciseStats(exerciseId: number) {
-  return useQuery({
-    queryKey: statsKeys.exercise(exerciseId),
-    queryFn: () =>
-      unwrap(
-        api.GET('/api/stats/exercises/{exercise_id}', {
-          params: { path: { exercise_id: exerciseId } },
-        }),
+export function useExerciseStats(exerciseId: string): {
+  data: ExerciseStats | undefined
+  isPending: boolean
+} {
+  const data = useLiveQuery(
+    async () =>
+      exerciseStats(
+        await db.workouts.where('exercise_ids').equals(exerciseId).toArray(),
+        exerciseId,
       ),
-    staleTime: 5 * 60 * 1000,
-    enabled: Number.isInteger(exerciseId),
-  })
+    [exerciseId],
+  )
+  return { data, isPending: data === undefined }
 }
 
 /** Every exercise you've done: the dashboard. */
-export function useStatsOverview() {
-  return useQuery({
-    queryKey: statsKeys.overview,
-    queryFn: () => unwrap(api.GET('/api/stats/overview')),
-  })
+export function useStatsOverview(): {
+  data: ExerciseOverviewOut[] | undefined
+  isPending: boolean
+} {
+  const lookup = useExerciseLookup()
+  const workouts = useLiveQuery(() => db.workouts.toArray(), [])
+  const data = useMemo(
+    () => (workouts && lookup ? overview(workouts, lookup) : undefined),
+    [workouts, lookup],
+  )
+  return { data, isPending: data === undefined }
 }

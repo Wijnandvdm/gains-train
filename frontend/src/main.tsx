@@ -1,20 +1,19 @@
-import { QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { UpdatePrompt } from './components/UpdatePrompt'
+import { requestPersistentStorage } from './data/db'
 import './index.css'
-import { createQueryClient } from './queryClient'
 import { routes } from './routes'
 
-const queryClient = createQueryClient()
 const router = createBrowserRouter(routes)
+
+// Your data only lives on this device: ask the browser not to clear it under storage pressure.
+void requestPersistentStorage()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <UpdatePrompt />
-    </QueryClientProvider>
+    <RouterProvider router={router} />
+    <UpdatePrompt />
   </StrictMode>,
 )

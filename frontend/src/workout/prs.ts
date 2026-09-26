@@ -1,10 +1,9 @@
 /**
- * Personal-record detection for sets logged in the workout in progress. It runs on the
- * phone (so it works offline, the moment a set is ticked) against your records from
- * finished workouts plus the earlier sets of this workout. The definitions mirror the
- * backend's app/services/stats.py.
+ * Personal-record detection for sets logged in the workout in progress, the moment a set
+ * is ticked: against your records from finished workouts plus the earlier sets of this
+ * workout. The definitions match data/stats.ts.
  */
-import type { RecordsOut, SetOut } from '../api/schema'
+import type { RecordsOut, SetOut } from '../data/types'
 
 export type PrKind = 'weight' | 'e1rm' | 'reps'
 

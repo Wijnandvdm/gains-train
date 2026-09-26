@@ -1,4 +1,4 @@
-import type { SetOut } from '../api/schema'
+import type { SetOut } from '../data/types'
 
 /** Numbers work sets 1, 2, 3… and labels warm-ups "W" (warm-ups don't take a number). */
 export function setLabels(sets: SetOut[]): string[] {

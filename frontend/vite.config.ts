@@ -39,17 +39,17 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // The app itself (JS, CSS, HTML, icons) is cached up front: it opens instantly and
-        // without a connection.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
-        // App routes (/workout, /history/…) all serve index.html, but API calls never do.
+        // The app itself (JS, CSS, HTML, icons) and the exercise library's data are cached
+        // up front: it opens instantly and works without a connection. The ~100 MB of
+        // exercise photos are not; each one is cached the first time it's shown.
+        globPatterns: ['**/*.{js,css,html,svg,png,ico}', 'exercises/exercises.json'],
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
-            // Exercise photos never change: cache each one the first time it's shown.
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/exercise-images/'),
+            // Exercise photos never change (the dataset version is pinned).
+            urlPattern: ({ url }) =>
+              url.pathname.startsWith('/exercises/') && url.pathname.endsWith('.jpg'),
             handler: 'CacheFirst',
             options: {
               cacheName: 'exercise-images',
@@ -57,36 +57,12 @@ export default defineConfig({
               cacheableResponse: { statuses: [200] },
             },
           },
-          {
-            // Your data: always fetched fresh, but the last copy is kept so the app still
-            // opens and shows your workout, history and "last time" numbers offline. Only
-            // successful responses are kept (a 401 after signing out never is), sign-in
-            // endpoints are never cached, and the cache is cleared on sign-out.
-            urlPattern: ({ url, request }) =>
-              request.method === 'GET' &&
-              url.pathname.startsWith('/api/') &&
-              !url.pathname.startsWith('/api/auth/'),
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api',
-              networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 300, maxAgeSeconds: 30 * 24 * 60 * 60 },
-              cacheableResponse: { statuses: [200] },
-            },
-          },
         ],
       },
     }),
   ],
-  server: {
-    host: true,
-    // Proxy API calls to FastAPI so the browser sees one origin (simpler cookies, no CORS).
-    proxy: { '/api': 'http://localhost:8001' },
-  },
-  preview: {
-    host: true,
-    proxy: { '/api': 'http://localhost:8001' },
-  },
+  server: { host: true },
+  preview: { host: true },
   test: {
     environment: 'jsdom',
     // One jsdom per worker instead of one per test file (much faster), while each file

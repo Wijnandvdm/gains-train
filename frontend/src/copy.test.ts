@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { WorkoutSummary } from './api/schema'
+import type { WorkoutSummary } from './data/types'
 import { CHEERS, cheer, ridesThisWeek, weekMessage } from './copy'
 
 const workout = (performed_on: string, status: WorkoutSummary['status'] = 'completed') =>

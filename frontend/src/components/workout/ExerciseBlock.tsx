@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import type { ExerciseSummary, WorkoutExerciseOut } from '../../api/schema'
+import type { ExerciseSummary, WorkoutExerciseOut } from '../../data/types'
 import { formatDay } from '../../lib/format'
 import { uuid } from '../../lib/uuid'
 import { useLastTime, useWorkoutActions } from '../../workout/hooks'

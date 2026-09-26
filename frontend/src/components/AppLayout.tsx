@@ -1,9 +1,6 @@
 import { Link, Navigate, NavLink, Outlet } from 'react-router-dom'
-import { useMe, useSignOut } from '../auth'
-import { useUpdateMe } from '../preferences'
-import { useOutboxSync } from '../workout/hooks'
-import { outbox } from '../workout/sync'
-import { ChartIcon, DumbbellIcon, HistoryIcon, ListIcon, TrainIcon } from './icons'
+import { useSettings } from '../settings'
+import { ChartIcon, DumbbellIcon, GearIcon, HistoryIcon, ListIcon, TrainIcon } from './icons'
 
 const TABS = [
   { to: '/workout', label: 'Workout', icon: DumbbellIcon },
@@ -12,83 +9,10 @@ const TABS = [
   { to: '/progress', label: 'Progress', icon: ChartIcon },
 ]
 
-function AccountMenu() {
-  const { data: user } = useMe()
-  const signOut = useSignOut()
-  if (!user) return null
-
-  return (
-    <details className="relative">
-      <summary className="list-none rounded-full [&::-webkit-details-marker]:hidden">
-        <span className="sr-only">Account</span>
-        {user.avatar_url ? (
-          <img
-            src={user.avatar_url}
-            alt=""
-            referrerPolicy="no-referrer"
-            className="h-8 w-8 cursor-pointer rounded-full"
-          />
-        ) : (
-          <span className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-brand-600 font-semibold text-white uppercase">
-            {(user.name ?? user.email)[0]}
-          </span>
-        )}
-      </summary>
-      <div className="card absolute right-0 z-20 mt-2 w-60 p-3 shadow-lg">
-        <p className="truncate font-medium">{user.name ?? user.email}</p>
-        <p className="truncate text-sm text-neutral-500">{user.email}</p>
-        <RestTimerSwitch enabled={user.rest_timer_enabled} />
-        <Link to="/routine" className="btn mt-3 w-full">
-          Edit routine
-        </Link>
-        <button
-          className="btn mt-2 w-full"
-          onClick={() => {
-            const { pending } = outbox.getStatus()
-            const lose = `${pending} change${pending === 1 ? " hasn't" : "s haven't"} synced yet and will be lost. Sign out anyway?`
-            if (pending > 0 && !window.confirm(lose)) return
-            outbox.clear()
-            signOut.mutate()
-          }}
-          disabled={signOut.isPending}
-        >
-          Sign out
-        </button>
-      </div>
-    </details>
-  )
-}
-
-/** Turns the automatic rest timer on or off (per-exercise times are set on each card). */
-function RestTimerSwitch({ enabled }: { enabled: boolean }) {
-  const updateMe = useUpdateMe()
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={enabled}
-      disabled={updateMe.isPending}
-      onClick={() => updateMe.mutate({ rest_timer_enabled: !enabled })}
-      className="mt-3 flex w-full items-center justify-between rounded-lg py-1 text-sm"
-    >
-      Rest timer
-      <span
-        aria-hidden="true"
-        className={`relative h-6 w-11 rounded-full transition ${enabled ? 'bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}
-      >
-        <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left] ${enabled ? 'left-5.5' : 'left-0.5'}`}
-        />
-      </span>
-    </button>
-  )
-}
-
 export function AppLayout() {
-  useOutboxSync()
-  const { data: user } = useMe()
+  const settings = useSettings()
   // First open: ask the setup questions before anything else.
-  if (user && !user.setup_completed_at) return <Navigate to="/setup" replace />
+  if (settings && !settings.setup_completed_at) return <Navigate to="/setup" replace />
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-neutral-50/90 px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">
@@ -96,7 +20,13 @@ export function AppLayout() {
           <TrainIcon className="h-6 w-6 text-brand-600 dark:text-brand-500" />
           gains-train
         </Link>
-        <AccountMenu />
+        <Link
+          to="/settings"
+          aria-label="Settings"
+          className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+        >
+          <GearIcon />
+        </Link>
       </header>
 
       {/* Bottom padding keeps content clear of the tab bar (and the iPhone home indicator). */}

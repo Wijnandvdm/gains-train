@@ -43,7 +43,7 @@ export function parseLocalDate(isoDate: string): Date {
   return new Date(y!, m! - 1, d!)
 }
 
-/** Today's local date as "YYYY-MM-DD" (what the backend's performed_on expects). */
+/** Today's local date as "YYYY-MM-DD" (how workouts store performed_on). */
 export function localDateString(date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`

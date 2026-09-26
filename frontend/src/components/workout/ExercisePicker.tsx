@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ExerciseSummary } from '../../api/schema'
+import type { ExerciseSummary } from '../../data/types'
 import { useExerciseSearch } from '../../exercises'
+import { usePaged } from '../../lib/usePaged'
 import { ExerciseThumb } from '../ExerciseImage'
 import { SearchIcon } from '../icons'
 import { Spinner } from '../Spinner'
@@ -30,7 +31,7 @@ export function ExercisePicker({
   }, [onClose])
 
   const results = useExerciseSearch({ q: query || undefined })
-  const exercises = results.data?.pages.flatMap((page) => page.items) ?? []
+  const { visible: exercises, hasMore, showMore } = usePaged(results.data)
 
   return (
     <div
@@ -65,10 +66,12 @@ export function ExercisePicker({
         <div className="-mx-4 flex-1 overflow-y-auto px-4 pb-4">
           {results.isPending ? (
             <Spinner />
-          ) : results.isError && exercises.length === 0 ? (
+          ) : results.isError ? (
             <p className="py-8 text-center text-neutral-500">
-              Can't search right now. Are you offline? Exercises you've browsed before still show up
-              here, and anything you log is saved once you're back online.
+              Couldn't load the exercise library.{' '}
+              <button type="button" className="underline" onClick={results.retry}>
+                Try again
+              </button>
             </p>
           ) : exercises.length === 0 ? (
             <p className="py-8 text-center text-neutral-500">No exercises found.</p>
@@ -93,15 +96,10 @@ export function ExercisePicker({
                   </button>
                 </li>
               ))}
-              {results.hasNextPage && (
+              {hasMore && (
                 <li className="flex justify-center">
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => results.fetchNextPage()}
-                    disabled={results.isFetchingNextPage}
-                  >
-                    {results.isFetchingNextPage ? 'Loading…' : 'Load more'}
+                  <button type="button" className="btn" onClick={showMore}>
+                    Load more
                   </button>
                 </li>
               )}

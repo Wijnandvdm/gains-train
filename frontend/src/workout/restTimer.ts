@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 /** exerciseId: whose rest this is (so ±15s can be remembered for that exercise). */
-type Timer = { endsAt: number; seconds: number; exerciseId: number | null }
+type Timer = { endsAt: number; seconds: number; exerciseId: string | null }
 
 const TIMER_KEY = 'gains-train:rest-timer'
 const DONE_BANNER_MS = 4_000
@@ -58,7 +58,7 @@ function alertRestOver(): void {
  */
 export function useRestTimer({
   onAdjust,
-}: { onAdjust?: (exerciseId: number, seconds: number) => void } = {}) {
+}: { onAdjust?: (exerciseId: string, seconds: number) => void } = {}) {
   const [timer, setTimer] = useState<Timer | null>(() => read<Timer>(TIMER_KEY))
   const [now, setNow] = useState(() => Date.now())
   const alertedFor = useRef<number | null>(null)
@@ -93,7 +93,7 @@ export function useRestTimer({
     total: timer?.seconds ?? 0,
     done,
     start: useCallback(
-      (seconds: number, exerciseId: number | null = null) => {
+      (seconds: number, exerciseId: string | null = null) => {
         unlockAudio()
         update({ endsAt: Date.now() + seconds * 1000, seconds, exerciseId })
       },

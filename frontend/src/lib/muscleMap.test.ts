@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { MUSCLE_REGIONS, regionsFor } from './muscleMap'
 
-// The 17 muscles the exercise library uses (backend/data/free-exercise-db).
+// The 17 muscles the exercise library uses (frontend/public/exercises).
 const LIBRARY_MUSCLES = [
   'abdominals',
   'abductors',

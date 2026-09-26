@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ApiError } from '../api/client'
-import type { ExerciseDetail } from '../api/schema'
+import type { ExerciseDetail } from '../data/types'
 import { ExerciseProgress } from '../components/ExerciseProgress'
 import { BackIcon } from '../components/icons'
 import { MuscleMap } from '../components/MuscleMap'
@@ -9,23 +8,22 @@ import { Spinner } from '../components/Spinner'
 import { useExercise } from '../exercises'
 
 export function ExerciseDetailPage() {
-  const id = Number(useParams().exerciseId)
-  const { data: exercise, isPending, error, refetch } = useExercise(id)
+  const { data: exercise, isPending, isError, retry } = useExercise(useParams().exerciseId ?? '')
 
   return (
     <section className="flex flex-col gap-4">
       <BackButton />
       {isPending ? (
         <Spinner />
-      ) : error instanceof ApiError && error.status === 404 ? (
-        <NotFound />
-      ) : error ? (
+      ) : isError ? (
         <div className="py-8 text-center">
-          <p className="mb-3">Couldn't load this exercise.</p>
-          <button className="btn" onClick={() => refetch()}>
+          <p className="mb-3">Couldn't load the exercise library.</p>
+          <button className="btn" onClick={retry}>
             Try again
           </button>
         </div>
+      ) : !exercise ? (
+        <NotFound />
       ) : (
         <Exercise exercise={exercise} />
       )}

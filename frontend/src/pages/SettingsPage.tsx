@@ -1,0 +1,250 @@
+import { type ReactNode, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { FilePicker } from '../components/FilePicker'
+import { backupFileName, createBackup, readBackupFile, restoreBackup } from '../data/backup'
+import { importLegacyFile, type ImportResult } from '../data/legacyImport'
+import { routineFromHistory } from '../data/routine'
+import { formatClock } from '../lib/format'
+import { useAction } from '../lib/useAction'
+import { updateSettings, useSettings } from '../settings'
+
+const REST_DEFAULTS = [60, 90, 120, 150, 180]
+
+const workoutCount = (n: number) => `${n} workout${n === 1 ? '' : 's'}`
+
+export function SettingsPage() {
+  const settings = useSettings()
+  return (
+    <section className="flex flex-col gap-4">
+      <h1 className="text-2xl font-bold">Settings</h1>
+
+      <Card title="Rest timer">
+        <Switch
+          label="Start a rest timer after each set"
+          checked={settings?.rest_timer_enabled ?? true}
+          onChange={(on) => void updateSettings({ rest_timer_enabled: on })}
+        />
+        <label className="flex items-center justify-between gap-3 text-sm">
+          Default rest (when an exercise has no smart default)
+          <select
+            value={settings?.default_rest_seconds ?? 90}
+            onChange={(e) => void updateSettings({ default_rest_seconds: Number(e.target.value) })}
+            className="input w-auto py-1 text-base"
+          >
+            {REST_DEFAULTS.map((s) => (
+              <option key={s} value={s}>
+                {formatClock(s)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="text-sm text-neutral-500">
+          Per-exercise rest times are set on each exercise's card during a workout.
+        </p>
+      </Card>
+
+      <Card title="Routine">
+        <Link to="/routine" className="btn">
+          Edit routine
+        </Link>
+      </Card>
+
+      <BackupCard />
+      <LegacyImportCard />
+      <StorageCard />
+    </section>
+  )
+}
+
+function Card({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="card flex flex-col gap-3 p-4" aria-label={title}>
+      <h2 className="font-semibold">{title}</h2>
+      {children}
+    </section>
+  )
+}
+
+function Switch({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="flex w-full items-center justify-between gap-3 text-left text-sm"
+    >
+      {label}
+      <span
+        aria-hidden="true"
+        className={`relative h-6 w-11 shrink-0 rounded-full transition ${checked ? 'bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+      >
+        <span
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left] ${checked ? 'left-5.5' : 'left-0.5'}`}
+        />
+      </span>
+    </button>
+  )
+}
+
+/** Offer the file via the share sheet (phones: save to Files/Drive, mail…) or download it. */
+async function saveFile(file: File): Promise<void> {
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'gains-train backup' })
+      return
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return // cancelled by you
+    }
+  }
+  const url = URL.createObjectURL(file)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = file.name
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+function BackupCard() {
+  const [message, setMessage] = useState<string | null>(null)
+  const exporting = useAction(async () => {
+    const backup = await createBackup()
+    await saveFile(
+      new File([JSON.stringify(backup)], backupFileName(), { type: 'application/json' }),
+    )
+    setMessage(`Backup made: ${workoutCount(backup.workouts.length)}.`)
+  })
+  const restoring = useAction(async (file: File) => {
+    const backup = await readBackupFile(file)
+    if (!window.confirm('Replace everything on this phone with this backup?')) return
+    await restoreBackup(backup)
+    setMessage(
+      `Restored ${workoutCount(backup.workouts.length)} from ${backup.exported_at.slice(0, 10)}.`,
+    )
+  })
+  const error = exporting.error ?? restoring.error
+
+  return (
+    <Card title="Backup">
+      <p className="text-sm text-neutral-500">
+        Your data only lives on this phone. Export a backup now and then, and keep the file
+        somewhere safe (e.g. Google Drive). The same file restores everything on a new phone.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={exporting.isPending}
+          onClick={() => void exporting.run().catch(() => {})}
+        >
+          Export backup
+        </button>
+        <FilePicker
+          label="Import backup"
+          accept="application/json,.json"
+          disabled={restoring.isPending}
+          onFile={(file) => void restoring.run(file).catch(() => {})}
+        />
+      </div>
+      {message && (
+        <p role="status" className="text-sm text-brand-700 dark:text-brand-500">
+          {message}
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error.message}
+        </p>
+      )}
+    </Card>
+  )
+}
+
+function LegacyImportCard() {
+  const [result, setResult] = useState<ImportResult | null>(null)
+  const [routineMade, setRoutineMade] = useState(false)
+  const importing = useAction(async (file: File) => {
+    setResult(await importLegacyFile(file))
+    setRoutineMade(false)
+  })
+
+  return (
+    <Card title="Import your old sheet">
+      <p className="text-sm text-neutral-500">
+        Export the Google Sheet's <b>Log</b> tab as CSV and pick it here. Importing again updates
+        the same workouts instead of duplicating them.
+      </p>
+      <FilePicker
+        label="Import legacy sheet (CSV)"
+        accept="text/csv,.csv"
+        disabled={importing.isPending}
+        onFile={(file) => void importing.run(file).catch(() => {})}
+      />
+      {importing.error && (
+        <p role="alert" className="text-sm whitespace-pre-line text-red-600">
+          {importing.error.message}
+        </p>
+      )}
+      {result && (
+        <div role="status" className="flex flex-col gap-2 text-sm">
+          <p>
+            Imported {result.created + result.updated} workouts ({result.created} new) with{' '}
+            {result.sets} sets.
+          </p>
+          {result.warnings.length > 0 && (
+            <details>
+              <summary className="cursor-pointer text-neutral-500">
+                {result.warnings.length} warning{result.warnings.length === 1 ? '' : 's'}
+              </summary>
+              <ul className="mt-1 list-disc pl-5 text-neutral-500">
+                {result.warnings.map((w) => (
+                  <li key={w}>{w}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {routineMade ? (
+            <p>
+              Your routine is set.{' '}
+              <Link to="/workout" className="font-medium underline">
+                All aboard!
+              </Link>
+            </p>
+          ) : (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void routineFromHistory().then(() => setRoutineMade(true))}
+            >
+              Use these days as my routine
+            </button>
+          )}
+        </div>
+      )}
+    </Card>
+  )
+}
+
+function StorageCard() {
+  const [persisted, setPersisted] = useState<boolean | null>(null)
+  useEffect(() => {
+    navigator.storage?.persisted?.().then(setPersisted, () => setPersisted(null))
+  }, [])
+  return (
+    <Card title="Storage">
+      <p className="text-sm text-neutral-500">
+        {persisted
+          ? 'This phone keeps your data safe from automatic clean-ups.'
+          : 'Tip: add gains-train to your home screen. Browsers may otherwise clear the data of sites you haven’t opened for a while.'}
+      </p>
+    </Card>
+  )
+}

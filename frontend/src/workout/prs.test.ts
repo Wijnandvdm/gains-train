@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { RecordsOut, SetOut } from '../api/schema'
+import type { RecordsOut, SetOut } from '../data/types'
 import { detectPRs, e1rm, prsForSets } from './prs'
 
 // Records like your Lat Pulldown: 90 × 12 heaviest, then 85 × 12 and 80 × 14.

@@ -5,7 +5,7 @@
  * The next set is the first one not yet done, in exercise order. Its numbers are prefilled
  * from the same set last time ("set 2 today = set 2 last time").
  */
-import type { ExerciseSummary, SetOut } from '../api/schema'
+import type { ExerciseSummary, SetOut } from '../data/types'
 
 export const DEFAULT_PLANNED_SETS = 3
 

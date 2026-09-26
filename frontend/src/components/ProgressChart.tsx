@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type { SessionPoint } from '../api/schema'
+import type { SessionPoint } from '../data/types'
 import {
   formatDay,
   formatE1rm,

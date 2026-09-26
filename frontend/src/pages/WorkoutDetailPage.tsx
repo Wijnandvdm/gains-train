@@ -1,17 +1,17 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ApiError } from '../api/client'
-import type { WorkoutDetail } from '../api/schema'
+import type { WorkoutDetail } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { BackIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
 import { formatDay, formatSet } from '../lib/format'
-import { useDeleteWorkout, useWorkout } from '../workout/hooks'
+import { useAction } from '../lib/useAction'
+import { deleteWorkout, useWorkout } from '../workout/hooks'
 import { setLabels } from '../workout/sets'
 
 /** A finished workout, read-only. */
 export function WorkoutDetailPage() {
   const id = useParams().workoutId!
-  const { data: workout, isPending, error, refetch } = useWorkout(id)
+  const { data: workout, isPending } = useWorkout(id)
   const navigate = useNavigate()
   const cameFromApp = useLocation().key !== 'default'
 
@@ -38,15 +38,8 @@ export function WorkoutDetailPage() {
       </Link>
       {isPending ? (
         <Spinner />
-      ) : error instanceof ApiError && error.status === 404 ? (
+      ) : !workout ? (
         <p className="py-8 text-center">This workout doesn't exist (anymore).</p>
-      ) : error ? (
-        <div className="py-8 text-center">
-          <p className="mb-3">Couldn't load this workout.</p>
-          <button className="btn" onClick={() => refetch()}>
-            Try again
-          </button>
-        </div>
       ) : (
         <Workout workout={workout} />
       )}
@@ -56,11 +49,14 @@ export function WorkoutDetailPage() {
 
 function Workout({ workout }: { workout: WorkoutDetail }) {
   const navigate = useNavigate()
-  const deleteWorkout = useDeleteWorkout()
+  const remove = useAction(deleteWorkout)
 
   function onDelete() {
     if (!window.confirm('Delete this workout? This can’t be undone.')) return
-    deleteWorkout.mutate(workout.id, { onSuccess: () => navigate('/history', { replace: true }) })
+    remove.run(workout.id).then(
+      () => navigate('/history', { replace: true }),
+      () => {},
+    )
   }
 
   return (
@@ -108,13 +104,13 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
         type="button"
         className="btn mx-auto text-red-600"
         onClick={onDelete}
-        disabled={deleteWorkout.isPending}
+        disabled={remove.isPending}
       >
         Delete workout
       </button>
-      {deleteWorkout.isError && (
+      {remove.error && (
         <p role="alert" className="text-center text-sm text-red-600">
-          Couldn't delete: {deleteWorkout.error.message}
+          Couldn't delete: {remove.error.message}
         </p>
       )}
     </article>

@@ -1,32 +1,23 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import type { RoutineOut, WorkoutSummary } from '../api/schema'
+import type { StoredRoutine } from '../data/types'
 import { formatDay } from '../lib/format'
-import { ME, mockApi, renderApp } from '../test/utils'
+import { ROW, seedDevice, set, workout } from '../test/device'
+import { renderApp } from '../test/utils'
 
-const ROUTINE: RoutineOut = {
-  id: 'r',
-  next_day_id: 'd1',
+const ROUTINE: StoredRoutine = {
   days: [
-    { id: 'd1', position: 1, name: 'Day1 · Legs', exercises: [] },
-    { id: 'd2', position: 2, name: 'Day2 · Back', exercises: [] },
+    { id: 'd1', name: 'Day1 · Legs', exercises: [] },
+    { id: 'd2', name: 'Day2 · Back', exercises: [] },
   ],
 }
 
+/** A finished ride: 3 sets of 100 kg × 10 (3 000 kg). */
 const ride = (id: string, performed_on: string, routine_day_id: string | null, name: string) =>
-  ({
-    id,
-    name,
-    routine_day_id,
-    performed_on,
-    status: 'completed',
-    started_at: null,
-    ended_at: null,
-    exercise_names: ['Hack Squat'],
-    set_count: 9,
-    volume_kg: 5000,
-  }) satisfies WorkoutSummary
+  workout({ id, performed_on, routine_day_id, name }, [
+    [ROW.id, [1, 2, 3].map((n) => set(`${id}-${n}`, `${id}-we`, n, 100, 10))],
+  ])
 
 const WORKOUTS = [
   ride('aug', '2026-08-31', 'd2', 'Day2 · Back'),
@@ -35,32 +26,17 @@ const WORKOUTS = [
   ride('extra', '2026-09-15', null, 'Cardio'),
 ]
 
-/** The API with a working date-range filter (newest first, like the real one). */
-function api() {
-  return mockApi({
-    'GET /api/me': () => ME,
-    'GET /api/routine': () => ROUTINE,
-    'GET /api/workouts': (url) => {
-      const from = url.searchParams.get('performed_from') ?? ''
-      const to = url.searchParams.get('performed_to') ?? '9999'
-      const items = WORKOUTS.filter((w) => w.performed_on >= from && w.performed_on <= to)
-      return { items: items.reverse(), total: items.length, limit: 100, offset: 0 }
-    },
-  })
-}
+const seed = () => seedDevice({ routine: ROUTINE, workouts: WORKOUTS })
 
 const day = (iso: string) => screen.getByRole('button', { name: new RegExp(`^${formatDay(iso)}`) })
 
 describe('calendar history', () => {
   it('shows the month with coloured rides, a legend and totals', async () => {
-    const requests = api()
+    await seed()
     renderApp('/history?month=2026-09')
 
     expect(await screen.findByRole('heading', { name: /september 2026/i })).toBeVisible()
-    const month = requests.findLast((u) => u.pathname === '/api/workouts')!
-    expect(month.searchParams.get('performed_from')).toBe('2026-09-01')
-    expect(month.searchParams.get('performed_to')).toBe('2026-09-30')
-    expect(await screen.findByText('3 rides · 27 sets · 15 000 kg')).toBeVisible()
+    expect(await screen.findByText('3 rides · 9 sets · 9 000 kg')).toBeVisible()
 
     // Each day's button names its workouts (colour is never the only cue).
     expect(day('2026-09-15')).toHaveAccessibleName(
@@ -77,7 +53,7 @@ describe('calendar history', () => {
   })
 
   it('selects days and moves between months', async () => {
-    api()
+    await seed()
     const user = userEvent.setup()
     const router = renderApp('/history?month=2026-09')
 
@@ -93,12 +69,12 @@ describe('calendar history', () => {
 
     await user.click(screen.getByRole('button', { name: 'Previous month' }))
     expect(await screen.findByRole('heading', { name: /august 2026/i })).toBeVisible()
-    expect(await screen.findByText('1 ride · 9 sets · 5 000 kg')).toBeVisible()
+    expect(await screen.findByText('1 ride · 3 sets · 3 000 kg')).toBeVisible()
     expect(router.state.location.search).toBe('?month=2026-08')
   })
 
   it('opens on a specific day (e.g. coming back from a workout)', async () => {
-    api()
+    await seed()
     renderApp('/history?month=2026-09&day=2026-09-14')
     expect(await screen.findByRole('link', { name: /Day1 · Legs/ })).toBeVisible()
     expect(day('2026-09-14')).toHaveAttribute('aria-pressed', 'true')
