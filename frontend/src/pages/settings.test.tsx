@@ -27,6 +27,7 @@ const BACKUP: Backup = {
     setup_completed_at: '2026-09-01T00:00:00Z',
     rest_timer_enabled: true,
     default_rest_seconds: 120,
+    weekly_target: 3,
   },
 }
 

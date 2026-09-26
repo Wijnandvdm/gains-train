@@ -36,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   setup_completed_at: null,
   rest_timer_enabled: true,
   default_rest_seconds: 90,
+  weekly_target: 3,
 }
 
 export async function getSettings(): Promise<Settings> {

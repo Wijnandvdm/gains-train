@@ -5,6 +5,7 @@ import { FilePicker } from '../components/FilePicker'
 import { saveFile } from '../lib/saveFile'
 import { backupFileName, createBackup, readBackupFile, restoreBackup } from '../data/backup'
 import { importLegacyFile, type ImportResult } from '../data/legacyImport'
+import { WEEKLY_TARGETS } from '../data/line'
 import { routineFromHistory } from '../data/routine'
 import { formatClock } from '../lib/format'
 import { useAction } from '../lib/useAction'
@@ -42,6 +43,28 @@ export function SettingsPage() {
         </label>
         <p className="text-sm text-neutral-500">
           Per-exercise rest times are set on each exercise's card during a workout.
+        </p>
+      </Card>
+
+      <Card title="The Gains Line">
+        <label className="flex items-center justify-between gap-3 text-sm">
+          Rides per week to reach a station
+          <select
+            value={settings?.weekly_target ?? 3}
+            onChange={(e) => void updateSettings({ weekly_target: Number(e.target.value) })}
+            className="input w-auto py-1 text-base"
+          >
+            {WEEKLY_TARGETS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="text-sm text-neutral-500">
+          Every week with this many rides is a station; stations in a row are your streak. You earn
+          a ticket for every 4 stations in a row and for every extra ride, and a ticket saves your
+          streak when a week falls short. Changing the number recalculates your whole line.
         </p>
       </Card>
 

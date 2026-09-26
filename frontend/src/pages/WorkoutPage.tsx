@@ -8,7 +8,7 @@ import { RestTimerBar } from '../components/workout/RestTimerBar'
 import { WorkoutTrack } from '../components/workout/WorkoutTrack'
 import { TrainIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
-import { cheer, ridesThisWeek, weekMessage } from '../copy'
+import { cheer } from '../copy'
 import { formatDay } from '../lib/format'
 import { uuid } from '../lib/uuid'
 import { useRoutine } from '../routine'
@@ -20,6 +20,7 @@ import {
 } from '../workout/hooks'
 import { type NextSet, nextSet, type PlannedExercise, plannedSetCount } from '../workout/plan'
 import { recentRoutines } from '../workout/recent'
+import { NextStationCard } from '../components/GainsLine'
 import { useExerciseRestTimer } from '../preferences'
 import { useSkipped } from '../workout/skipped'
 
@@ -47,6 +48,7 @@ export function WorkoutPage() {
   return (
     <section className="flex flex-col gap-6">
       {justFinished && <FinishedBanner />}
+      <NextStationCard />
       {hasRoutine && !choosing ? (
         <UpNext routine={routine.data!} onOther={() => setChoosing(true)} />
       ) : (
@@ -87,8 +89,6 @@ const focusKey = (next: NextSet) =>
 function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void }) {
   const actions = useWorkoutActions()
   const restTimer = useExerciseRestTimer()
-  const { data: history } = useWorkoutSummaries()
-  const rides = ridesThisWeek(history ?? [])
   const [dayId, setDayId] = useState(routine.next_day_id ?? routine.days[0]!.id)
   const day: RoutineDayOut = routine.days.find((d) => d.id === dayId) ?? routine.days[0]!
   const lastTimes = useLastTimes(day.exercises.map((re) => re.exercise.id))
@@ -111,7 +111,6 @@ function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void
           {dayId === routine.next_day_id ? 'Next stop' : 'Changing tracks'}
         </p>
         <h1 className="text-2xl font-bold">{day.name}</h1>
-        {history && <p className="text-sm text-neutral-500">{weekMessage(rides)}</p>}
         {routine.days.length > 1 && (
           <div
             role="group"

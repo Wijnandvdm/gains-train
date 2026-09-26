@@ -112,6 +112,8 @@ export type Settings = {
   setup_completed_at: string | null
   rest_timer_enabled: boolean
   default_rest_seconds: number
+  /** Rides a week that reach a station on the Gains Line (the weekly streak). */
+  weekly_target: number
 }
 
 // --- Stats --------------------------------------------------------------------------------

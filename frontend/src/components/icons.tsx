@@ -84,3 +84,14 @@ export const GearIcon = () => (
     <circle cx="12" cy="12" r="7" />
   </Icon>
 )
+
+/** A train ticket with a perforated stub: saves your streak for a short week. */
+export const TicketIcon = (props: SVGProps<SVGSVGElement>) => (
+  <Icon {...props}>
+    <path
+      d="M3 8V6h18v2a2.5 2.5 0 0 0 0 5v5H3v-5a2.5 2.5 0 0 0 0-5Z"
+      transform="translate(0 0.5)"
+    />
+    <path d="M15 6.5v12" strokeDasharray="1.5 2" />
+  </Icon>
+)

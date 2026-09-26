@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { StoredRoutine } from '../data/types'
 import { formatDay } from '../lib/format'
 import { ROW, seedDevice, set, workout } from '../test/device'
@@ -31,6 +31,13 @@ const seed = () => seedDevice({ routine: ROUTINE, workouts: WORKOUTS })
 const day = (iso: string) => screen.getByRole('button', { name: new RegExp(`^${formatDay(iso)}`) })
 
 describe('calendar history', () => {
+  // Thursday 17 September 2026 (only the clock is faked; timers run as usual).
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 17, 12))
+  })
+  afterEach(() => vi.useRealTimers())
+
   it('shows the month with coloured rides, a legend and totals', async () => {
     await seed()
     renderApp('/history?month=2026-09')
@@ -42,7 +49,13 @@ describe('calendar history', () => {
     expect(day('2026-09-15')).toHaveAccessibleName(
       `${formatDay('2026-09-15')}: Day2 · Back, Cardio`,
     )
-    expect(day('2026-09-15').querySelectorAll('span > span')).toHaveLength(2) // two dots
+    // Days you trained are stations: a ring in the routine day's colours (two rides, two).
+    expect(day('2026-09-15').querySelector('[data-station]')).toHaveAttribute('data-station', '2')
+    expect(day('2026-09-13').querySelector('[data-station]')).toBeNull()
+    // Three rides in the week of the 14th reach a station (the default target is 3).
+    const week = day('2026-09-14').closest('tr')!
+    expect(within(week).getByRole('img', { name: 'Station reached' })).toBeVisible()
+    expect(screen.getByText('1 station in a row')).toBeVisible()
     const legend = screen.getByRole('list', { name: 'Legend' })
     expect(within(legend).getByText('Day1 · Legs')).toBeVisible()
     expect(within(legend).getByText('Other')).toBeVisible()

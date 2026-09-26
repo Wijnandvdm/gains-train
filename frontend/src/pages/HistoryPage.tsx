@@ -1,6 +1,10 @@
+import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { RoutineOut, WorkoutSummary } from '../data/types'
-import { BackIcon } from '../components/icons'
+import { LinePills, WeekMarker } from '../components/GainsLine'
+import { BackIcon, TicketIcon } from '../components/icons'
+import { type GainsLine, weekOf } from '../data/line'
+import { useGainsLine } from '../line'
 import { Spinner } from '../components/Spinner'
 import {
   currentMonth,
@@ -38,6 +42,7 @@ export function HistoryPage() {
   const { data: workouts = [], isPending } = useWorkoutSummaries(from, to)
   const { data: routine } = useRoutine()
   const colors = dayColors(routine)
+  const line = useGainsLine()
 
   const byDay = new Map<string, WorkoutSummary[]>()
   for (const w of [...workouts].reverse()) {
@@ -83,6 +88,10 @@ export function HistoryPage() {
         )}
       </div>
 
+      {line && (
+        <LinePills streak={line.streak} tickets={line.tickets} nextTicketAt={line.nextTicketAt} />
+      )}
+
       <div className="card flex flex-col gap-3 p-3">
         <div className="flex items-center justify-between">
           <button
@@ -115,6 +124,7 @@ export function HistoryPage() {
           colors={colors}
           selected={selected}
           today={today}
+          line={line}
           onSelect={(day) => go({ day })}
         />
 
@@ -135,6 +145,31 @@ export function HistoryPage() {
                 Other
               </li>
             )}
+          </ul>
+        )}
+        {line && line.weeks.size > 1 && (
+          <ul
+            className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-500"
+            aria-label="Week legend"
+          >
+            <li className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="grid h-4 w-4 place-items-center rounded-full bg-brand-600 text-[9px] text-white"
+              >
+                ✓
+              </span>
+              {line.target} rides: station reached
+            </li>
+            <li className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="grid h-4 w-4 place-items-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+              >
+                <TicketIcon className="h-3 w-3" />
+              </span>
+              saved by a ticket
+            </li>
           </ul>
         )}
       </div>
@@ -178,6 +213,7 @@ function CalendarGrid({
   colors,
   selected,
   today,
+  line,
   onSelect,
 }: {
   month: Month
@@ -185,6 +221,7 @@ function CalendarGrid({
   colors: Map<string, string>
   selected: string | null
   today: string
+  line: GainsLine | undefined
   onSelect: (day: string) => void
 }) {
   const weekdays = weekdayLabels()
@@ -202,6 +239,9 @@ function CalendarGrid({
               {d.short}
             </th>
           ))}
+          <th scope="col" className="w-9 pb-1 text-xs font-medium text-neutral-500">
+            Week
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -233,20 +273,38 @@ function CalendarGrid({
                         : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'
                     } ${isToday && !isSelected ? 'font-bold underline decoration-2 underline-offset-4' : ''}`}
                   >
-                    {parseLocalDate(day).getDate()}
-                    <span className="flex h-2 gap-0.5">
-                      {dayWorkouts.slice(0, 3).map((w) => (
-                        <Dot key={w.id} color={colorOf(colors, w)} />
-                      ))}
-                    </span>
+                    <Station colors={dayWorkouts.map((w) => colorOf(colors, w))}>
+                      {parseLocalDate(day).getDate()}
+                    </Station>
                   </button>
                 </td>
               )
             })}
+            <td className="p-0">
+              <WeekMarker
+                week={line?.weeks.get(weekOf(week.find(Boolean)!))}
+                target={line?.target ?? 0}
+              />
+            </td>
           </tr>
         ))}
       </tbody>
     </table>
+  )
+}
+
+/** A day you trained is a station: a ring in its routine day's colour (two for two rides). */
+function Station({ colors, children }: { colors: string[]; children: ReactNode }) {
+  if (colors.length === 0) return <span>{children}</span>
+  const [first, second = first] = colors
+  return (
+    <span
+      data-station={colors.length}
+      className="grid h-8 w-8 place-items-center rounded-full border-4 bg-white font-semibold text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100"
+      style={{ borderColor: `${first} ${second} ${second} ${first}` }}
+    >
+      {children}
+    </span>
   )
 }
 
