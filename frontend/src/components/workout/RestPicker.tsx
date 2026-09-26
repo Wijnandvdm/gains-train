@@ -14,6 +14,8 @@ export function RestPicker({ exercise }: { exercise: ExerciseSummary }) {
 
   const smart = smartRestSeconds(exercise, settings?.default_rest_seconds ?? DEFAULT_REST_SECONDS)
   const own = preferences?.get(exercise.id)
+  if (!settings?.rest_timer_enabled) return null // loading, or opted out of rest timers
+
   // A time set with ±15s may not be one of the standard choices: offer it too.
   const choices =
     own && !REST_CHOICES.includes(own) ? [...REST_CHOICES, own].sort((a, b) => a - b) : REST_CHOICES
@@ -37,7 +39,6 @@ export function RestPicker({ exercise }: { exercise: ExerciseSummary }) {
         ))}
         <option value={OFF}>No timer</option>
       </select>
-      {settings && !settings.rest_timer_enabled && <span className="text-xs">(timer off)</span>}
     </label>
   )
 }

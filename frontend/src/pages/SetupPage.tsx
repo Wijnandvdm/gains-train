@@ -12,7 +12,8 @@ import { useWorkoutSummaries } from '../workout/hooks'
 import { recentRoutines } from '../workout/recent'
 
 type Mode = 'split' | 'build' | 'free'
-const REST_OPTIONS = [60, 90, 120, 180]
+/** Rest choices in seconds; null = no rest timer at all (no countdown, beep or buzz). */
+const REST_OPTIONS = [60, 90, 120, 180, null]
 
 /** The first-open questions: how you train, and how long you rest. */
 export function SetupPage() {
@@ -21,14 +22,15 @@ export function SetupPage() {
   const split = recentRoutines(history, 14)
 
   const [mode, setMode] = useState<Mode | null>(null)
-  const [rest, setRest] = useState(DEFAULT_REST_SECONDS)
+  const [rest, setRest] = useState<number | null>(DEFAULT_REST_SECONDS)
   const [imported, setImported] = useState<string | null>(null)
 
   const finishing = useAction(async () => {
     if (mode === 'split') await routineFromHistory()
     await updateSettings({
       setup_completed_at: new Date().toISOString(),
-      default_rest_seconds: rest,
+      rest_timer_enabled: rest !== null,
+      ...(rest !== null && { default_rest_seconds: rest }),
     })
     navigate(mode === 'build' ? '/routine' : '/workout', { replace: true })
   })
@@ -139,17 +141,25 @@ export function SetupPage() {
         <div className="flex gap-2">
           {REST_OPTIONS.map((seconds) => (
             <button
-              key={seconds}
+              key={seconds ?? 'off'}
               type="button"
               aria-pressed={rest === seconds}
               onClick={() => setRest(seconds)}
               className={`chip flex-1 justify-center ${rest === seconds ? 'chip-active' : ''}`}
             >
-              {seconds < 120 ? `${seconds}s` : `${seconds / 60} min`}
+              {seconds === null
+                ? 'No timer'
+                : seconds < 120
+                  ? `${seconds}s`
+                  : `${seconds / 60} min`}
             </button>
           ))}
         </div>
-        <p className="text-sm text-neutral-500">You can nudge it ±15s on the timer any time.</p>
+        <p className="text-sm text-neutral-500">
+          {rest === null
+            ? 'No countdown or alerts. You can switch the timer on later in Settings.'
+            : 'You can nudge it ±15s on the timer any time.'}
+        </p>
       </fieldset>
 
       {error && (

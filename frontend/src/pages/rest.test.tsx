@@ -65,6 +65,29 @@ describe('rest per exercise', () => {
 
     await waitFor(() => expect(done()).toBeEnabled())
     await user.click(done())
-    expect(timer()).toBeNull()
+    await expectNoRestTimer()
+  })
+
+  it('can opt out of rest timers when setting up', async () => {
+    await seedDevice({ setupDone: false, routine: DAY2_ROUTINE, workouts: [LAST_DAY2] })
+    const user = userEvent.setup()
+    renderApp('/setup')
+
+    await user.click(await screen.findByRole('radio', { name: /No fixed routine/ }))
+    await user.click(screen.getByRole('button', { name: 'No timer' }))
+    expect(screen.getByText(/No countdown or alerts/)).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'All aboard! 🚂' }))
+    expect(await getSettings()).toMatchObject({ rest_timer_enabled: false })
+
+    await waitFor(() => expect(done()).toBeEnabled())
+    await user.click(done())
+    await expectNoRestTimer()
   })
 })
+
+/** After logging set 1: no countdown, and no rest picker on the exercise either. */
+async function expectNoRestTimer() {
+  await screen.findByRole('region', { name: 'Seated Cable Rows' }) // the workout has started
+  expect(timer()).toBeNull()
+  expect(screen.queryByLabelText(/^Rest after each set/)).toBeNull()
+}

@@ -64,6 +64,24 @@ Install it by copying the APK to the phone over USB ("File transfer") and openin
 keeps your data. The app's ids and icons live in `frontend/capacitor.config.ts` and
 `frontend/assets/` (icons regenerate with `npx @capacitor/assets generate --android`).
 
+### Checking the Android app
+
+The app runs the same code as the web version, and the automated tests (Vitest) cover that.
+Only the thin Android layer around it isn't tested automatically, so after changing that
+layer (`capacitor.config.ts`, `frontend/android/`, the Capacitor version) or before a release,
+install the new APK on a phone or emulator and check (a couple of minutes):
+
+- [ ] The header and the bottom tabs are clear of the status bar and the navigation bar.
+- [ ] The Android back button goes back a page (and closes the app on the first screen).
+- [ ] Settings → **Export backup** opens the share sheet, and saving to Drive/Files works.
+- [ ] Settings → **Import backup** opens the file picker and restores the file.
+- [ ] Installing the new APK over the old one keeps your workouts.
+- [ ] A photo and the exercise list load in airplane mode.
+
+Emulator: in Android Studio (on Windows) use *Virtual Device Manager*, start a phone, and
+drag the APK onto it to install. Once the app is on Google Play, its free **pre-launch
+report** also runs every upload on real devices and reports crashes and screenshots.
+
 ## Your data: backups
 
 Since the data only exists on the phone, losing the phone or clearing the site's data loses
@@ -108,6 +126,5 @@ cd frontend && npm test && npm run lint && npm run build
 9. Document the highover flow in a mermaid diagram
 14. A feature like the streak from a certain language training app, which ofcourse does follow the train theme, e.g. with tickets "can you make it to the next station?" or something
 15. Change appid to wvdm or wvdmeijs or something. Currently, the app id is io.github.wijnandvdm.gainstrain
-16. android emulator - android studio checken
 17. option on start screen to completely opt out of rest times and their alerting
 18. Button for all aboard to start building your own routine is too low, it overlaps with the home screen button
