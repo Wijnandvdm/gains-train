@@ -14,21 +14,29 @@ Mobile-first workout tracker: exercise library, live workout logging, progress c
 ## Run locally
 
 ```bash
-# 1. Database
-docker compose up -d db
-
-# 2. API → http://localhost:8001 (Swagger docs at /docs)
-cd backend
-cp .env.example .env                            # first time only
-uv run alembic upgrade head                     # apply database migrations
-uv run python -m app.cli seed-exercises         # first time only: exercise library (~100 MB)
-uv run uvicorn app.main:app --reload --port 8001
-
-# 3. Frontend → http://localhost:5173 (proxies /api to the API)
-cd frontend
-npm install                 # first time only
-npm run dev
+cp backend/.env.example backend/.env   # first time only: fill in GOOGLE_CLIENT_ID etc.
+scripts/dev.sh
 ```
+
+That starts Postgres (Docker), applies database migrations, and runs the API
+(http://localhost:8001, Swagger docs at `/docs`, auto-reload) and the frontend
+(http://localhost:5173, proxies `/api` to the API) in one terminal. The first run also installs
+the frontend packages and downloads the exercise library (~100 MB). Ctrl-C stops everything.
+
+<details>
+<summary>Doing it by hand instead</summary>
+
+```bash
+docker compose up -d db
+cd backend
+uv run alembic upgrade head                     # apply database migrations
+uv run python -m app.cli seed-exercises         # first time only: exercise library
+uv run uvicorn app.main:app --reload --port 8001
+# in a second terminal:
+cd frontend && npm install && npm run dev
+```
+
+</details>
 
 ## Installable app (PWA) and offline use
 
