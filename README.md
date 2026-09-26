@@ -38,6 +38,32 @@ needs HTTPS, e.g. Tailscale or a Cloudflare Tunnel in front of the VM.
 - A new deploy shows a "New version available · Reload" banner instead of reloading mid-workout.
 - App icons are generated from `frontend/public/favicon.svg`: `npx @vite-pwa/assets-generator@1`.
 
+## Android app
+
+The same app, wrapped with [Capacitor](https://capacitorjs.com) into an APK with everything
+inside (exercise photos included), so it works fully offline.
+
+One-time setup on the build machine (Linux): Java 21 and the Android command-line tools.
+
+```bash
+sudo apt install openjdk-21-jdk-headless unzip
+# Unpack https://developer.android.com/studio#command-line-tools-only into
+# ~/android-sdk/cmdline-tools/latest, then:
+~/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+~/android-sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+```
+
+Build (the web app, then the APK):
+
+```bash
+scripts/android.sh   # → frontend/android/app/build/outputs/apk/debug/gains-train.apk
+```
+
+Install it by copying the APK to the phone over USB ("File transfer") and opening it there
+(allow "Install unknown apps" for your file manager once). Installing a newer build over it
+keeps your data. The app's ids and icons live in `frontend/capacitor.config.ts` and
+`frontend/assets/` (icons regenerate with `npx @capacitor/assets generate --android`).
+
 ## Your data: backups
 
 Since the data only exists on the phone, losing the phone or clearing the site's data loses
@@ -81,3 +107,7 @@ cd frontend && npm test && npm run lint && npm run build
 8. Walk me through every bit step by step, I'll decide whatever needs documenting or not
 9. Document the highover flow in a mermaid diagram
 14. A feature like the streak from a certain language training app, which ofcourse does follow the train theme, e.g. with tickets "can you make it to the next station?" or something
+15. Change appid to wvdm or wvdmeijs or something. Currently, the app id is io.github.wijnandvdm.gainstrain
+16. android emulator - android studio checken
+17. option on start screen to completely opt out of rest times and their alerting
+18. Button for all aboard to start building your own routine is too low, it overlaps with the home screen button

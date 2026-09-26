@@ -1,6 +1,8 @@
+import { Capacitor } from '@capacitor/core'
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FilePicker } from '../components/FilePicker'
+import { saveFile } from '../lib/saveFile'
 import { backupFileName, createBackup, readBackupFile, restoreBackup } from '../data/backup'
 import { importLegacyFile, type ImportResult } from '../data/legacyImport'
 import { routineFromHistory } from '../data/routine'
@@ -95,31 +97,11 @@ function Switch({
   )
 }
 
-/** Offer the file via the share sheet (phones: save to Files/Drive, mail…) or download it. */
-async function saveFile(file: File): Promise<void> {
-  if (navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: 'gains-train backup' })
-      return
-    } catch (e) {
-      if ((e as Error).name === 'AbortError') return // cancelled by you
-    }
-  }
-  const url = URL.createObjectURL(file)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = file.name
-  link.click()
-  URL.revokeObjectURL(url)
-}
-
 function BackupCard() {
   const [message, setMessage] = useState<string | null>(null)
   const exporting = useAction(async () => {
     const backup = await createBackup()
-    await saveFile(
-      new File([JSON.stringify(backup)], backupFileName(), { type: 'application/json' }),
-    )
+    await saveFile(backupFileName(), JSON.stringify(backup), 'application/json')
     setMessage(`Backup made: ${workoutCount(backup.workouts.length)}.`)
   })
   const restoring = useAction(async (file: File) => {
@@ -241,9 +223,11 @@ function StorageCard() {
   return (
     <Card title="Storage">
       <p className="text-sm text-neutral-500">
-        {persisted
-          ? 'This phone keeps your data safe from automatic clean-ups.'
-          : 'Tip: add gains-train to your home screen. Browsers may otherwise clear the data of sites you haven’t opened for a while.'}
+        {Capacitor.isNativePlatform()
+          ? 'Your data stays in the app until you uninstall it (or clear its storage), so export a backup before you do.'
+          : persisted
+            ? 'This phone keeps your data safe from automatic clean-ups.'
+            : 'Tip: add gains-train to your home screen. Browsers may otherwise clear the data of sites you haven’t opened for a while.'}
       </p>
     </Card>
   )

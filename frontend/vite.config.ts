@@ -6,13 +6,17 @@ import { defineConfig } from 'vitest/config'
 const BRAND_GREEN = '#16a34a'
 
 // https://vite.dev/config/
-export default defineConfig({
+// `--mode android` builds for the Android app (scripts/android.sh).
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
     // Installable app + offline support. The service worker is only built for production
     // (`npm run build && npm run preview`); `npm run dev` runs without it.
     VitePWA({
+      // The Android app has everything built in and updates through a new install, so it
+      // needs no service worker (the update prompt then never shows).
+      disable: mode === 'android',
       // Ask before switching to a new version, rather than reloading mid-workout.
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
@@ -72,4 +76,4 @@ export default defineConfig({
     // Must exceed Testing Library's asyncUtilTimeout (5s, see src/test/setup.ts).
     testTimeout: 15_000,
   },
-})
+}))
