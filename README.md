@@ -126,5 +126,4 @@ cd frontend && npm test && npm run lint && npm run build
 9. Document the highover flow in a mermaid diagram
 14. A feature like the streak from a certain language training app, which ofcourse does follow the train theme, e.g. with tickets "can you make it to the next station?" or something
 15. Change appid to wvdm or wvdmeijs or something. Currently, the app id is io.github.wijnandvdm.gainstrain
-17. option on start screen to completely opt out of rest times and their alerting
 18. Button for all aboard to start building your own routine is too low, it overlaps with the home screen button
