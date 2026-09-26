@@ -73,7 +73,7 @@ export function SetupPage() {
   ]
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 p-6 pt-[calc(2rem+env(safe-area-inset-top))]">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 p-6 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       <header className="flex flex-col items-center gap-3 text-center">
         <div className="rounded-2xl bg-brand-600 p-3 text-white">
           <TrainIcon className="h-10 w-10" />

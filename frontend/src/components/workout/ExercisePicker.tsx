@@ -40,7 +40,7 @@ export function ExercisePicker({
       aria-label="Add exercise"
       className="fixed inset-0 z-30 flex flex-col bg-neutral-50 dark:bg-neutral-950"
     >
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-3 overflow-hidden p-4">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-3 overflow-hidden p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-0">
         <div className="flex items-center gap-2">
           <label className="relative block flex-1">
             <span className="sr-only">Search exercises</span>
@@ -63,7 +63,7 @@ export function ExercisePicker({
           </button>
         </div>
 
-        <div className="-mx-4 flex-1 overflow-y-auto px-4 pb-4">
+        <div className="-mx-4 flex-1 overflow-y-auto px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {results.isPending ? (
             <Spinner />
           ) : results.isError ? (
