@@ -128,4 +128,3 @@ cd frontend && npm test && npm run lint && npm run build
 8. Walk me through every bit step by step, I'll decide whatever needs documenting or not
 9. Document the highover flow in a mermaid diagram
 19. Passport stamps (milestones): stamps for 10/25/50/100 rides, PRs, and lifetime weight hauled ("142 t: that's a loaded freight wagon"), computed from history so imported workouts count too
-21. Decide on Android's automatic backup (`allowBackup="true"` in `frontend/android/app/src/main/AndroidManifest.xml`, Capacitor's default): if backup is on in the phone's settings, Android copies the app's data (workouts included) to your own Google account, even without internet permission. Keep it as a safety net, or set it to `false` so data only leaves the phone via a manual export

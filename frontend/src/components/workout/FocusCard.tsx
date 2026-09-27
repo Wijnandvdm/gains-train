@@ -38,13 +38,24 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
       <header className="flex items-center gap-3">
         <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-lg font-semibold">{exercise.name}</p>
-          <p className="text-sm text-neutral-500">
-            Set {next.setNumber} of {next.plannedSets}
-            {next.previous && (
-              <> · last time {formatSet(next.previous.weight_kg, next.previous.reps)}</>
-            )}
-          </p>
+          <p className="line-clamp-2 text-lg leading-snug font-semibold">{exercise.name}</p>
+          {next.previous && (
+            <p className="text-sm text-neutral-500">
+              last time {formatSet(next.previous.weight_kg, next.previous.reps)}
+            </p>
+          )}
+        </div>
+        {/* Big enough to read at arm's length, mid-set. */}
+        <div
+          aria-label={`Set ${next.setNumber} of ${next.plannedSets}`}
+          className="flex shrink-0 flex-col items-center rounded-xl bg-brand-600 px-3 py-1 text-white"
+        >
+          <span aria-hidden="true" className="text-2xl leading-tight font-bold tabular-nums">
+            {next.setNumber}/{next.plannedSets}
+          </span>
+          <span aria-hidden="true" className="text-[10px] font-semibold tracking-widest uppercase">
+            Set
+          </span>
         </div>
       </header>
 

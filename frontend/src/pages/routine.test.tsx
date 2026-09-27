@@ -20,7 +20,8 @@ const card = () => screen.getByRole('region', { name: 'Current set' })
 async function expectCard(exercise: string, set: string, kg: string, reps: string) {
   await waitFor(() => {
     expect(within(card()).getByText(exercise)).toBeVisible()
-    expect(within(card()).getByText(new RegExp(`^Set ${set}`))).toBeVisible()
+    // The badge reads "2/3"; screen readers hear "Set 2 of 3".
+    expect(within(card()).getByLabelText(`Set ${set}`)).toHaveTextContent(set.replace(' of ', '/'))
     expect(within(card()).getByLabelText('kg')).toHaveValue(kg)
     expect(within(card()).getByLabelText('reps')).toHaveValue(reps)
   })
