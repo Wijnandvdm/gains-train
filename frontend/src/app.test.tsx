@@ -96,7 +96,11 @@ describe('exercise detail', () => {
     await waitFor(() => expect(map.querySelectorAll('svg')).toHaveLength(2))
     expect(screen.getByRole('heading', { name: 'How to' })).toBeVisible()
     expect(screen.getByText('Curl your legs.')).toBeVisible()
-    expect(document.querySelectorAll('img[src^="/exercises/Seated_Leg_Curl/"]')).toHaveLength(2)
+    // The start and end pose drawings (tinted to the theme via a mask).
+    const drawings = [
+      ...document.querySelectorAll<HTMLElement>('[style*="/exercises/Seated_Leg_Curl/"]'),
+    ]
+    expect(drawings).toHaveLength(2)
   })
 
   it('says so when an exercise does not exist', async () => {

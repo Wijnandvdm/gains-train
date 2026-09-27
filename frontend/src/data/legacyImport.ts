@@ -31,20 +31,10 @@ export const LEGACY_MAPPING: {
     'Dumbbell Press': 'Dumbbell_Bench_Press',
     'Incline Seated Bicep Curl': 'Incline_Dumbbell_Curl',
     'Preacher Curl': 'Preacher_Curl',
+    'Triceps Pushdown': 'Triceps_Pushdown',
+    'Bulgarian Split Squat': 'bulgarian-split-squat',
   },
-  custom: {
-    // Rear-foot-elevated split squat; the library only has the both-feet-down version.
-    'Bulgarian Split Squat': {
-      equipment: 'dumbbell',
-      category: 'strength',
-      level: null,
-      mechanic: 'compound',
-      force: 'push',
-      primary_muscles: ['glutes', 'quadriceps'],
-      secondary_muscles: ['adductors', 'hamstrings'],
-      instructions: [],
-    },
-  },
+  custom: {},
 }
 
 // --- CSV ----------------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import type { ExerciseDetail } from '../data/types'
+import { Drawing } from '../components/ExerciseImage'
 import { ExerciseProgress } from '../components/ExerciseProgress'
 import { BackIcon } from '../components/icons'
 import { MuscleMap } from '../components/MuscleMap'
@@ -162,7 +163,7 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * The dataset has a start and an end position photo per exercise. Alternating them reads
+ * Each exercise has a start and an end position drawing. Alternating them reads
  * like a slow animation. With reduced motion enabled it waits for a tap instead.
  */
 function MotionImages({ urls }: { urls: string[] }) {
@@ -179,16 +180,15 @@ function MotionImages({ urls }: { urls: string[] }) {
     <button
       type="button"
       onClick={() => setIndex((i) => (i + 1) % urls.length)}
-      className="relative -mx-4 aspect-[4/3] overflow-hidden bg-neutral-200 sm:mx-0 sm:rounded-xl dark:bg-neutral-800"
+      className="relative -mx-4 aspect-[4/3] overflow-hidden bg-neutral-100 text-neutral-800 sm:mx-0 sm:rounded-xl dark:bg-neutral-900 dark:text-neutral-100"
       aria-label={`Show position ${((index + 1) % urls.length) + 1} of ${urls.length}`}
     >
-      {/* All images stay mounted (preloaded); only opacity changes, so there's no flicker. */}
+      {/* All drawings stay mounted (preloaded); only opacity changes, so there's no flicker. */}
       {urls.map((url, i) => (
-        <img
+        <Drawing
           key={url}
           src={url}
-          alt=""
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+          className={`absolute inset-4 transition-opacity duration-300 ${
             i === index ? 'opacity-100' : 'opacity-0'
           }`}
         />

@@ -1,6 +1,6 @@
 /**
- * The exercise library: free-exercise-db's exercises.json and photos, served with the app
- * from /exercises/ (downloaded by scripts/fetch-exercises.sh). Loaded once, searched in memory.
+ * The exercise library: exercises.json and the exercise drawings, served with the app from
+ * /exercises/ (built by scripts/fetch-exercises.sh). Loaded once, searched in memory.
  */
 import type { ExerciseDetail, ExerciseFilters, ExerciseSummary } from './types'
 
@@ -41,26 +41,43 @@ export function fromRaw(raw: RawExercise): ExerciseDetail {
   }
 }
 
+async function fetchExercises(file: string): Promise<Map<string, ExerciseDetail>> {
+  const response = await fetch(`${BASE}/${file}`)
+  if (!response.ok) throw new Error(`Couldn't load the exercise library (${response.status})`)
+  const raw = (await response.json()) as RawExercise[]
+  return new Map(raw.map((e) => [e.id, fromRaw(e)]))
+}
+
 let loading: Promise<Map<string, ExerciseDetail>> | undefined
+let loadingRetired: Promise<Map<string, ExerciseDetail>> | undefined
 
 /** The library by id. Fetched once per app session (and cached by the service worker). */
 export function loadLibrary(): Promise<Map<string, ExerciseDetail>> {
-  loading ??= fetch(`${BASE}/exercises.json`)
-    .then((r) => {
-      if (!r.ok) throw new Error(`Couldn't load the exercise library (${r.status})`)
-      return r.json() as Promise<RawExercise[]>
-    })
-    .then((raw) => new Map(raw.map((e) => [e.id, fromRaw(e)])))
-    .catch((e: unknown) => {
-      loading = undefined // allow a retry
-      throw e
-    })
+  loading ??= fetchExercises('exercises.json').catch((e: unknown) => {
+    loading = undefined // allow a retry
+    throw e
+  })
   return loading
 }
 
-/** For tests: use this library instead of fetching one. */
-export function setLibraryForTests(exercises: ExerciseDetail[] | null): void {
+/**
+ * Exercises that were in an earlier version of the library, by id (see
+ * scripts/build-exercises.mjs). Only needed when your data still refers to one of them.
+ */
+export function loadRetired(): Promise<Map<string, ExerciseDetail>> {
+  loadingRetired ??= fetchExercises('retired.json').catch((e: unknown) => {
+    loadingRetired = undefined
+    throw e
+  })
+  return loadingRetired
+}
+
+export function setLibraryForTests(
+  exercises: ExerciseDetail[] | null,
+  retired: ExerciseDetail[] = [],
+): void {
   loading = exercises ? Promise.resolve(new Map(exercises.map((e) => [e.id, e]))) : undefined
+  loadingRetired = exercises ? Promise.resolve(new Map(retired.map((e) => [e.id, e]))) : undefined
 }
 
 export function toSummary(exercise: ExerciseDetail): ExerciseSummary {

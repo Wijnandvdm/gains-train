@@ -3,6 +3,7 @@
  * The data only lives on your phone, so this file is your safety net (and how you move
  * to a new phone).
  */
+import { syncWithLibrary } from './migrate'
 import { db, DEFAULT_SETTINGS, getSettings, getStoredRoutine, type RestPref } from './db'
 import type { ExerciseDetail, Settings, StoredRoutine, StoredWorkout } from './types'
 
@@ -101,5 +102,7 @@ export async function restoreBackup(data: unknown): Promise<Backup> {
     if (backup.routine) await db.kv.put({ key: 'routine', value: backup.routine })
     await db.kv.put({ key: 'settings', value: backup.settings })
   })
+  // A backup from an older version may use exercises that have left the library since.
+  await syncWithLibrary().catch((e: unknown) => console.warn('Exercise library sync failed', e))
   return backup
 }

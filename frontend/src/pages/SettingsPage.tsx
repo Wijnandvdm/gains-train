@@ -90,6 +90,7 @@ export function SettingsPage() {
       <BackupCard />
       <LegacyImportCard />
       <StorageCard />
+      <AboutCard />
     </section>
   )
 }
@@ -264,6 +265,26 @@ function StorageCard() {
           : persisted
             ? 'This phone keeps your data safe from automatic clean-ups.'
             : 'Tip: add gains-train to your home screen. Browsers may otherwise clear the data of sites you haven’t opened for a while.'}
+      </p>
+    </Card>
+  )
+}
+
+/** Credits, as the drawings' licence (CC BY-SA 4.0) asks. */
+function AboutCard() {
+  const link = (href: string, text: string) => (
+    <a href={href} target="_blank" rel="noreferrer" className="underline">
+      {text}
+    </a>
+  )
+  return (
+    <Card title="About">
+      <p className="text-sm text-neutral-500">
+        Exercise drawings: {link('https://github.com/bryllim/workout-guide', 'Workout Guide')} by
+        Bryl Lim, based on {link('https://github.com/everkinetic/data', 'Everkinetic')}, under{' '}
+        {link('https://creativecommons.org/licenses/by-sa/4.0/', 'CC BY-SA 4.0')}; recoloured to fit
+        the app's theme. Exercise instructions:{' '}
+        {link('https://github.com/yuhonas/free-exercise-db', 'free-exercise-db')} (public domain).
       </p>
     </Card>
   )

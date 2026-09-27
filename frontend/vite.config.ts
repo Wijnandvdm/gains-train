@@ -44,16 +44,17 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         // The app itself (JS, CSS, HTML, icons) and the exercise library's data are cached
-        // up front: it opens instantly and works without a connection. The ~100 MB of
-        // exercise photos are not; each one is cached the first time it's shown.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}', 'exercises/exercises.json'],
+        // up front: it opens instantly and works without a connection. The ~16 MB of
+        // exercise drawings are not; each one is cached the first time it's shown.
+        globPatterns: ['**/*.{js,css,html,svg,png,ico}', 'exercises/*.json'],
+        globIgnores: ['exercises/*/**'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
-            // Exercise photos never change (the dataset version is pinned).
+            // Exercise drawings never change (the dataset versions are pinned).
             urlPattern: ({ url }) =>
-              url.pathname.startsWith('/exercises/') && url.pathname.endsWith('.jpg'),
+              url.pathname.startsWith('/exercises/') && url.pathname.endsWith('.svg'),
             handler: 'CacheFirst',
             options: {
               cacheName: 'exercise-images',

@@ -17,15 +17,28 @@ track their own progress just open the same app on their own phone.
 scripts/dev.sh   # → http://localhost:5173
 ```
 
-The first run installs the frontend packages and downloads the exercise library (~100 MB,
-[free-exercise-db](https://github.com/yuhonas/free-exercise-db), public domain) into
-`frontend/public/exercises/` (not committed; `scripts/fetch-exercises.sh` pins the version).
+The first run installs the frontend packages and builds the exercise library into
+`frontend/public/exercises/` (~19 MB, not committed; `scripts/fetch-exercises.sh`):
+
+- **302 exercises with uniform line drawings** (a start and an end pose) from
+  [Workout Guide](https://github.com/bryllim/workout-guide) by Bryl Lim, based on
+  [Everkinetic](https://github.com/everkinetic/data), licensed
+  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The app recolours them to
+  its theme; they stay under that licence, and Settings → About credits them.
+- **Instructions and detailed muscles** from
+  [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (public domain) for the 158
+  exercises it also has, matched by hand in `scripts/exercise-map.json`. Those keep their
+  free-exercise-db id, so data logged with the earlier, photo-based library stays linked; an
+  exercise that left the library becomes a custom exercise on first open
+  (`frontend/src/data/migrate.ts`).
+
+Both sources are pinned to a commit; `scripts/build-exercises.mjs` combines them.
 
 ## Build and host
 
 ```bash
 cd frontend
-npm run build     # → frontend/dist/, the whole app including the exercise photos
+npm run build     # → frontend/dist/, the whole app including the exercise drawings
 npm run preview   # try the production build → http://localhost:4173
 ```
 
@@ -34,14 +47,14 @@ Serve `frontend/dist/` from any static host (or this VM), with unknown paths fal
 needs HTTPS, e.g. Tailscale or a Cloudflare Tunnel in front of the VM.
 
 - The app and the exercise list are cached up front, so it opens instantly and works offline;
-  each exercise photo is cached the first time it's shown.
+  each exercise drawing is cached the first time it's shown.
 - A new deploy shows a "New version available · Reload" banner instead of reloading mid-workout.
 - App icons are generated from `frontend/public/favicon.svg`: `npx @vite-pwa/assets-generator@1`.
 
 ## Android app
 
 The same app, wrapped with [Capacitor](https://capacitorjs.com) into an APK with everything
-inside (exercise photos included), so it works fully offline. It has no internet access at
+inside (exercise drawings included), so it works fully offline. It has no internet access at
 all (the permission is removed in `AndroidManifest.xml`), so nothing can leave the phone.
 
 One-time setup on the build machine (Linux): Java 21 and the Android command-line tools.
@@ -80,7 +93,7 @@ install the new APK on your phone and check (a couple of minutes):
 - [ ] Settings → **Export backup** opens the share sheet, and saving to Drive/Files works.
 - [ ] Settings → **Import backup** opens the file picker and restores the file.
 - [ ] Installing the new APK over the old one keeps your workouts.
-- [ ] Exercise photos and the exercise list load (the app has no internet access).
+- [ ] Exercise drawings and the exercise list load (the app has no internet access).
 
 Once the app is on Google Play, its free **pre-launch report** also runs every upload on
 real devices and reports crashes and screenshots.
@@ -121,9 +134,9 @@ cd frontend && npm test && npm run lint && npm run build
 ```
 
 ## TODOS:
-3. see if there are pictures like this https://rdsdz.rochack.org/dumbbell-muscles-worked-dumbbell-workouts-25-best-exercises-routines-for-muscle-gain/ available for free
-5. check for hardcoded things that repeat and replace them with variables (DRY), e.g. with light and dark mode, hex color codes, string values, etc.
-6. Are we applying KISS?
-7. Do we not have a shitload of redundant code?
-8. Walk me through every bit step by step, I'll decide whatever needs documenting or not
-9. Document the highover flow in a mermaid diagram
+1. check for hardcoded things that repeat and replace them with variables (DRY), e.g. with light and dark mode, hex color codes, string values, etc.
+2. Are we applying KISS?
+3. Do we not have a shitload of redundant code?
+4. Walk me through every bit step by step, I'll decide whatever needs documenting or not
+5. Document the highover flow in a mermaid diagram
+6. Get a how to section for the exercises that do not have one now

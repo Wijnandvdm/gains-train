@@ -84,16 +84,17 @@ describe('parsing the legacy sheet', () => {
 })
 
 describe('importing into the device', () => {
-  const library = new Map(LIBRARY.map((e) => [e.id, e]))
+  const BULGARIAN = libraryExercise('bulgarian-split-squat', 'Bulgarian Split Squat')
+  const library = new Map([...LIBRARY, BULGARIAN].map((e) => [e.id, e]))
   const SHEET =
     '2026-07-19,Day1,Leg Curl,1,102.0,12,Legs,,\n2026-07-19,Day1,Leg Curl,2,105.0,10,Legs,,\n2026-07-19,Day1,Bulgarian Split Squat,1,22.0,10,Legs,,leg day\n2026-07-23,Day3,incline dumbbell curl,1,14.0,12,Arms,good pump,\n'
 
-  it('creates workouts, the custom exercise, and maps names three ways', async () => {
+  it('creates workouts, mapping names by the mapping or an exact library name', async () => {
     const result = await importLegacyLog(parse(SHEET), library)
     expect([result.created, result.updated, result.sets]).toEqual([2, 0, 4])
     expect(result.exerciseMap).toEqual({
       'Leg Curl': 'Seated Leg Curl',
-      'Bulgarian Split Squat': 'Bulgarian Split Squat (custom)',
+      'Bulgarian Split Squat': 'Bulgarian Split Squat',
       'incline dumbbell curl': 'Incline Dumbbell Curl',
     })
     const workouts = await db.workouts.orderBy('performed_on').toArray()
@@ -101,6 +102,28 @@ describe('importing into the device', () => {
       ['Day1 · Legs', 'completed', 'leg day'],
       ['Day3 · Arms', 'completed', null],
     ])
+    expect(await db.customExercises.count()).toBe(0)
+  })
+
+  it('creates a custom exercise for a name the library lacks', async () => {
+    const mapping = {
+      library: { 'Leg Curl': 'Seated_Leg_Curl' },
+      custom: {
+        'Bulgarian Split Squat': {
+          equipment: 'dumbbell',
+          category: 'strength',
+          level: null,
+          mechanic: 'compound',
+          force: 'push',
+          primary_muscles: ['glutes', 'quadriceps'],
+          secondary_muscles: [],
+          instructions: [],
+        },
+      },
+    }
+    const withoutIt = new Map(LIBRARY.map((e) => [e.id, e]))
+    const result = await importLegacyLog(parse(SHEET), withoutIt, mapping)
+    expect(result.exerciseMap['Bulgarian Split Squat']).toBe('Bulgarian Split Squat (custom)')
     expect((await db.customExercises.toArray()).map((e) => e.name)).toEqual([
       'Bulgarian Split Squat',
     ])
@@ -111,7 +134,7 @@ describe('importing into the device', () => {
     const result = await importLegacyLog(parse(SHEET.replace('105.0,10', '107.5,9')), library)
     expect([result.created, result.updated]).toEqual([0, 2])
     expect(await db.workouts.count()).toBe(2)
-    expect(await db.customExercises.count()).toBe(1)
+    expect(await db.customExercises.count()).toBe(0)
     const weights = (await db.workouts.toArray()).flatMap((w) =>
       w.exercises.flatMap((e) => e.sets.map((s) => s.weight_kg)),
     )
