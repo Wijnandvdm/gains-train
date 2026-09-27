@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { ExerciseOverviewOut } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
+import { Passport } from '../components/Passport'
 import { Spinner } from '../components/Spinner'
 import { formatDay, formatE1rm, formatVolume, formatWeight } from '../lib/format'
 import { useStatsOverview } from '../stats'
@@ -17,6 +18,7 @@ export function ProgressPage() {
           Keeping track of your gains. Tap an exercise for its chart and records.
         </p>
       </div>
+      <Passport />
       {!rows ? (
         <Spinner />
       ) : rows.length === 0 ? (

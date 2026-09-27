@@ -21,13 +21,15 @@ import {
 import { type NextSet, nextSet, type PlannedExercise, plannedSetCount } from '../workout/plan'
 import { recentRoutines } from '../workout/recent'
 import { NextStationCard } from '../components/GainsLine'
+import { StampBadge } from '../components/Passport'
+import { usePassport } from '../passport'
 import { useExerciseRestTimer } from '../preferences'
 import { useSkipped } from '../workout/skipped'
 
 export function WorkoutPage() {
   const active = useActiveWorkout()
   const routine = useRoutine()
-  const [justFinished, setJustFinished] = useState(false)
+  const [finishedId, setFinishedId] = useState<string | null>(null)
   // With a routine, the next day is shown ready to go; this switches to the other options.
   const [choosing, setChoosing] = useState(false)
 
@@ -38,7 +40,7 @@ export function WorkoutPage() {
         workout={active.data}
         routine={routine.data ?? null}
         onFinished={() => {
-          setJustFinished(true)
+          setFinishedId(active.data!.id)
           setChoosing(false)
         }}
       />
@@ -47,7 +49,7 @@ export function WorkoutPage() {
   const hasRoutine = Boolean(routine.data?.days.length)
   return (
     <section className="flex flex-col gap-6">
-      {justFinished && <FinishedBanner />}
+      {finishedId && <FinishedBanner workoutId={finishedId} />}
       <NextStationCard />
       {hasRoutine && !choosing ? (
         <UpNext routine={routine.data!} onOther={() => setChoosing(true)} />
@@ -58,7 +60,8 @@ export function WorkoutPage() {
   )
 }
 
-function FinishedBanner() {
+function FinishedBanner({ workoutId }: { workoutId: string }) {
+  const stamps = usePassport()?.stamps.filter((s) => s.earnedBy === workoutId) ?? []
   return (
     <div
       role="status"
@@ -76,6 +79,22 @@ function FinishedBanner() {
         </Link>
         .
       </p>
+      {stamps.length > 0 && (
+        <div className="mt-3 flex flex-col gap-2">
+          <p className="font-semibold">
+            {stamps.length === 1
+              ? 'New stamp in your passport!'
+              : `${stamps.length} new stamps in your passport!`}
+          </p>
+          <ul className="flex flex-wrap gap-3">
+            {stamps.map((stamp) => (
+              <li key={stamp.id}>
+                <StampBadge stamp={stamp} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

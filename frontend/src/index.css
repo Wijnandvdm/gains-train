@@ -39,6 +39,11 @@
   --map-body: #d4d4d4;
   --map-primary: #14532d;
   --map-secondary: #22c55e;
+  /* Passport stamps, one ink per kind (ring and text on the card; each also has a label). */
+  --stamp-rides: #15803d;
+  --stamp-weight: #1d64c4;
+  --stamp-prs: #b45309;
+  --stamp-streak: #7c3aed;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -52,6 +57,10 @@
     --map-body: #404040;
     --map-primary: #4ade80;
     --map-secondary: #166534;
+    --stamp-rides: #4ade80;
+    --stamp-weight: #60a5fa;
+    --stamp-prs: #fbbf24;
+    --stamp-streak: #a78bfa;
   }
 }
 
