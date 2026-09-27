@@ -127,7 +127,6 @@ cd frontend && npm test && npm run lint && npm run build
 7. Do we not have a shitload of redundant code?
 8. Walk me through every bit step by step, I'll decide whatever needs documenting or not
 9. Document the highover flow in a mermaid diagram
-14. A feature like the streak from a certain language training app, which ofcourse does follow the train theme, e.g. with tickets "can you make it to the next station?" or something
 15. Change appid to wvdm or wvdmeijs or something. Currently, the app id is io.github.wijnandvdm.gainstrain
 19. Passport stamps (milestones): stamps for 10/25/50/100 rides, PRs, and lifetime weight hauled ("142 t: that's a loaded freight wagon"), computed from history so imported workouts count too
 20. The depot (pause): park the train for holidays or injury, so the weekly streak isn't lost
