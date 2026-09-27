@@ -59,6 +59,9 @@ Build (the web app, then the APK):
 scripts/android.sh   # → frontend/android/app/build/outputs/apk/debug/gains-train.apk
 ```
 
+Each build is also copied to `~/repos/apk_versions/` (or `$APK_DIR`) as
+`gains-train-<date>-<time>-<commit>.apk`, with `-dirty` when there were uncommitted changes.
+
 Install it by copying the APK to the phone over USB ("File transfer") and opening it there
 (allow "Install unknown apps" for your file manager once). Installing a newer build over it
 keeps your data. The app's ids and icons live in `frontend/capacitor.config.ts` and
