@@ -2,7 +2,8 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { formatShortDay } from '../lib/format'
-import { PULLDOWN, seedDevice, set, workout } from '../test/device'
+import { libraryExercise } from '../test/library'
+import { PULLDOWN, ROW, seedDevice, set, workout } from '../test/device'
 import { renderApp } from '../test/utils'
 
 const session = (id: string, performed_on: string, sets: [number, number][]) =>
@@ -64,5 +65,46 @@ describe('progress', () => {
     await seedDevice()
     renderApp(`/exercises/${PULLDOWN.id}`)
     expect(await screen.findByText(/You haven't logged this exercise yet/)).toBeVisible()
+  })
+
+  it('groups exercises by routine day, opening on the day that is up next', async () => {
+    const CURL = libraryExercise('Hammer_Curls', 'Hammer Curls', { primary_muscles: ['biceps'] })
+    const one = (id: string, exerciseId: string, day: string) =>
+      workout({ id, performed_on: day }, [[exerciseId, [set(`${id}-s`, `${id}-we`, 1, 50, 10)]]])
+    await seedDevice({
+      library: [ROW, PULLDOWN, CURL],
+      routine: {
+        days: [
+          { id: 'd1', name: 'Day1 · Back', exercises: [{ exercise_id: ROW.id, sets: 3 }] },
+          { id: 'd2', name: 'Day2 · Lats', exercises: [{ exercise_id: PULLDOWN.id, sets: 3 }] },
+        ],
+      },
+      workouts: [
+        one('a', ROW.id, '2026-09-01'),
+        one('b', PULLDOWN.id, '2026-09-02'),
+        one('c', CURL.id, '2026-09-03'),
+      ],
+    })
+    const user = userEvent.setup()
+    const router = renderApp('/progress')
+
+    const names = () =>
+      screen
+        .getAllByRole('link')
+        .map((l) => l.textContent)
+        .filter((t) => t?.match(/Rows|Pulldown|Curls/))
+    const chip = (name: string) => screen.findByRole('button', { name })
+    expect(await chip('Day1 · Back')).toHaveAttribute('aria-pressed', 'true') // up next
+    expect(names()).toEqual([expect.stringContaining('Seated Cable Rows')])
+
+    await user.click(await chip('Day2 · Lats'))
+    expect(names()).toEqual([expect.stringContaining('Wide-Grip Lat Pulldown')])
+    expect(router.state.location.search).toBe('?day=d2')
+
+    await user.click(await chip('Other')) // not in the routine
+    expect(names()).toEqual([expect.stringContaining('Hammer Curls')])
+
+    await user.click(await chip('All'))
+    expect(names()).toHaveLength(3)
   })
 })

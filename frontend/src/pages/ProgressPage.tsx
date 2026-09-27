@@ -1,14 +1,22 @@
-import { Link } from 'react-router-dom'
-import type { ExerciseOverviewOut } from '../data/types'
+import { useEffect, useRef } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import type { ExerciseOverviewOut, RoutineOut } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { Passport } from '../components/Passport'
 import { Spinner } from '../components/Spinner'
 import { formatDay, formatE1rm, formatVolume, formatWeight } from '../lib/format'
+import { useRoutine } from '../routine'
 import { useStatsOverview } from '../stats'
 
 /** Every exercise you've done: last session, best, and totals (your old Dashboard tab). */
 export function ProgressPage() {
   const { data: rows } = useStatsOverview()
+  const { data: routine } = useRoutine()
+  // The chosen day lives in the URL, so coming back from an exercise keeps it.
+  const [params, setParams] = useSearchParams()
+  const days = routine?.days.length ? routine : null
+  const filter = days ? (params.get('day') ?? days.next_day_id ?? 'all') : 'all'
+  const shown = rows && days ? forDay(rows, days, filter) : rows
 
   return (
     <section className="flex flex-col gap-4">
@@ -29,15 +37,100 @@ export function ProgressPage() {
           </Link>
         </div>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {rows.map((row) => (
-            <li key={row.exercise.id}>
-              <OverviewCard row={row} />
-            </li>
-          ))}
-        </ul>
+        <>
+          {days && (
+            <DayChips
+              routine={days}
+              hasOther={forDay(rows, days, 'other').length > 0}
+              selected={filter}
+              onSelect={(day) => setParams({ day }, { replace: true })}
+            />
+          )}
+          {shown!.length === 0 ? (
+            <p className="py-4 text-center text-neutral-500">
+              None of this day's exercises are logged yet.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {shown!.map((row) => (
+                <li key={row.exercise.id}>
+                  <OverviewCard row={row} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </section>
+  )
+}
+
+/**
+ * The exercises of one routine day, in the day's order; "other" is everything that isn't in
+ * the routine; "all" is everything, most recently done first.
+ */
+function forDay(
+  rows: ExerciseOverviewOut[],
+  routine: RoutineOut,
+  day: string,
+): ExerciseOverviewOut[] {
+  if (day === 'other') {
+    const inRoutine = new Set(routine.days.flatMap((d) => d.exercises.map((e) => e.exercise.id)))
+    return rows.filter((r) => !inRoutine.has(r.exercise.id))
+  }
+  const routineDay = routine.days.find((d) => d.id === day)
+  if (!routineDay) return rows
+  const byId = new Map(rows.map((r) => [r.exercise.id, r]))
+  return routineDay.exercises.flatMap((e) => {
+    const row = byId.get(e.exercise.id)
+    byId.delete(e.exercise.id) // an exercise listed twice in a day shows once
+    return row ? [row] : []
+  })
+}
+
+function DayChips({
+  routine,
+  hasOther,
+  selected,
+  onSelect,
+}: {
+  routine: RoutineOut
+  hasOther: boolean
+  selected: string
+  onSelect: (day: string) => void
+}) {
+  const options = [
+    { id: 'all', name: 'All' },
+    ...routine.days.map((d) => ({ id: d.id, name: d.name })),
+    ...(hasOther ? [{ id: 'other', name: 'Other' }] : []),
+  ]
+  // Keep the chosen day in sight (the next day can be past the edge of the screen).
+  const group = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    group.current
+      ?.querySelector('[aria-pressed="true"]')
+      ?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+  }, [selected])
+
+  return (
+    <div
+      ref={group}
+      role="group"
+      aria-label="Routine day"
+      className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4"
+    >
+      {options.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          aria-pressed={o.id === selected}
+          onClick={() => onSelect(o.id)}
+          className={`chip shrink-0 normal-case ${o.id === selected ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+        >
+          {o.name}
+        </button>
+      ))}
+    </div>
   )
 }
 

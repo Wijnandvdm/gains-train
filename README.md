@@ -127,4 +127,3 @@ cd frontend && npm test && npm run lint && npm run build
 7. Do we not have a shitload of redundant code?
 8. Walk me through every bit step by step, I'll decide whatever needs documenting or not
 9. Document the highover flow in a mermaid diagram
-19. Passport stamps (milestones): stamps for 10/25/50/100 rides, PRs, and lifetime weight hauled ("142 t: that's a loaded freight wagon"), computed from history so imported workouts count too
