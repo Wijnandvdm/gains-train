@@ -37,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   rest_timer_enabled: true,
   default_rest_seconds: 90,
   weekly_target: 3,
+  depot_weeks: [],
 }
 
 export async function getSettings(): Promise<Settings> {

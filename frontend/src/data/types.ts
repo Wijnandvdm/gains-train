@@ -114,6 +114,8 @@ export type Settings = {
   default_rest_seconds: number
   /** Rides a week that reach a station on the Gains Line (the weekly streak). */
   weekly_target: number
+  /** Weeks parked in the depot (their Mondays): holiday or injury, the streak waits. */
+  depot_weeks: string[]
 }
 
 // --- Stats --------------------------------------------------------------------------------

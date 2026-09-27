@@ -1,6 +1,8 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { DAY2_ROUTINE, seedDevice, workout } from '../test/device'
+import { formatDay } from '../lib/format'
+import { DAY2_ROUTINE, getSettings, seedDevice, workout } from '../test/device'
 import { renderApp } from '../test/utils'
 
 // Finished rides: stations in the weeks of 27 Jul – 24 Aug (the 17 Aug week with a bonus
@@ -93,5 +95,59 @@ describe('the Gains Line', () => {
     expect(within(line).getByText('Last week fell short, so a new line starts here.')).toBeVisible()
     expect(within(line).getByText('2 more rides by Sunday reach your first station.')).toBeVisible()
     expect(within(line).getByRole('heading', { name: 'Warm-Up Halt' })).toBeVisible()
+  })
+
+  describe('the depot', () => {
+    it('parks the train from the card, and leaves again', async () => {
+      today(new Date(2026, 8, 17, 12))
+      await seedDevice({ workouts: rides(DAYS) })
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      renderApp('/workout')
+
+      await user.click(
+        await screen.findByRole('button', { name: /Going away\? Park in the depot/ }),
+      )
+      await user.click(screen.getByRole('button', { name: '2 weeks' }))
+      const line = await card()
+      expect(
+        await within(line).findByRole('heading', {
+          name: `Parked until ${formatDay('2026-09-27')}`,
+        }),
+      ).toBeVisible()
+      expect(within(line).getByText(/Your streak of 6 stations waits for you/)).toBeVisible()
+      expect((await getSettings()).depot_weeks).toEqual(['2026-09-14', '2026-09-21'])
+
+      await user.click(within(line).getByRole('button', { name: 'Leave the depot' }))
+      expect(await within(line).findByRole('heading', { name: 'PR Central' })).toBeVisible()
+      expect((await getSettings()).depot_weeks).toEqual([])
+    })
+
+    it('parks last week afterwards, giving the ticket back', async () => {
+      today(new Date(2026, 8, 8, 12))
+      await seedDevice({ workouts: rides(DAYS.filter((d) => d < '2026-09-08')) })
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      renderApp('/workout')
+
+      const line = await card()
+      expect(within(line).getByText(/1 ticket/)).toBeVisible()
+      await user.click(
+        within(line).getByRole('button', { name: 'Were you away? Park it in the depot' }),
+      )
+      await waitFor(() =>
+        expect(within(line).queryByText(/Your ticket got you through/)).toBeNull(),
+      )
+      expect(within(line).getByText(/^2 tickets/)).toBeVisible()
+      expect((await getSettings()).depot_weeks).toEqual(['2026-08-31'])
+    })
+
+    it('parks from Settings too', async () => {
+      today(new Date(2026, 8, 17, 12))
+      await seedDevice({ workouts: rides(DAYS) })
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      renderApp('/settings')
+
+      await user.click(await screen.findByRole('button', { name: '1 week' }))
+      expect(await screen.findByText(`Parked until ${formatDay('2026-09-20')}.`)).toBeVisible()
+    })
   })
 })

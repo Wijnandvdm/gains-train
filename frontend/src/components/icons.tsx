@@ -95,3 +95,11 @@ export const TicketIcon = (props: SVGProps<SVGSVGElement>) => (
     <path d="M15 6.5v12" strokeDasharray="1.5 2" />
   </Icon>
 )
+
+/** The depot: a train shed. The train is parked; the streak waits. */
+export const DepotIcon = (props: SVGProps<SVGSVGElement>) => (
+  <Icon {...props}>
+    <path d="M3 20V10l9-6 9 6v10" />
+    <path d="M7 20v-7h10v7M7 16.5h10" />
+  </Icon>
+)

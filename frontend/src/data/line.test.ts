@@ -76,6 +76,24 @@ describe('the Gains Line', () => {
     expect(line).toMatchObject({ streak: 0, tickets: 0, lastWeek: null, nextTicketAt: 4 })
   })
 
+  it('skips a parked short week: no ticket spent, the streak waits', () => {
+    const line = gainsLine(LOG, 3, '2026-09-17', new Set(['2026-08-31']))
+    expect(line.weeks.get('2026-08-31')?.state).toBe('depot')
+    expect(line).toMatchObject({ streak: 6, tickets: 2, parkedUntil: null })
+  })
+
+  it('still counts a parked week that reaches the target', () => {
+    const line = gainsLine(LOG, 3, '2026-09-17', new Set(['2026-09-07']))
+    expect(line.weeks.get('2026-09-07')?.state).toBe('reached')
+  })
+
+  it('parks this week, and says until when', () => {
+    const depot = new Set(['2026-09-14', '2026-09-21', '2026-10-05']) // 28 Sep not parked
+    const line = gainsLine(LOG, 3, '2026-09-17', depot)
+    expect(line.thisWeek.state).toBe('depot')
+    expect(line.parkedUntil).toBe('2026-09-27')
+  })
+
   it('names stations along the line, looping with a lap number', () => {
     expect(stationName(1)).toBe('Warm-Up Halt')
     expect(stationName(7)).toBe('PR Central')

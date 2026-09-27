@@ -2,12 +2,15 @@ import { Capacitor } from '@capacitor/core'
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FilePicker } from '../components/FilePicker'
+import { DepotControls } from '../components/GainsLine'
+import { DepotIcon } from '../components/icons'
 import { saveFile } from '../lib/saveFile'
 import { backupFileName, createBackup, readBackupFile, restoreBackup } from '../data/backup'
 import { importLegacyFile, type ImportResult } from '../data/legacyImport'
 import { WEEKLY_TARGETS } from '../data/line'
 import { routineFromHistory } from '../data/routine'
 import { formatClock } from '../lib/format'
+import { useGainsLine } from '../line'
 import { useAction } from '../lib/useAction'
 import { updateSettings, useSettings } from '../settings'
 
@@ -17,6 +20,7 @@ const workoutCount = (n: number) => `${n} workout${n === 1 ? '' : 's'}`
 
 export function SettingsPage() {
   const settings = useSettings()
+  const line = useGainsLine()
   return (
     <section className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold">Settings</h1>
@@ -66,6 +70,15 @@ export function SettingsPage() {
           a ticket for every 4 stations in a row and for every extra ride, and a ticket saves your
           streak when a week falls short. Changing the number recalculates your whole line.
         </p>
+        {line && (
+          <div className="flex flex-col gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold">
+              <DepotIcon className="h-4 w-4" />
+              The depot
+            </h3>
+            <DepotControls line={line} />
+          </div>
+        )}
       </Card>
 
       <Card title="Routine">

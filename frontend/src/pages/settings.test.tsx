@@ -28,6 +28,7 @@ const BACKUP: Backup = {
     rest_timer_enabled: true,
     default_rest_seconds: 120,
     weekly_target: 3,
+    depot_weeks: [],
   },
 }
 

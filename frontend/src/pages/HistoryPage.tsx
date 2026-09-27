@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { RoutineOut, WorkoutSummary } from '../data/types'
 import { LinePills, WeekMarker } from '../components/GainsLine'
-import { BackIcon, TicketIcon } from '../components/icons'
+import { BackIcon, DepotIcon, TicketIcon } from '../components/icons'
 import { type GainsLine, weekOf } from '../data/line'
 import { useGainsLine } from '../line'
 import { Spinner } from '../components/Spinner'
@@ -170,6 +170,17 @@ export function HistoryPage() {
               </span>
               saved by a ticket
             </li>
+            {[...line.weeks.values()].some((w) => w.state === 'depot') && (
+              <li className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="grid h-4 w-4 place-items-center rounded-full bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
+                >
+                  <DepotIcon className="h-3 w-3" />
+                </span>
+                in the depot
+              </li>
+            )}
           </ul>
         )}
       </div>

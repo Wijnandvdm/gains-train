@@ -3,7 +3,8 @@
  * your target number of rides (finished workouts) reaches a station; stations in a row are
  * your streak. Tickets save a streak: one for every 4 stations in a row and one for every
  * bonus ride above the target, holding at most 2. A week that falls short uses a ticket
- * automatically; without one, the streak starts over.
+ * automatically; without one, the streak starts over. Weeks parked in the depot (holiday,
+ * injury) that fall short are skipped: no ticket spent, the streak just waits.
  *
  * Everything is worked out from your workouts, so imported history counts and editing or
  * deleting a workout simply updates the line.
@@ -45,8 +46,9 @@ export function stationName(n: number): string {
 }
 
 /** reached: a station · ticket: saved by a ticket · missed: fell short, streak over ·
- *  open: this week, not there yet · before: before your first station ever */
-export type WeekState = 'reached' | 'ticket' | 'missed' | 'open' | 'before'
+ *  open: this week, not there yet · depot: parked, doesn't count ·
+ *  before: before your first station ever */
+export type WeekState = 'reached' | 'ticket' | 'missed' | 'open' | 'depot' | 'before'
 
 export type LineWeek = {
   /** The week's Monday, "YYYY-MM-DD". */
@@ -68,6 +70,8 @@ export type GainsLine = {
   tickets: number
   /** The streak length that earns the next ticket. */
   nextTicketAt: number
+  /** The Sunday the depot stay that includes this week ends; null when not parked. */
+  parkedUntil: string | null
 }
 
 /** Monday of the week the day is in. */
@@ -78,16 +82,20 @@ export function weekOf(isoDate: string): string {
   )
 }
 
-const nextMonday = (monday: string) => {
+export const nextMonday = (monday: string) => {
   const d = parseLocalDate(monday)
   return localDateString(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7))
 }
 
-/** @param rideDays performed_on of every finished workout, in any order */
+/**
+ * @param rideDays performed_on of every finished workout, in any order
+ * @param depot Mondays of the weeks parked in the depot
+ */
 export function gainsLine(
   rideDays: string[],
   target: number,
   today = localDateString(),
+  depot: ReadonlySet<string> = new Set(),
 ): GainsLine {
   const current = weekOf(today)
   const byWeek = new Map<string, string[]>()
@@ -110,6 +118,8 @@ export function gainsLine(
       streak += 1
       const earned = (streak % STATIONS_PER_TICKET === 0 ? 1 : 0) + (rides.length - target)
       tickets = Math.min(MAX_TICKETS, tickets + earned)
+    } else if (depot.has(monday)) {
+      state = 'depot' // parked: skipped, the streak waits
     } else if (monday === current) {
       state = 'open' // the week isn't over yet
     } else if (!started) {
@@ -124,6 +134,12 @@ export function gainsLine(
     weeks.set(monday, { monday, rides, state, streak })
   }
 
+  let parkedUntil: string | null = null
+  for (let monday = current; depot.has(monday); monday = nextMonday(monday)) {
+    const d = parseLocalDate(monday)
+    parkedUntil = localDateString(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 6))
+  }
+
   const all = [...weeks.values()]
   return {
     target,
@@ -133,5 +149,6 @@ export function gainsLine(
     streak,
     tickets,
     nextTicketAt: (Math.floor(streak / STATIONS_PER_TICKET) + 1) * STATIONS_PER_TICKET,
+    parkedUntil,
   }
 }

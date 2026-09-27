@@ -15,7 +15,9 @@ export function useGainsLine(): GainsLine | undefined {
   )
   return useMemo(
     () =>
-      days && settings ? gainsLine(days, settings.weekly_target, localDateString()) : undefined,
+      days && settings
+        ? gainsLine(days, settings.weekly_target, localDateString(), new Set(settings.depot_weeks))
+        : undefined,
     [days, settings],
   )
 }

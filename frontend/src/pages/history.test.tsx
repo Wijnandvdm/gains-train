@@ -56,8 +56,9 @@ describe('calendar history', () => {
     const week = day('2026-09-14').closest('tr')!
     expect(within(week).getByRole('img', { name: 'Station reached' })).toBeVisible()
     expect(screen.getByText('1 station in a row')).toBeVisible()
-    const legend = screen.getByRole('list', { name: 'Legend' })
-    expect(within(legend).getByText('Day1 · Legs')).toBeVisible()
+    // The legend's day names come with the routine, which may load a moment later.
+    const legend = await screen.findByRole('list', { name: 'Legend' })
+    expect(await within(legend).findByText('Day1 · Legs')).toBeVisible()
     expect(within(legend).getByText('Other')).toBeVisible()
 
     // The latest ride day is selected, with its workouts below.
