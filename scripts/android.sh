@@ -14,6 +14,9 @@ say() { printf '\033[1;32m▸ %s\033[0m\n' "$*"; }
 
 scripts/fetch-exercises.sh # does nothing when already downloaded
 
+# Capacitor's command-line tool shares anonymous usage data unless told otherwise.
+scripts/frontend-run.sh npx cap telemetry off >/dev/null
+
 say "Building the web app"
 scripts/frontend-run.sh npx tsc -b
 scripts/frontend-run.sh npx vite build --mode android

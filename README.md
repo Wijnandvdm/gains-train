@@ -41,7 +41,8 @@ needs HTTPS, e.g. Tailscale or a Cloudflare Tunnel in front of the VM.
 ## Android app
 
 The same app, wrapped with [Capacitor](https://capacitorjs.com) into an APK with everything
-inside (exercise photos included), so it works fully offline.
+inside (exercise photos included), so it works fully offline. It has no internet access at
+all (the permission is removed in `AndroidManifest.xml`), so nothing can leave the phone.
 
 One-time setup on the build machine (Linux): Java 21 and the Android command-line tools.
 
@@ -72,18 +73,17 @@ keeps your data. The app's ids and icons live in `frontend/capacitor.config.ts` 
 The app runs the same code as the web version, and the automated tests (Vitest) cover that.
 Only the thin Android layer around it isn't tested automatically, so after changing that
 layer (`capacitor.config.ts`, `frontend/android/`, the Capacitor version) or before a release,
-install the new APK on a phone or emulator and check (a couple of minutes):
+install the new APK on your phone and check (a couple of minutes):
 
 - [ ] The header and the bottom tabs are clear of the status bar and the navigation bar.
 - [ ] The Android back button goes back a page (and closes the app on the first screen).
 - [ ] Settings → **Export backup** opens the share sheet, and saving to Drive/Files works.
 - [ ] Settings → **Import backup** opens the file picker and restores the file.
 - [ ] Installing the new APK over the old one keeps your workouts.
-- [ ] A photo and the exercise list load in airplane mode.
+- [ ] Exercise photos and the exercise list load (the app has no internet access).
 
-Emulator: in Android Studio (on Windows) use *Virtual Device Manager*, start a phone, and
-drag the APK onto it to install. Once the app is on Google Play, its free **pre-launch
-report** also runs every upload on real devices and reports crashes and screenshots.
+Once the app is on Google Play, its free **pre-launch report** also runs every upload on
+real devices and reports crashes and screenshots.
 
 ## Your data: backups
 
@@ -131,3 +131,4 @@ cd frontend && npm test && npm run lint && npm run build
 15. Change appid to wvdm or wvdmeijs or something. Currently, the app id is io.github.wijnandvdm.gainstrain
 19. Passport stamps (milestones): stamps for 10/25/50/100 rides, PRs, and lifetime weight hauled ("142 t: that's a loaded freight wagon"), computed from history so imported workouts count too
 20. The depot (pause): park the train for holidays or injury, so the weekly streak isn't lost
+21. Decide on Android's automatic backup (`allowBackup="true"` in `frontend/android/app/src/main/AndroidManifest.xml`, Capacitor's default): if backup is on in the phone's settings, Android copies the app's data (workouts included) to your own Google account, even without internet permission. Keep it as a safety net, or set it to `false` so data only leaves the phone via a manual export
