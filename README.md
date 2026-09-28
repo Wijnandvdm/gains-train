@@ -7,6 +7,8 @@ The app is plain static files (React + TypeScript, Vite, Tailwind), installable 
 keeps its data in the browser's IndexedDB (via [Dexie](https://dexie.org)). Friends who want to
 track their own progress just open the same app on their own phone.
 
+How it fits together, in three diagrams: [docs/how-it-works.md](docs/how-it-works.md).
+
 ## Prerequisites
 
 - Node 22 (`nvm install 22`)
@@ -136,6 +138,5 @@ cd frontend && npm test && npm run lint && npx knip && npm run build
 
 ## TODOS:
 4. Walk me through every bit step by step, I'll decide whatever needs documenting or not
-5. Document the highover flow in a mermaid diagram
 6. Get a how to section for the exercises that do not have one now
 7. Having done all exercises in the library absolutely deserves an achievement
