@@ -4,14 +4,10 @@ import { useState } from 'react'
 import { DEPOT_WEEKS, leaveDepot, parkWeek, parkWeeks } from '../data/depot'
 import { type GainsLine, type LineWeek, MAX_TICKETS, stationName } from '../data/line'
 import { useGainsLine } from '../line'
-import { formatDay, parseLocalDate } from '../lib/format'
+import { formatDay, parseLocalDate, plural } from '../lib/format'
 import { DepotIcon, TicketIcon } from './icons'
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'short' })
-
-const GREEN = 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-100'
-const AMBER = 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
 
 /** "6 stations in a row" and "1 ticket · next at 8". */
 export function LinePills({
@@ -25,11 +21,11 @@ export function LinePills({
 }) {
   return (
     <div className="flex flex-wrap gap-2 text-sm font-semibold">
-      <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 ${GREEN}`}>
+      <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 tone-brand`}>
         <span aria-hidden="true" className="h-3 w-3 rounded-full border-[3px] border-current" />
         {streak === 0 ? 'No stations yet' : `${plural(streak, 'station')} in a row`}
       </span>
-      <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 ${AMBER}`}>
+      <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 tone-ticket`}>
         <TicketIcon className="h-4 w-4" />
         {plural(tickets, 'ticket')}
         {tickets < MAX_TICKETS && ` · next at ${nextTicketAt}`}
@@ -50,7 +46,7 @@ export function WeekMarker({ week, target }: { week: LineWeek | undefined; targe
       )
     case 'ticket':
       return (
-        <span role="img" aria-label="Saved by a ticket" className={`${base} ${AMBER}`}>
+        <span role="img" aria-label="Saved by a ticket" className={`${base} tone-ticket`}>
           <TicketIcon className="h-4 w-4" />
         </span>
       )
@@ -132,7 +128,7 @@ export function NextStationCard() {
       ) : (
         <>
           {!reached && lastWeek?.state === 'ticket' && (
-            <div className={`rounded-lg px-3 py-2 text-sm ${AMBER}`}>
+            <div className={`rounded-lg px-3 py-2 text-sm tone-ticket`}>
               Last week you rode {plural(lastWeek.rides.length, 'time')}. Your ticket got you
               through, so the streak lives on: {plural(streak, 'station')}.{parkLastWeek}
             </div>
@@ -168,7 +164,7 @@ export function NextStationCard() {
           </div>
 
           {reached ? (
-            <p className={`rounded-lg px-3 py-2 text-sm ${GREEN}`}>
+            <p className={`rounded-lg px-3 py-2 text-sm tone-brand`}>
               {plural(streak, 'station')} in a row!{' '}
               {line.tickets < MAX_TICKETS
                 ? 'Another ride this week earns a ticket.'

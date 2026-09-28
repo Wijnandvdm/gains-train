@@ -6,8 +6,9 @@ export default {
     transparent: { sizes: [64, 192, 512], favicons: [[48, 'favicon.ico']] },
     // Android crops maskable icons to its own shape, and iOS rounds the corners itself, so
     // these get a full-bleed brand-green background instead of white padding.
-    maskable: { sizes: [512], padding: 0.3, resizeOptions: { background: '#16a34a' } },
-    apple: { sizes: [180], padding: 0.3, resizeOptions: { background: '#16a34a' } },
+    // #009342 is the app's brand green (--color-brand-600 in src/index.css).
+    maskable: { sizes: [512], padding: 0.3, resizeOptions: { background: '#009342' } },
+    apple: { sizes: [180], padding: 0.3, resizeOptions: { background: '#009342' } },
   },
   images: ['public/favicon.svg'],
 }

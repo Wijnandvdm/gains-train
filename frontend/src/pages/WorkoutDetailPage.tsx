@@ -7,6 +7,7 @@ import { formatDay, formatSet } from '../lib/format'
 import { useAction } from '../lib/useAction'
 import { deleteWorkout, useWorkout } from '../workout/hooks'
 import { setLabels } from '../workout/sets'
+import { ErrorMessage } from '../components/ErrorMessage'
 
 /** A finished workout, read-only. */
 export function WorkoutDetailPage() {
@@ -31,7 +32,7 @@ export function WorkoutDetailPage() {
             ? `/history?month=${workout.performed_on.slice(0, 7)}&day=${workout.performed_on}`
             : '/history'
         }
-        className="-ml-2 flex w-fit items-center gap-1 rounded-lg px-2 py-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+        className="back-link"
       >
         <BackIcon />
         History
@@ -87,7 +88,7 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
               {we.sets.map((set, i) => (
                 <li key={set.id} className="flex items-baseline gap-3 text-sm">
                   <span
-                    className={`w-6 text-center font-semibold ${set.is_warmup ? 'text-amber-600' : 'text-neutral-500'}`}
+                    className={`w-6 text-center font-semibold ${set.is_warmup ? 'text-amber-600 dark:text-amber-400' : 'text-neutral-500'}`}
                   >
                     {labels[i]}
                   </span>
@@ -108,11 +109,7 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
       >
         Delete workout
       </button>
-      {remove.error && (
-        <p role="alert" className="text-center text-sm text-red-600">
-          Couldn't delete: {remove.error.message}
-        </p>
-      )}
+      <ErrorMessage error={remove.error} prefix="Couldn't delete:" className="text-center" />
     </article>
   )
 }

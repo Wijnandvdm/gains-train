@@ -59,7 +59,7 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
             type="button"
             aria-pressed={metric === m}
             onClick={() => setMetric(m)}
-            className={`chip text-xs ${metric === m ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+            className={`chip text-xs ${metric === m ? 'chip-active' : ''}`}
           >
             {METRICS[m].label}
           </button>

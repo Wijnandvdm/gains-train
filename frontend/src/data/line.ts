@@ -11,6 +11,7 @@
  */
 import { localDateString, parseLocalDate } from '../lib/format'
 
+export const DEFAULT_WEEKLY_TARGET = 3
 export const MAX_TICKETS = 2
 export const STATIONS_PER_TICKET = 4
 export const WEEKLY_TARGETS = [1, 2, 3, 4, 5, 6, 7]

@@ -113,19 +113,14 @@ function DayChips({
   }, [selected])
 
   return (
-    <div
-      ref={group}
-      role="group"
-      aria-label="Routine day"
-      className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4"
-    >
+    <div ref={group} role="group" aria-label="Routine day" className="chip-row">
       {options.map((o) => (
         <button
           key={o.id}
           type="button"
           aria-pressed={o.id === selected}
           onClick={() => onSelect(o.id)}
-          className={`chip shrink-0 normal-case ${o.id === selected ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+          className={`chip shrink-0 normal-case ${o.id === selected ? 'chip-active' : ''}`}
         >
           {o.name}
         </button>

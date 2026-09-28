@@ -10,6 +10,7 @@ import { routineFromHistory } from '../routine'
 import { updateSettings } from '../settings'
 import { useWorkoutSummaries } from '../workout/hooks'
 import { recentRoutines } from '../workout/recent'
+import { ErrorMessage } from '../components/ErrorMessage'
 
 type Mode = 'split' | 'build' | 'free'
 /** Rest choices in seconds; null = no rest timer at all (no countdown, beep or buzz). */
@@ -162,11 +163,7 @@ export function SetupPage() {
         </p>
       </fieldset>
 
-      {error && (
-        <p role="alert" className="text-sm whitespace-pre-line text-red-600">
-          {error.message}
-        </p>
-      )}
+      <ErrorMessage error={error} />
       <button
         type="button"
         className="btn btn-primary mt-auto py-3 text-base"

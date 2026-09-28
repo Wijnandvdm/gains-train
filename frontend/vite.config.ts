@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
-const BRAND_GREEN = '#16a34a'
+// The app's brand green (--color-brand-600 in src/index.css), for the phone's bar and splash.
+const BRAND_GREEN = '#009342'
 
 // https://vite.dev/config/
 // `--mode android` builds for the Android app (scripts/android.sh).

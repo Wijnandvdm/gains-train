@@ -2,6 +2,8 @@
  * The on-device database (IndexedDB via Dexie). This is the only place data lives: nothing
  * is sent to a server. Back it up with Settings → Export.
  */
+import { DEFAULT_REST_SECONDS } from '../lib/rest'
+import { DEFAULT_WEEKLY_TARGET } from './line'
 import Dexie, { type EntityTable } from 'dexie'
 import type { ExerciseDetail, Settings, StoredRoutine, StoredWorkout } from './types'
 
@@ -35,8 +37,8 @@ export const db = new GainsDb()
 export const DEFAULT_SETTINGS: Settings = {
   setup_completed_at: null,
   rest_timer_enabled: true,
-  default_rest_seconds: 90,
-  weekly_target: 3,
+  default_rest_seconds: DEFAULT_REST_SECONDS,
+  weekly_target: DEFAULT_WEEKLY_TARGET,
   depot_weeks: [],
 }
 

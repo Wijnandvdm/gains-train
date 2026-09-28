@@ -5,7 +5,9 @@
   --color-brand-50: oklch(0.97 0.03 150);
   --color-brand-100: oklch(0.94 0.06 150);
   --color-brand-500: oklch(0.68 0.17 150);
-  --color-brand-600: oklch(0.58 0.16 150);
+  --color-brand-600: oklch(
+    0.58 0.16 150
+  ); /* = #009342: also the logo, app icons and install colour */
   --color-brand-700: oklch(0.5 0.14 150);
   --color-brand-900: oklch(0.32 0.08 150);
 
@@ -97,6 +99,24 @@
   }
   .chip-active {
     @apply border-brand-600 bg-brand-600 text-white;
+  }
+  .chip:not(.chip-active) {
+    @apply hover:bg-neutral-100 dark:hover:bg-neutral-800;
+  }
+  /* A row of chips that scrolls sideways, edge to edge on a phone. */
+  .chip-row {
+    @apply scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4;
+  }
+  /* "‹ Exercises": back to where you came from. */
+  .back-link {
+    @apply -ml-2 flex w-fit items-center gap-1 rounded-lg px-2 py-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100;
+  }
+  /* Colour tones for highlights: brand green (done, reached) and ticket amber (PRs, tickets). */
+  .tone-brand {
+    @apply bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-100;
+  }
+  .tone-ticket {
+    @apply bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300;
   }
   .input {
     @apply w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 dark:border-neutral-700 dark:bg-neutral-900;

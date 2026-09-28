@@ -85,7 +85,7 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
             role="img"
             aria-label={`Personal record: ${prs.map((k) => PR_LABELS[k]).join(', ')}`}
             title={prs.map((k) => PR_LABELS[k]).join(' · ')}
-            className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+            className="tone-ticket shrink-0 rounded px-1.5 py-0.5 text-xs font-bold"
           >
             {prs.includes('weight') ? '🏆 PR' : 'PR'}
           </span>

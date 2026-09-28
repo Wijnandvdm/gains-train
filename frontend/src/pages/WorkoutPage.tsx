@@ -9,7 +9,7 @@ import { WorkoutTrack } from '../components/workout/WorkoutTrack'
 import { TrainIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
 import { cheer } from '../copy'
-import { formatDay } from '../lib/format'
+import { formatDay, plural } from '../lib/format'
 import { uuid } from '../lib/uuid'
 import { useRoutine } from '../routine'
 import {
@@ -131,18 +131,14 @@ function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void
         </p>
         <h1 className="text-2xl font-bold">{day.name}</h1>
         {routine.days.length > 1 && (
-          <div
-            role="group"
-            aria-label="Routine day"
-            className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4"
-          >
+          <div role="group" aria-label="Routine day" className="chip-row">
             {routine.days.map((d) => (
               <button
                 key={d.id}
                 type="button"
                 aria-pressed={d.id === day.id}
                 onClick={() => setDayId(d.id)}
-                className={`chip normal-case ${d.id === day.id ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                className={`chip normal-case ${d.id === day.id ? 'chip-active' : ''}`}
               >
                 {d.name}
               </button>
@@ -356,9 +352,7 @@ function ActiveWorkout({
           <h1 className="truncate text-2xl font-bold">{workout.name ?? 'Workout'}</h1>
           <p className="flex flex-wrap items-center gap-x-3 text-sm text-neutral-500">
             {minutes !== null && <span>{minutes} min</span>}
-            <span>
-              {doneSets} set{doneSets === 1 ? '' : 's'} done
-            </span>
+            <span>{plural(doneSets, 'set')} done</span>
           </p>
         </div>
         <button type="button" className="btn btn-primary shrink-0" onClick={finish}>

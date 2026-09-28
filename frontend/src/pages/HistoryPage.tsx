@@ -17,7 +17,7 @@ import {
   shiftMonth,
   weekdayLabels,
 } from '../lib/calendar'
-import { formatDay, formatVolume, localDateString, parseLocalDate } from '../lib/format'
+import { formatDay, formatVolume, localDateString, parseLocalDate, plural } from '../lib/format'
 import { useRoutine } from '../routine'
 import { useWorkoutSummaries } from '../workout/hooks'
 
@@ -164,7 +164,7 @@ export function HistoryPage() {
             <li className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"
-                className="grid h-4 w-4 place-items-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                className="grid h-4 w-4 place-items-center rounded-full tone-ticket"
               >
                 <TicketIcon className="h-3 w-3" />
               </span>
@@ -369,9 +369,7 @@ function WorkoutCard({ workout, color }: { workout: WorkoutSummary; color: strin
           <span className="font-medium text-brand-600 dark:text-brand-500">In progress</span>
         ) : (
           <>
-            <span>
-              {workout.set_count} set{workout.set_count === 1 ? '' : 's'}
-            </span>
+            <span>{plural(workout.set_count, 'set')}</span>
             <span className="text-neutral-500">{formatVolume(workout.volume_kg)}</span>
           </>
         )}

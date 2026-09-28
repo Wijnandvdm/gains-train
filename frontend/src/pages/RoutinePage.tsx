@@ -8,6 +8,7 @@ import { useAction } from '../lib/useAction'
 import { uuid } from '../lib/uuid'
 import { deleteRoutine, saveRoutine, useRoutine } from '../routine'
 import { DEFAULT_PLANNED_SETS } from '../workout/plan'
+import { ErrorMessage } from '../components/ErrorMessage'
 
 type DraftExercise = { key: string; exercise: ExerciseSummary; sets: number }
 type DraftDay = { key: string; id: string | null; name: string; exercises: DraftExercise[] }
@@ -183,11 +184,7 @@ function RoutineEditor({ routine }: { routine: RoutineOut | null }) {
         + Add day
       </button>
 
-      {save.error && (
-        <p role="alert" className="text-sm text-red-600">
-          Couldn't save: {save.error.message}
-        </p>
-      )}
+      <ErrorMessage error={save.error} prefix="Couldn't save:" />
       <button
         type="button"
         className="btn btn-primary py-3 text-base"

@@ -9,14 +9,13 @@ import { backupFileName, createBackup, readBackupFile, restoreBackup } from '../
 import { importLegacyFile, type ImportResult } from '../data/legacyImport'
 import { WEEKLY_TARGETS } from '../data/line'
 import { routineFromHistory } from '../data/routine'
-import { formatClock } from '../lib/format'
+import { DEFAULT_SETTINGS } from '../data/db'
+import { formatClock, plural } from '../lib/format'
+import { REST_CHOICES } from '../lib/rest'
 import { useGainsLine } from '../line'
 import { useAction } from '../lib/useAction'
 import { updateSettings, useSettings } from '../settings'
-
-const REST_DEFAULTS = [60, 90, 120, 150, 180]
-
-const workoutCount = (n: number) => `${n} workout${n === 1 ? '' : 's'}`
+import { ErrorMessage } from '../components/ErrorMessage'
 
 export function SettingsPage() {
   const settings = useSettings()
@@ -28,17 +27,17 @@ export function SettingsPage() {
       <Card title="Rest timer">
         <Switch
           label="Start a rest timer after each set"
-          checked={settings?.rest_timer_enabled ?? true}
+          checked={settings?.rest_timer_enabled ?? DEFAULT_SETTINGS.rest_timer_enabled}
           onChange={(on) => void updateSettings({ rest_timer_enabled: on })}
         />
         <label className="flex items-center justify-between gap-3 text-sm">
           Default rest (when an exercise has no smart default)
           <select
-            value={settings?.default_rest_seconds ?? 90}
+            value={settings?.default_rest_seconds ?? DEFAULT_SETTINGS.default_rest_seconds}
             onChange={(e) => void updateSettings({ default_rest_seconds: Number(e.target.value) })}
             className="input w-auto py-1 text-base"
           >
-            {REST_DEFAULTS.map((s) => (
+            {REST_CHOICES.map((s) => (
               <option key={s} value={s}>
                 {formatClock(s)}
               </option>
@@ -54,7 +53,7 @@ export function SettingsPage() {
         <label className="flex items-center justify-between gap-3 text-sm">
           Rides per week to reach a station
           <select
-            value={settings?.weekly_target ?? 3}
+            value={settings?.weekly_target ?? DEFAULT_SETTINGS.weekly_target}
             onChange={(e) => void updateSettings({ weekly_target: Number(e.target.value) })}
             className="input w-auto py-1 text-base"
           >
@@ -139,14 +138,14 @@ function BackupCard() {
   const exporting = useAction(async () => {
     const backup = await createBackup()
     await saveFile(backupFileName(), JSON.stringify(backup), 'application/json')
-    setMessage(`Backup made: ${workoutCount(backup.workouts.length)}.`)
+    setMessage(`Backup made: ${plural(backup.workouts.length, 'workout')}.`)
   })
   const restoring = useAction(async (file: File) => {
     const backup = await readBackupFile(file)
     if (!window.confirm('Replace everything on this phone with this backup?')) return
     await restoreBackup(backup)
     setMessage(
-      `Restored ${workoutCount(backup.workouts.length)} from ${backup.exported_at.slice(0, 10)}.`,
+      `Restored ${plural(backup.workouts.length, 'workout')} from ${backup.exported_at.slice(0, 10)}.`,
     )
   })
   const error = exporting.error ?? restoring.error
@@ -178,11 +177,7 @@ function BackupCard() {
           {message}
         </p>
       )}
-      {error && (
-        <p role="alert" className="text-sm text-red-600">
-          {error.message}
-        </p>
-      )}
+      <ErrorMessage error={error} />
     </Card>
   )
 }
@@ -207,11 +202,7 @@ function LegacyImportCard() {
         disabled={importing.isPending}
         onFile={(file) => void importing.run(file).catch(() => {})}
       />
-      {importing.error && (
-        <p role="alert" className="text-sm whitespace-pre-line text-red-600">
-          {importing.error.message}
-        </p>
-      )}
+      <ErrorMessage error={importing.error} />
       {result && (
         <div role="status" className="flex flex-col gap-2 text-sm">
           <p>
@@ -221,7 +212,7 @@ function LegacyImportCard() {
           {result.warnings.length > 0 && (
             <details>
               <summary className="cursor-pointer text-neutral-500">
-                {result.warnings.length} warning{result.warnings.length === 1 ? '' : 's'}
+                {plural(result.warnings.length, 'warning')}
               </summary>
               <ul className="mt-1 list-disc pl-5 text-neutral-500">
                 {result.warnings.map((w) => (

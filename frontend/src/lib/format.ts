@@ -13,6 +13,9 @@ export function formatNumber(value: number, maxDecimals = 2): string {
 }
 
 /** A weight without unit, for "85 × 10" and chart ticks: 82.5 → "82.5". */
+/** "1 set", "3 sets": the count with the word, plural when it isn't one. */
+export const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`
+
 export const formatKg = (kg: number): string => formatNumber(kg, 2)
 
 /** 82.5 → "82.5 kg" */

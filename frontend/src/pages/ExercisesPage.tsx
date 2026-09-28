@@ -65,11 +65,7 @@ export function ExercisesPage() {
 
       <div className="flex flex-col gap-2">
         {/* Muscles: a horizontally scrolling row of chips (thumb-friendly on phones). */}
-        <div
-          role="group"
-          aria-label="Filter by muscle"
-          className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4"
-        >
+        <div role="group" aria-label="Filter by muscle" className="chip-row">
           <FilterChip active={!search.muscle} onClick={() => setParam('muscle', undefined)}>
             All muscles
           </FilterChip>
@@ -148,7 +144,7 @@ function FilterChip({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`chip ${active ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+      className={`chip ${active ? 'chip-active' : ''}`}
     >
       {children}
     </button>
