@@ -1,14 +1,13 @@
 import { Capacitor } from '@capacitor/core'
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { BackupFileHint } from '../components/BackupFileHint'
 import { FilePicker } from '../components/FilePicker'
 import { DepotControls } from '../components/GainsLine'
 import { DepotIcon } from '../components/icons'
 import { saveFile } from '../lib/saveFile'
 import { backupFileName, createBackup, readBackupFile, restoreBackup } from '../data/backup'
-import { importLegacyFile, type ImportResult } from '../data/legacyImport'
 import { WEEKLY_TARGETS } from '../data/line'
-import { routineFromHistory } from '../data/routine'
 import { DEFAULT_SETTINGS } from '../data/db'
 import { formatClock, plural } from '../lib/format'
 import { REST_CHOICES } from '../lib/rest'
@@ -87,7 +86,6 @@ export function SettingsPage() {
       </Card>
 
       <BackupCard />
-      <LegacyImportCard />
       <StorageCard />
       <AboutCard />
     </section>
@@ -172,73 +170,13 @@ function BackupCard() {
           onFile={(file) => void restoring.run(file).catch(() => {})}
         />
       </div>
+      <BackupFileHint />
       {message && (
         <p role="status" className="text-sm text-brand-700 dark:text-brand-500">
           {message}
         </p>
       )}
       <ErrorMessage error={error} />
-    </Card>
-  )
-}
-
-function LegacyImportCard() {
-  const [result, setResult] = useState<ImportResult | null>(null)
-  const [routineMade, setRoutineMade] = useState(false)
-  const importing = useAction(async (file: File) => {
-    setResult(await importLegacyFile(file))
-    setRoutineMade(false)
-  })
-
-  return (
-    <Card title="Import your old sheet">
-      <p className="text-sm text-neutral-500">
-        Export the Google Sheet's <b>Log</b> tab as CSV and pick it here. Importing again updates
-        the same workouts instead of duplicating them.
-      </p>
-      <FilePicker
-        label="Import legacy sheet (CSV)"
-        accept="text/csv,.csv"
-        disabled={importing.isPending}
-        onFile={(file) => void importing.run(file).catch(() => {})}
-      />
-      <ErrorMessage error={importing.error} />
-      {result && (
-        <div role="status" className="flex flex-col gap-2 text-sm">
-          <p>
-            Imported {result.created + result.updated} workouts ({result.created} new) with{' '}
-            {result.sets} sets.
-          </p>
-          {result.warnings.length > 0 && (
-            <details>
-              <summary className="cursor-pointer text-neutral-500">
-                {plural(result.warnings.length, 'warning')}
-              </summary>
-              <ul className="mt-1 list-disc pl-5 text-neutral-500">
-                {result.warnings.map((w) => (
-                  <li key={w}>{w}</li>
-                ))}
-              </ul>
-            </details>
-          )}
-          {routineMade ? (
-            <p>
-              Your routine is set.{' '}
-              <Link to="/workout" className="font-medium underline">
-                All aboard!
-              </Link>
-            </p>
-          ) : (
-            <button
-              type="button"
-              className="btn"
-              onClick={() => void routineFromHistory().then(() => setRoutineMade(true))}
-            >
-              Use these days as my routine
-            </button>
-          )}
-        </div>
-      )}
     </Card>
   )
 }

@@ -26,7 +26,7 @@ flowchart TB
     direction TB
     UI["Screens<br/>pages/ + components/"]
     HOOKS["Hooks<br/>workout/hooks.ts, stats.ts, line.ts, …"]
-    DATA["Data layer<br/>data/*.ts: workouts, stats, routine,<br/>streak, passport, backup, import"]
+    DATA["Data layer<br/>data/*.ts: workouts, stats, routine,<br/>streak, passport, backup"]
     DB[("IndexedDB, via Dexie<br/>workouts · routine · settings<br/>rest times · custom exercises")]
     LIBC["Exercise library<br/>data/library.ts"]
     UI -- "reads (live)" --> HOOKS
@@ -39,7 +39,6 @@ flowchart TB
   WEB -. installs .-> phone
   APK -. installs .-> phone
   DATA <-- "Settings: export / import" --> BACKUP[/"backup file (.json)"/]
-  CSV[/"old Google Sheet (CSV)"/] -- "Settings or setup: import" --> DATA
 ```
 
 - **No server, no accounts.** The app talks to nothing but its own files. The Android app
@@ -47,7 +46,7 @@ flowchart TB
 - **Screens update by themselves.** Hooks use Dexie's live queries: when anything changes in
   the database, every screen showing it re-renders. Nothing is refetched or synced.
 - **Derived, not stored.** Stats, records, the Gains Line streak and the passport are worked
-  out from your workouts each time, so imported history counts and edits never go stale.
+  out from your workouts each time, so restored history counts and edits never go stale.
 - **Backups are yours.** The export file is the only way data leaves the phone.
 
 ## 2. Your route through the app
@@ -55,7 +54,7 @@ flowchart TB
 ```mermaid
 flowchart TD
   OPEN([Open the app]) --> FIRST{First time?}
-  FIRST -- yes --> SETUP["Setup<br/>restore a backup · import your old sheet<br/>how you train · rest between sets"]
+  FIRST -- yes --> SETUP["Setup<br/>restore a backup, or:<br/>how you train · rest between sets"]
   FIRST -- no --> WORKOUT
   SETUP --> WORKOUT["Workout tab<br/>next station card · next routine day"]
   WORKOUT -- "✓ Done on set 1" --> ACTIVE["Workout in progress<br/>focus card: set 2/3, prefilled from last time"]
@@ -65,7 +64,7 @@ flowchart TD
   DONE --> HISTORY["History<br/>calendar with stations · week results"]
   DONE --> PROGRESS["Progress<br/>passport · exercises by routine day"]
   PROGRESS --> EXERCISE["Exercise page<br/>drawing · muscles · records · chart"]
-  WORKOUT --> SETTINGS["Settings<br/>rest timer · weekly target · depot<br/>routine · backup · import"]
+  WORKOUT --> SETTINGS["Settings<br/>rest timer · weekly target · depot<br/>routine · backup"]
 ```
 
 ## 3. Logging one set

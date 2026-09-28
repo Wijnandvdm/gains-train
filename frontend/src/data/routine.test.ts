@@ -1,7 +1,7 @@
 // Same rules as the former backend's tests/test_routines.py.
 import { describe, expect, it } from 'vitest'
 import { db, getStoredRoutine } from './db'
-import { deleteRoutine, nextDayId, RoutineError, routineFromHistory, saveRoutine } from './routine'
+import { deleteRoutine, nextDayId, RoutineError, saveRoutine } from './routine'
 import type { StoredWorkout } from './types'
 
 function workout(
@@ -44,29 +44,6 @@ function workout(
 }
 
 describe('routine', () => {
-  it('builds from history: natural order, latest sets, linked workouts, next day', async () => {
-    await db.workouts.bulkAdd([
-      workout('1', '2026-09-01', 'Day1 · Legs', 2),
-      workout('2', '2026-09-02', 'Day2 · Back', 3),
-      workout('3', '2026-09-03', 'Day10 · Extra', 1),
-      workout('4', '2026-09-08', 'Day1 · Legs', 3), // newer Day1: 3 sets now
-      workout('5', '2026-09-09', 'Day2 · Back', 3),
-      workout('6', '2026-09-10', null, 1), // unnamed
-    ])
-    const routine = (await routineFromHistory())!
-    expect(routine.days.map((d) => d.name)).toEqual(['Day1 · Legs', 'Day2 · Back', 'Day10 · Extra'])
-    expect(routine.days[0]!.exercises).toEqual([{ exercise_id: 'Seated_Leg_Curl', sets: 3 }])
-    const all = await db.workouts.toArray()
-    expect(all.find((w) => w.id === '5')!.routine_day_id).toBe(routine.days[1]!.id)
-    expect(all.find((w) => w.id === '6')!.routine_day_id).toBeNull()
-    // Day2 was done last, so Day10 is next.
-    expect(nextDayId(routine, all)).toBe(routine.days[2]!.id)
-  })
-
-  it('needs named workouts', async () => {
-    expect(await routineFromHistory()).toBeNull()
-  })
-
   it('rotates and wraps; unfinished workouts do not count', async () => {
     const routine = await saveRoutine({
       days: [

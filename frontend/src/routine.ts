@@ -5,7 +5,7 @@ import { hydrateRoutine } from './data/routine'
 import type { Routine } from './data/types'
 import { useExerciseLookup } from './exercises'
 
-export { deleteRoutine, routineFromHistory, saveRoutine } from './data/routine'
+export { deleteRoutine, saveRoutine } from './data/routine'
 
 /** Your routine (null if you train without one), including which day is up next. */
 export function useRoutine(): { data: Routine | null | undefined; isPending: boolean } {

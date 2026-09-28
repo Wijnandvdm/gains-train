@@ -112,13 +112,6 @@ Add the app to your home screen: browsers (especially Safari) may clear data of 
 haven't opened for a while, but not of installed apps. Settings shows whether the phone has
 granted persistent storage.
 
-## Importing the legacy Google Sheets log
-
-Export the sheet's **Log** tab as CSV and pick it under **Settings → Import your old sheet**
-(or "Import my old sheet" on first open). Re-importing is safe: workouts are updated, not
-duplicated. Exercise names are mapped to the library by `LEGACY_MAPPING` in
-[`legacyImport.ts`](frontend/src/data/legacyImport.ts).
-
 ## Checks
 
 [pre-commit](https://pre-commit.com) runs formatting, linting, type checks and secret scanning on
@@ -137,6 +130,4 @@ cd frontend && npm test && npm run lint && npx knip && npm run build
 ```
 
 ## TODOS:
-4. Walk me through every bit step by step, I'll decide whatever needs documenting or not
-6. Get a how to section for the exercises that do not have one now
-7. Having done all exercises in the library absolutely deserves an achievement
+1. Get a how to section for the exercises that do not have one now

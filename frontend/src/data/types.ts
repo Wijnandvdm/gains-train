@@ -61,7 +61,8 @@ export type StoredWorkout = {
   started_at: string | null
   ended_at: string | null
   notes: string | null
-  /** Set for imported workouts (legacy sheet): makes re-importing update, not duplicate. */
+  /** Set on workouts imported from the old Google Sheet: their sets were never ticked off
+   *  one by one, but all count (see isPerformed). */
   import_key: string | null
   exercises: StoredWorkoutExercise[]
   /** Derived from `exercises`, for the "last time" lookup index. */

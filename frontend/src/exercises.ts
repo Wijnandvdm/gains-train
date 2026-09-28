@@ -13,7 +13,11 @@ import type { ExerciseDetail, ExerciseFilters, ExerciseId, ExerciseSummary } fro
 export type { ExerciseSearch }
 
 /** The exercise library (loaded once), or an error if it couldn't be loaded. */
-function useLibrary(): { library?: Map<string, ExerciseDetail>; error?: Error; retry: () => void } {
+export function useLibrary(): {
+  library?: Map<string, ExerciseDetail>
+  error?: Error
+  retry: () => void
+} {
   const [state, setState] = useState<{ library?: Map<string, ExerciseDetail>; error?: Error }>({})
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {

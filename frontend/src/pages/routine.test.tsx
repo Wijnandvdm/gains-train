@@ -95,21 +95,19 @@ describe('minimal clicks (routine)', () => {
 })
 
 describe('first open', () => {
-  it('asks how you train, then opens straight on your next day', async () => {
-    await seedDevice({ setupDone: false, workouts: [LAST_DAY2] })
+  it('asks how you train and how long you rest', async () => {
+    await seedDevice({ setupDone: false })
     const user = userEvent.setup()
     const router = renderApp('/workout')
 
     await screen.findByRole('heading', { name: "Let's lay the tracks" })
     expect(router.state.location.pathname).toBe('/setup')
-    // Your history's named workouts are offered as your split.
-    await user.click(await screen.findByRole('radio', { name: /My usual split/ }))
+    await user.click(screen.getByRole('radio', { name: /No fixed routine/ }))
     await user.click(screen.getByRole('button', { name: '2 min' }))
     await user.click(screen.getByRole('button', { name: 'All aboard! 🚂' }))
 
-    expect(await screen.findByText('Next stop')).toBeVisible()
+    expect(await screen.findByRole('button', { name: 'Start empty workout' })).toBeVisible()
     expect(router.state.location.pathname).toBe('/workout')
-    expect((await getStoredRoutine())?.days.map((d) => d.name)).toEqual(['Day2 · Back & Triceps'])
     expect(await getSettings()).toMatchObject({ default_rest_seconds: 120 })
   })
 

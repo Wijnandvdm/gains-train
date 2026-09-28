@@ -3,7 +3,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { LEGACY_MAPPING } from './legacyImport'
 import { LIBRARY } from '../test/library'
 import { filterValues, fromRaw, searchExercises } from './library'
 
@@ -67,7 +66,7 @@ describe('exercise library search', () => {
 // The real dataset, if downloaded (scripts/fetch-exercises.sh).
 const REAL = resolve(process.cwd(), 'public/exercises/exercises.json') // tests run in frontend/
 describe.skipIf(!existsSync(REAL))('the downloaded dataset', () => {
-  it('parses completely: unique ids, a drawing per pose, the legacy sheet exercises present', () => {
+  it('parses completely: unique ids, a drawing per pose, the exercises you log present', () => {
     const exercises = (
       JSON.parse(readFileSync(REAL, 'utf8')) as Parameters<typeof fromRaw>[0][]
     ).map(fromRaw)
@@ -75,7 +74,20 @@ describe.skipIf(!existsSync(REAL))('the downloaded dataset', () => {
     expect(new Set(exercises.map((e) => e.id)).size).toBe(302)
     expect(exercises.every((e) => e.image_urls.length === 2)).toBe(true)
     const ids = new Set(exercises.map((e) => e.id))
-    const legacy = [...Object.values(LEGACY_MAPPING), 'Hack_Squat', 'Incline_Dumbbell_Press']
-    expect(legacy.filter((id) => !ids.has(id))).toEqual([])
+    const yours = [
+      'Hack_Squat',
+      'Seated_Leg_Curl',
+      'Leg_Extensions',
+      'bulgarian-split-squat',
+      'Wide-Grip_Lat_Pulldown',
+      'Seated_Cable_Rows',
+      'Triceps_Pushdown',
+      'Cable_Rope_Overhead_Triceps_Extension',
+      'Dumbbell_Bench_Press',
+      'Incline_Dumbbell_Press',
+      'Incline_Dumbbell_Curl',
+      'Preacher_Curl',
+    ]
+    expect(yours.filter((id) => !ids.has(id))).toEqual([])
   })
 })

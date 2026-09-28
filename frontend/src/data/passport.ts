@@ -1,5 +1,5 @@
 /**
- * The passport: stamps for milestones, worked out from your finished workouts (so imported
+ * The passport: stamps for milestones, worked out from your finished workouts (so restored
  * history counts, and nothing is stored). Each stamp knows when you earned it and with which
  * workout, so finishing a workout can announce the stamps it earned.
  */
@@ -8,7 +8,7 @@ import { gainsLine } from './line'
 import { type PerformedSet, performedSets } from './stats'
 import type { StoredWorkout } from './types'
 
-export type StampKind = 'rides' | 'weight' | 'prs' | 'streak'
+export type StampKind = 'rides' | 'weight' | 'prs' | 'streak' | 'explorer'
 
 export type Stamp = {
   id: string
@@ -16,6 +16,8 @@ export type Stamp = {
   goal: number
   title: string
   detail: string
+  /** What the stamp itself says, when not its number (e.g. "All"). */
+  badge?: string
   /** The day you earned it; null while you're still working towards it. */
   earnedOn: string | null
   /** The workout that earned it. */
@@ -24,7 +26,7 @@ export type Stamp = {
 
 export type Passport = {
   stamps: Stamp[]
-  /** How far you are, per kind: rides, tonnes hauled, PRs, best streak. */
+  /** How far you are, per kind: rides, tonnes hauled, PRs, best streak, exercises done. */
   progress: Record<StampKind, number>
 }
 
@@ -45,6 +47,8 @@ const STREAKS: [number, string][] = [
   [26, 'half a year of stations'],
   [52, 'a whole year of stations'],
 ]
+/** Different library exercises done; the last stamp is for all of them. */
+const EXPLORED = [25, 50, 100, 200]
 
 type Milestone = { day: string; workoutId: string }
 
@@ -93,9 +97,14 @@ function prWorkouts(workouts: StoredWorkout[]): Milestone[] {
   return found
 }
 
+/**
+ * @param line your Gains Line settings (for the streak stamps)
+ * @param library the ids of the library's exercises (for the explorer stamps)
+ */
 export function passport(
   workouts: StoredWorkout[],
   line: { target: number; depot: ReadonlySet<string>; today: string },
+  library: ReadonlySet<string>,
 ): Passport {
   const done = chronological(workouts)
   const at = (w: StoredWorkout): Milestone => ({ day: w.performed_on, workoutId: w.id })
@@ -129,6 +138,15 @@ export function passport(
     .filter((w) => w.state === 'reached')
     .map((w) => ({ value: w.streak, at: at(lastOn(w.rides[line.target - 1]!)) }))
 
+  // Explorer: each library exercise done for the first time (custom ones don't count)
+  const explored = new Set<string>()
+  const explorer: { value: number; at: Milestone }[] = []
+  for (const s of performedSets(done)) {
+    if (!library.has(s.exercise_id) || explored.has(s.exercise_id)) continue
+    explored.add(s.exercise_id)
+    explorer.push({ value: explored.size, at: { day: s.performed_on, workoutId: s.workout_id } })
+  }
+
   const stamp = (
     kind: StampKind,
     goal: number,
@@ -155,6 +173,7 @@ export function passport(
     STREAKS.map(([n]) => n),
     streaks,
   )
+  const [allAt, ...exploredAt] = reachedAt([library.size, ...EXPLORED], explorer)
 
   return {
     stamps: [
@@ -166,12 +185,27 @@ export function passport(
         stamp('prs', n, n === 1 ? 'First PR' : `${n} PRs`, 'personal records', prsAt[i]!),
       ),
       ...STREAKS.map(([n, what], i) => stamp('streak', n, `${n} in a row`, what, streaksAt[i]!)),
+      ...EXPLORED.map((n, i) =>
+        stamp('explorer', n, `${n} exercises`, 'different exercises', exploredAt[i]!),
+      ),
+      {
+        ...stamp(
+          'explorer',
+          library.size,
+          'The whole network',
+          'every exercise in the library',
+          allAt!,
+        ),
+        id: 'explorer-all',
+        badge: 'All',
+      },
     ],
     progress: {
       rides: rides.length,
       weight: Math.floor(total / 1000),
       prs: prs.length,
       streak: Math.max(0, ...streaks.map((s) => s.value)),
+      explorer: explored.size,
     },
   }
 }

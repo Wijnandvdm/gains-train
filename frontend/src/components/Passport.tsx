@@ -10,6 +10,7 @@ const KINDS: { kind: StampKind; name: string; unit: string }[] = [
   { kind: 'weight', name: 'Weight hauled', unit: 'tonnes' },
   { kind: 'prs', name: 'Personal records', unit: 'PRs' },
   { kind: 'streak', name: 'Gains Line', unit: 'in a row' },
+  { kind: 'explorer', name: 'Explorer', unit: 'explored' },
 ]
 const unitOf = (kind: StampKind) => KINDS.find((k) => k.kind === kind)!.unit
 
@@ -98,7 +99,8 @@ export function StampBadge({
 }) {
   const earned = stamp.earnedOn !== null
   const value =
-    stamp.kind === 'weight' ? `${stamp.goal}t` : stamp.goal === 1 ? '1st' : String(stamp.goal)
+    stamp.badge ??
+    (stamp.kind === 'weight' ? `${stamp.goal}t` : stamp.goal === 1 ? '1st' : String(stamp.goal))
   const label = earned
     ? `${stamp.title} (${stamp.detail}), earned ${formatShortDay(stamp.earnedOn!)}`
     : `${stamp.title} (${stamp.detail}): ${progress ?? 0} of ${stamp.goal}`

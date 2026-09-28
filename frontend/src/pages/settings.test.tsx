@@ -1,19 +1,10 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { type Backup, BACKUP_FORMAT, BACKUP_VERSION } from '../data/backup'
 import { db } from '../data/db'
 import { DAY2_ROUTINE, LAST_DAY2, seedDevice } from '../test/device'
 import { renderApp } from '../test/utils'
-
-const SHEET = [
-  'Date,Day,Exercise,Set,Weight (kg),Reps,Muscle Group,Notes,',
-  '2026-09-14,Day1,Seated Cable Rows,1,80,12,Back,,',
-  '2026-09-14,Day1,Seated Cable Rows,2,80,10,Back,,',
-  '2026-09-15,Day2,Wide-Grip Lat Pulldown,1,85,10,Lats,,',
-].join('\n')
-
-const csv = (text: string) => new File([text], 'Log.csv', { type: 'text/csv' })
 
 const BACKUP: Backup = {
   format: BACKUP_FORMAT,
@@ -38,22 +29,13 @@ const json = (data: unknown) =>
   })
 
 describe('first open on a new phone', () => {
-  it('imports the old sheet, then offers its days as your split', async () => {
+  it('shows which file to pick', async () => {
     await seedDevice({ setupDone: false })
-    const user = userEvent.setup()
-    renderApp('/workout')
-
-    await user.upload(await screen.findByLabelText('Import my old sheet'), csv(SHEET))
-    expect(await screen.findByText('Imported 2 workouts with 3 sets.')).toBeVisible()
-    const split = await screen.findByRole('radio', { name: /My usual split/ })
-    expect(split).toBeChecked()
-    expect(split.closest('label')).toHaveTextContent('Day1 · Back → Day2 · Lats')
-
-    await user.click(screen.getByRole('button', { name: 'All aboard! 🚂' }))
-    // Day2 was last, so the rotation starts over at Day1, prefilled from the sheet.
-    expect(await screen.findByRole('heading', { name: 'Day1 · Back' })).toBeVisible()
-    const card = () => screen.getByRole('region', { name: 'Current set' })
-    await waitFor(() => expect(within(card()).getByLabelText('kg')).toHaveValue('80'))
+    renderApp('/setup')
+    expect(
+      await screen.findByText('Pick the backup file you exported earlier, like:'),
+    ).toBeVisible()
+    expect(screen.getByText(/^gains-train-backup-\d{4}-\d{2}-\d{2}\.json$/)).toBeVisible()
   })
 
   it('restores a backup and goes straight to your workout', async () => {
@@ -72,7 +54,7 @@ describe('first open on a new phone', () => {
     const user = userEvent.setup()
     renderApp('/setup')
 
-    const notABackup = new File([SHEET], 'Log.json', { type: 'application/json' })
+    const notABackup = new File(['Date,Day,Exercise'], 'Log.json', { type: 'application/json' })
     await user.upload(await screen.findByLabelText('Restore a backup'), notABackup)
     expect(await screen.findByRole('alert')).toHaveTextContent(
       "This isn't a gains-train backup file.",
