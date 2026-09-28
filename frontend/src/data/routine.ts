@@ -3,8 +3,8 @@
  * (A port of the former backend's routine service; same rules.)
  */
 import { uuid } from '../lib/uuid'
-import { db, getStoredRoutine } from './db'
-import type { ExerciseId, ExerciseSummary, RoutineOut, StoredRoutine, StoredWorkout } from './types'
+import { db } from './db'
+import type { ExerciseId, ExerciseSummary, Routine, StoredRoutine, StoredWorkout } from './types'
 import { newestFirst } from './workouts'
 
 export class RoutineError extends Error {}
@@ -26,7 +26,7 @@ export function hydrateRoutine(
   routine: StoredRoutine,
   workouts: StoredWorkout[],
   lookup: (id: ExerciseId) => ExerciseSummary,
-): RoutineOut {
+): Routine {
   return {
     days: routine.days.map((d, i) => ({
       id: d.id,
@@ -45,7 +45,7 @@ async function unlinkWorkouts(keepDayIds: Set<string>): Promise<void> {
     .modify({ routine_day_id: null })
 }
 
-export type RoutineInput = {
+type RoutineInput = {
   days: {
     id?: string | null
     name: string
@@ -124,5 +124,3 @@ export async function routineFromHistory(): Promise<StoredRoutine | null> {
     return routine
   })
 }
-
-export { getStoredRoutine }

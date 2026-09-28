@@ -26,7 +26,7 @@ export async function setRest(exerciseId: string, seconds: number | null): Promi
  * How long to rest after a set of this exercise; 0 when there should be no timer
  * (switched off in Settings, or for this exercise).
  */
-export function useRestFor(): (exercise: ExerciseSummary) => number {
+function useRestFor(): (exercise: ExerciseSummary) => number {
   const settings = useSettings()
   const { data: preferences } = useExercisePreferences()
   return useCallback(

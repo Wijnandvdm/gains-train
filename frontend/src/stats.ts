@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo } from 'react'
 import { db } from './data/db'
 import { exerciseStats, overview } from './data/stats'
-import type { ExerciseOverviewOut, ExerciseStats } from './data/types'
+import type { ExerciseOverview, ExerciseStats } from './data/types'
 import { useExerciseLookup } from './exercises'
 
 /** Records and per-session progress for one exercise (finished workouts only). */
@@ -23,7 +23,7 @@ export function useExerciseStats(exerciseId: string): {
 
 /** Every exercise you've done: the dashboard. */
 export function useStatsOverview(): {
-  data: ExerciseOverviewOut[] | undefined
+  data: ExerciseOverview[] | undefined
   isPending: boolean
 } {
   const lookup = useExerciseLookup()

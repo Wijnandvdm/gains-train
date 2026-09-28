@@ -42,7 +42,6 @@ describe('exercise library search', () => {
     expect(filterValues(LIBRARY)).toEqual({
       muscles: ['biceps', 'forearms', 'glutes', 'hamstrings', 'lower back'],
       equipment: ['barbell', 'dumbbell', 'e-z curl bar', 'machine'],
-      categories: ['strength'],
     })
   })
 
@@ -76,11 +75,7 @@ describe.skipIf(!existsSync(REAL))('the downloaded dataset', () => {
     expect(new Set(exercises.map((e) => e.id)).size).toBe(302)
     expect(exercises.every((e) => e.image_urls.length === 2)).toBe(true)
     const ids = new Set(exercises.map((e) => e.id))
-    const legacy = [
-      ...Object.values(LEGACY_MAPPING.library),
-      'Hack_Squat',
-      'Incline_Dumbbell_Press',
-    ]
+    const legacy = [...Object.values(LEGACY_MAPPING), 'Hack_Squat', 'Incline_Dumbbell_Press']
     expect(legacy.filter((id) => !ids.has(id))).toEqual([])
   })
 })

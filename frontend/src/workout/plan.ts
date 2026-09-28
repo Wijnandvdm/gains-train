@@ -5,7 +5,7 @@
  * The next set is the first one not yet done, in exercise order. Its numbers are prefilled
  * from the same set last time ("set 2 today = set 2 last time").
  */
-import type { ExerciseSummary, SetOut } from '../data/types'
+import type { ExerciseSummary, WorkoutSet } from '../data/types'
 
 export const DEFAULT_PLANNED_SETS = 3
 
@@ -18,9 +18,9 @@ export type PlannedExercise = {
   /** From the routine; undefined for exercises that aren't in it. */
   routineSets: number | undefined
   /** This workout's sets for the exercise (all of them, in order). */
-  sets: SetOut[]
+  sets: WorkoutSet[]
   /** The previous session's sets for the exercise. */
-  lastTime: SetOut[]
+  lastTime: WorkoutSet[]
 }
 
 export type NextSet = {
@@ -30,12 +30,12 @@ export type NextSet = {
   plannedSets: number
   prefill: { weight: number | null; reps: number | null }
   /** Last time's matching set, for the "last time" hint. */
-  previous: SetOut | undefined
+  previous: WorkoutSet | undefined
   /** An existing, not yet ticked row to fill in (instead of adding a new one). */
-  openSet: SetOut | undefined
+  openSet: WorkoutSet | undefined
 }
 
-const workSets = (sets: SetOut[]) => sets.filter((s) => !s.is_warmup)
+const workSets = (sets: WorkoutSet[]) => sets.filter((s) => !s.is_warmup)
 
 export function plannedSetCount(item: PlannedExercise): number {
   const fromPlan = item.routineSets ?? (workSets(item.lastTime).length || DEFAULT_PLANNED_SETS)

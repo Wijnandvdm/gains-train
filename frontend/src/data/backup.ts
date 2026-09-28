@@ -45,7 +45,7 @@ const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v)
 
 /** Check a parsed file before it replaces anything (throws BackupError with a reason). */
-export function validateBackup(data: unknown): Backup {
+function validateBackup(data: unknown): Backup {
   if (!isObject(data) || data.format !== BACKUP_FORMAT) {
     throw new BackupError("This isn't a gains-train backup file.")
   }

@@ -93,7 +93,6 @@ describe('stats', () => {
               position: 1,
               weight_kg: weight,
               reps,
-              rpe: null,
               is_warmup: false,
               notes: null,
               completed_at: null,

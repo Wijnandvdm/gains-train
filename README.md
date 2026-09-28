@@ -120,7 +120,8 @@ duplicated. Exercise names are mapped to the library by `LEGACY_MAPPING` in
 ## Checks
 
 [pre-commit](https://pre-commit.com) runs formatting, linting, type checks and secret scanning on
-every commit, and the test suite on every push:
+every commit, and on every push the test suite and an unused-code check
+([knip](https://knip.dev): files, exports and packages nothing uses):
 
 ```bash
 pre-commit install          # first time only; installs commit + push hooks
@@ -130,13 +131,10 @@ pre-commit run --all-files  # run everything manually
 Or run the tools directly:
 
 ```bash
-cd frontend && npm test && npm run lint && npm run build
+cd frontend && npm test && npm run lint && npx knip && npm run build
 ```
 
 ## TODOS:
-1. check for hardcoded things that repeat and replace them with variables (DRY), e.g. with light and dark mode, hex color codes, string values, etc.
-2. Are we applying KISS?
-3. Do we not have a shitload of redundant code?
 4. Walk me through every bit step by step, I'll decide whatever needs documenting or not
 5. Document the highover flow in a mermaid diagram
 6. Get a how to section for the exercises that do not have one now

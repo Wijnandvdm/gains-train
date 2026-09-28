@@ -11,30 +11,25 @@
 import { uuid } from '../lib/uuid'
 import { db } from './db'
 import { loadLibrary } from './library'
-import type { ExerciseDetail, SetOut, StoredWorkout } from './types'
+import { newSet } from './workouts'
+import type { ExerciseDetail, StoredWorkout } from './types'
 
 export class LegacyImportError extends Error {}
 
 const REQUIRED_COLUMNS = ['Date', 'Day', 'Exercise', 'Weight (kg)', 'Reps'] as const
 
-/** How legacy exercise names map onto the library (else: an exact name match). */
-export const LEGACY_MAPPING: {
-  library: Record<string, string>
-  custom: Record<string, Omit<ExerciseDetail, 'id' | 'name' | 'is_custom' | 'image_urls'>>
-} = {
-  library: {
-    'Leg Curl': 'Seated_Leg_Curl',
-    'Leg Extension': 'Leg_Extensions',
-    'Lat Pulldown': 'Wide-Grip_Lat_Pulldown',
-    'Seated Cable Row': 'Seated_Cable_Rows',
-    'Overhead Cable Tricep Extension': 'Cable_Rope_Overhead_Triceps_Extension',
-    'Dumbbell Press': 'Dumbbell_Bench_Press',
-    'Incline Seated Bicep Curl': 'Incline_Dumbbell_Curl',
-    'Preacher Curl': 'Preacher_Curl',
-    'Triceps Pushdown': 'Triceps_Pushdown',
-    'Bulgarian Split Squat': 'bulgarian-split-squat',
-  },
-  custom: {},
+/** How legacy exercise names map onto library ids (else: an exact name match). */
+export const LEGACY_MAPPING: Record<string, string> = {
+  'Leg Curl': 'Seated_Leg_Curl',
+  'Leg Extension': 'Leg_Extensions',
+  'Lat Pulldown': 'Wide-Grip_Lat_Pulldown',
+  'Seated Cable Row': 'Seated_Cable_Rows',
+  'Overhead Cable Tricep Extension': 'Cable_Rope_Overhead_Triceps_Extension',
+  'Dumbbell Press': 'Dumbbell_Bench_Press',
+  'Incline Seated Bicep Curl': 'Incline_Dumbbell_Curl',
+  'Preacher Curl': 'Preacher_Curl',
+  'Triceps Pushdown': 'Triceps_Pushdown',
+  'Bulgarian Split Squat': 'bulgarian-split-squat',
 }
 
 // --- CSV ----------------------------------------------------------------------------------
@@ -71,14 +66,14 @@ export function parseCsv(text: string): string[][] {
 
 // --- Parsing the sheet --------------------------------------------------------------------
 
-export type ParsedSet = {
+type ParsedSet = {
   position: number
   weight_kg: number | null
   reps: number | null
   notes: string | null
 }
-export type ParsedExercise = { name: string; sets: ParsedSet[] }
-export type ParsedWorkout = {
+type ParsedExercise = { name: string; sets: ParsedSet[] }
+type ParsedWorkout = {
   import_key: string
   performed_on: string
   day_code: string
@@ -87,7 +82,7 @@ export type ParsedWorkout = {
   exercises: ParsedExercise[]
   last_date: string
 }
-export type ParseResult = { workouts: ParsedWorkout[]; warnings: string[] }
+type ParseResult = { workouts: ParsedWorkout[]; warnings: string[] }
 
 function parseDecimal(raw: string): number | null {
   const value = raw.trim().replace(',', '.')
@@ -226,15 +221,13 @@ export type ImportResult = {
   created: number
   updated: number
   sets: number
-  /** legacy name → exercise name it was mapped to ("(custom)" for custom ones) */
-  exerciseMap: Record<string, string>
   warnings: string[]
 }
 
 /**
- * Save the parsed workouts. Names resolve via LEGACY_MAPPING.library, then an existing
- * custom exercise, then LEGACY_MAPPING.custom (created), then an exact library name.
- * Unmapped names stop the import (nothing is written) with a list of them.
+ * Save the parsed workouts. Names resolve via LEGACY_MAPPING, then a custom exercise with
+ * that name, then an exact library name. Unmapped names stop the import (nothing is
+ * written) with a list of them.
  */
 export async function importLegacyLog(
   parsed: ParseResult,
@@ -243,7 +236,6 @@ export async function importLegacyLog(
 ): Promise<ImportResult> {
   return db.transaction('rw', db.workouts, db.customExercises, async () => {
     const customs = await db.customExercises.toArray()
-    const newCustoms: ExerciseDetail[] = []
     const resolved = new Map<string, ExerciseDetail>()
     const problems: string[] = []
     const byLowerName = (list: Iterable<ExerciseDetail>, name: string) =>
@@ -253,24 +245,13 @@ export async function importLegacyLog(
       ...new Set(parsed.workouts.flatMap((w) => w.exercises.map((e) => e.name))),
     ].sort()
     for (const name of names) {
-      const librarySlug = mapping.library[name]
-      const spec = mapping.custom[name]
+      const librarySlug = mapping[name]
       if (librarySlug) {
         const e = library.get(librarySlug)
         if (e) resolved.set(name, e)
         else problems.push(`'${name}' → library id '${librarySlug}' doesn't exist`)
       } else if (byLowerName(customs, name)[0]) {
         resolved.set(name, byLowerName(customs, name)[0]!)
-      } else if (spec) {
-        const custom: ExerciseDetail = {
-          id: `custom-${uuid()}`,
-          name,
-          is_custom: true,
-          image_urls: [],
-          ...spec,
-        }
-        newCustoms.push(custom)
-        resolved.set(name, custom)
       } else {
         const matches = byLowerName(library.values(), name)
         if (matches.length === 1) resolved.set(name, matches[0]!)
@@ -280,7 +261,6 @@ export async function importLegacyLog(
     if (problems.length) {
       throw new LegacyImportError(`Can't map all exercises:\n${problems.join('\n')}`)
     }
-    await db.customExercises.bulkAdd(newCustoms)
 
     const existing = new Map(
       (
@@ -301,17 +281,9 @@ export async function importLegacyLog(
           exercise_id: resolved.get(e.name)!.id,
           position: i + 1,
           notes: null,
-          sets: e.sets.map((s): SetOut => ({
-            id: uuid(),
-            workout_exercise_id: weId,
-            position: s.position,
-            weight_kg: s.weight_kg,
-            reps: s.reps,
-            rpe: null,
-            is_warmup: false,
-            notes: s.notes,
-            completed_at: null,
-          })),
+          sets: e.sets.map((s) =>
+            newSet(weId, s.position, { weight_kg: s.weight_kg, reps: s.reps, notes: s.notes }),
+          ),
         }
       })
       return {
@@ -334,9 +306,6 @@ export async function importLegacyLog(
       created: rows.length - existing.size,
       updated: existing.size,
       sets,
-      exerciseMap: Object.fromEntries(
-        [...resolved].map(([legacy, e]) => [legacy, e.is_custom ? `${e.name} (custom)` : e.name]),
-      ),
       warnings: parsed.warnings,
     }
   })

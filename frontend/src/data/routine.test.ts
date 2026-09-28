@@ -34,7 +34,6 @@ function workout(
           position: i + 1,
           weight_kg: 50,
           reps: 10,
-          rpe: null,
           is_warmup: false,
           notes: null,
           completed_at: null,

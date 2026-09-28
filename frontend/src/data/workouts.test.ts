@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { SetOut, StoredWorkout } from './types'
+import type { WorkoutSet, StoredWorkout } from './types'
 import { db } from './db'
 import {
   activeWorkout,
@@ -26,14 +26,18 @@ const start = (performed_on = '2026-09-25') =>
     routine_day_id: null,
   })
 
-function set(id: string, weId: string, position: number, overrides: Partial<SetOut> = {}): SetOut {
+function set(
+  id: string,
+  weId: string,
+  position: number,
+  overrides: Partial<WorkoutSet> = {},
+): WorkoutSet {
   return {
     id,
     workout_exercise_id: weId,
     position,
     weight_kg: 60,
     reps: 8,
-    rpe: null,
     is_warmup: false,
     notes: null,
     completed_at: '2026-09-25T18:05:00Z',

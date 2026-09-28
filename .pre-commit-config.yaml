@@ -55,6 +55,15 @@ repos:
         files: ^frontend/.*\.(ts|tsx)$
         pass_filenames: false
 
+      # Unused files, exports, types and packages across the whole frontend (the "knip" section in package.json).
+      - id: knip
+        name: knip (unused code)
+        entry: scripts/frontend-run.sh npx knip --no-progress --cache
+        language: system
+        files: ^frontend/(src/.*\.(ts|tsx)|package\.json|[^/]*\.(ts|mjs))$
+        pass_filenames: false
+        stages: [pre-push]
+
       - id: vitest
         name: vitest
         entry: scripts/frontend-run.sh npx vitest run

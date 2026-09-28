@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { SetOut } from '../data/types'
+import type { WorkoutSet } from '../data/types'
 import { exercise } from '../test/utils'
 import { nextSet, type PlannedExercise, plannedSetCount } from './plan'
 
@@ -7,13 +7,12 @@ const s = (
   weight: number | null,
   reps: number | null,
   { done = true, warmup = false, id = `${weight}-${reps}-${Math.random()}` } = {},
-): SetOut => ({
+): WorkoutSet => ({
   id,
   workout_exercise_id: 'we',
   position: 1,
   weight_kg: weight,
   reps,
-  rpe: null,
   is_warmup: warmup,
   notes: null,
   completed_at: done ? '2026-09-25T18:00:00Z' : null,

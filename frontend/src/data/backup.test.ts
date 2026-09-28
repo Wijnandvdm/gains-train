@@ -19,7 +19,6 @@ async function someData() {
     position: 1,
     weight_kg: 60,
     reps: 8,
-    rpe: null,
     is_warmup: false,
     notes: null,
     completed_at: '2026-09-25T18:05:00Z',

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { RoutineDayOut, RoutineOut, WorkoutDetail } from '../data/types'
+import type { RoutineDay, Routine, WorkoutDetail } from '../data/types'
 import { ExerciseBlock } from '../components/workout/ExerciseBlock'
 import { ExercisePicker } from '../components/workout/ExercisePicker'
 import { FocusCard } from '../components/workout/FocusCard'
@@ -10,7 +10,7 @@ import { TrainIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
 import { cheer } from '../copy'
 import { formatDay, plural } from '../lib/format'
-import { uuid } from '../lib/uuid'
+import { newSet } from '../data/workouts'
 import { useRoutine } from '../routine'
 import {
   useActiveWorkout,
@@ -105,11 +105,11 @@ const focusKey = (next: NextSet) =>
 
 // --- Up next (routine) --------------------------------------------------------------------
 
-function UpNext({ routine, onOther }: { routine: RoutineOut; onOther: () => void }) {
+function UpNext({ routine, onOther }: { routine: Routine; onOther: () => void }) {
   const actions = useWorkoutActions()
   const restTimer = useExerciseRestTimer()
   const [dayId, setDayId] = useState(routine.next_day_id ?? routine.days[0]!.id)
-  const day: RoutineDayOut = routine.days.find((d) => d.id === dayId) ?? routine.days[0]!
+  const day: RoutineDay = routine.days.find((d) => d.id === dayId) ?? routine.days[0]!
   const lastTimes = useLastTimes(day.exercises.map((re) => re.exercise.id))
 
   // The day as it would be, before anything is saved: nothing is created until the first ✓.
@@ -280,7 +280,7 @@ function ActiveWorkout({
   onFinished,
 }: {
   workout: WorkoutDetail
-  routine: RoutineOut | null
+  routine: Routine | null
   onFinished: () => void
 }) {
   const actions = useWorkoutActions()
@@ -311,16 +311,10 @@ function ActiveWorkout({
       workout.id,
       target.openSet
         ? { ...target.openSet, ...values, completed_at }
-        : {
-            id: uuid(),
-            workout_exercise_id: target.item.workoutExerciseId!,
-            position: Math.max(0, ...sets.map((s) => s.position)) + 1,
+        : newSet(target.item.workoutExerciseId!, Math.max(0, ...sets.map((s) => s.position)) + 1, {
             ...values,
-            rpe: null,
-            is_warmup: false,
-            notes: null,
             completed_at,
-          },
+          }),
     )
     restTimer.startFor(target.item.exercise)
   }

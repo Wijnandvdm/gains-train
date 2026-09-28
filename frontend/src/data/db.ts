@@ -10,10 +10,9 @@ import type { ExerciseDetail, Settings, StoredRoutine, StoredWorkout } from './t
 export type RestPref = { exercise_id: string; rest_seconds: number } // 0 = no rest timer
 
 /** Small singleton documents (the routine, settings), stored by key. */
-export type KeyValue =
-  { key: 'routine'; value: StoredRoutine } | { key: 'settings'; value: Settings }
+type KeyValue = { key: 'routine'; value: StoredRoutine } | { key: 'settings'; value: Settings }
 
-export class GainsDb extends Dexie {
+class GainsDb extends Dexie {
   workouts!: EntityTable<StoredWorkout, 'id'>
   customExercises!: EntityTable<ExerciseDetail, 'id'>
   restPrefs!: EntityTable<RestPref, 'exercise_id'>

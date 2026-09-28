@@ -92,41 +92,25 @@ describe('importing into the device', () => {
   it('creates workouts, mapping names by the mapping or an exact library name', async () => {
     const result = await importLegacyLog(parse(SHEET), library)
     expect([result.created, result.updated, result.sets]).toEqual([2, 0, 4])
-    expect(result.exerciseMap).toEqual({
-      'Leg Curl': 'Seated Leg Curl',
-      'Bulgarian Split Squat': 'Bulgarian Split Squat',
-      'incline dumbbell curl': 'Incline Dumbbell Curl',
-    })
     const workouts = await db.workouts.orderBy('performed_on').toArray()
     expect(workouts.map((w) => [w.name, w.status, w.notes])).toEqual([
       ['Day1 · Legs', 'completed', 'leg day'],
       ['Day3 · Arms', 'completed', null],
     ])
+    // Leg Curl by the mapping, the rest by their (case-insensitive) library name.
+    expect(workouts.map((w) => w.exercise_ids)).toEqual([
+      ['Seated_Leg_Curl', 'bulgarian-split-squat'],
+      ['Incline_Dumbbell_Curl'],
+    ])
     expect(await db.customExercises.count()).toBe(0)
   })
 
-  it('creates a custom exercise for a name the library lacks', async () => {
-    const mapping = {
-      library: { 'Leg Curl': 'Seated_Leg_Curl' },
-      custom: {
-        'Bulgarian Split Squat': {
-          equipment: 'dumbbell',
-          category: 'strength',
-          level: null,
-          mechanic: 'compound',
-          force: 'push',
-          primary_muscles: ['glutes', 'quadriceps'],
-          secondary_muscles: [],
-          instructions: [],
-        },
-      },
-    }
-    const withoutIt = new Map(LIBRARY.map((e) => [e.id, e]))
-    const result = await importLegacyLog(parse(SHEET), withoutIt, mapping)
-    expect(result.exerciseMap['Bulgarian Split Squat']).toBe('Bulgarian Split Squat (custom)')
-    expect((await db.customExercises.toArray()).map((e) => e.name)).toEqual([
-      'Bulgarian Split Squat',
-    ])
+  it('uses your custom exercise with that name, before the library', async () => {
+    const mine = { ...BULGARIAN, id: 'custom-1', is_custom: true, image_urls: [] }
+    await db.customExercises.put(mine)
+    await importLegacyLog(parse(SHEET), library, { 'Leg Curl': 'Seated_Leg_Curl' })
+    const day1 = (await db.workouts.orderBy('performed_on').first())!
+    expect(day1.exercise_ids).toEqual(['Seated_Leg_Curl', 'custom-1'])
   })
 
   it('re-importing updates in place, without duplicates', async () => {
@@ -144,7 +128,7 @@ describe('importing into the device', () => {
 
   it('lists every unmapped name and writes nothing', async () => {
     const body = SHEET + '2026-07-25,Day1,Mystery Machine,1,50,10,Legs,,\n'
-    const mapping = { library: { 'Leg Curl': 'Does_Not_Exist' }, custom: {} }
+    const mapping = { 'Leg Curl': 'Does_Not_Exist' }
     await expect(importLegacyLog(parse(body), library, mapping)).rejects.toThrow(
       /'Leg Curl' → library id 'Does_Not_Exist' doesn't exist[\s\S]*'Mystery Machine' isn't mapped/,
     )
@@ -154,10 +138,7 @@ describe('importing into the device', () => {
   it('does not guess between two library exercises with the same name', async () => {
     const twice = new Map([...library, ['Other', libraryExercise('Other', 'Seated Leg Curl')]])
     await expect(
-      importLegacyLog(parse('2026-07-19,Day1,Seated Leg Curl,1,100,10,Legs,,\n'), twice, {
-        library: {},
-        custom: {},
-      }),
+      importLegacyLog(parse('2026-07-19,Day1,Seated Leg Curl,1,100,10,Legs,,\n'), twice, {}),
     ).rejects.toThrow("'Seated Leg Curl' isn't mapped")
   })
 })

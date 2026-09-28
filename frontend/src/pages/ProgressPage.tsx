@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import type { ExerciseOverviewOut, RoutineOut } from '../data/types'
+import type { ExerciseOverview, Routine } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { Passport } from '../components/Passport'
 import { Spinner } from '../components/Spinner'
@@ -69,11 +69,7 @@ export function ProgressPage() {
  * The exercises of one routine day, in the day's order; "other" is everything that isn't in
  * the routine; "all" is everything, most recently done first.
  */
-function forDay(
-  rows: ExerciseOverviewOut[],
-  routine: RoutineOut,
-  day: string,
-): ExerciseOverviewOut[] {
+function forDay(rows: ExerciseOverview[], routine: Routine, day: string): ExerciseOverview[] {
   if (day === 'other') {
     const inRoutine = new Set(routine.days.flatMap((d) => d.exercises.map((e) => e.exercise.id)))
     return rows.filter((r) => !inRoutine.has(r.exercise.id))
@@ -94,7 +90,7 @@ function DayChips({
   selected,
   onSelect,
 }: {
-  routine: RoutineOut
+  routine: Routine
   hasOther: boolean
   selected: string
   onSelect: (day: string) => void
@@ -129,7 +125,7 @@ function DayChips({
   )
 }
 
-function OverviewCard({ row }: { row: ExerciseOverviewOut }) {
+function OverviewCard({ row }: { row: ExerciseOverview }) {
   const { exercise } = row
   return (
     <Link

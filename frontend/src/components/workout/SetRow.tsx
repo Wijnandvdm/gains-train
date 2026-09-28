@@ -1,17 +1,17 @@
 import { useState } from 'react'
-import type { SetOut } from '../../data/types'
+import type { WorkoutSet } from '../../data/types'
 import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/format'
 import { PR_LABELS, type PrKind } from '../../workout/prs'
 
 type Props = {
-  set: SetOut
+  set: WorkoutSet
   /** "1", "2", … for work sets; "W" for warm-ups */
   label: string
   /** The matching set from last time, shown as a hint and used when ticking an empty row. */
-  previous: SetOut | undefined
+  previous: WorkoutSet | undefined
   /** Records this set beat (empty if none). */
   prs: PrKind[]
-  onSave: (set: SetOut) => void
+  onSave: (set: WorkoutSet) => void
   onDelete: () => void
   onCompleted: () => void
 }

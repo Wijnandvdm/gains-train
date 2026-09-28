@@ -8,8 +8,8 @@ import { db } from '../data/db'
 import type {
   ExerciseSession,
   ExerciseSummary,
-  RoutineDayOut,
-  SetOut,
+  RoutineDay,
+  WorkoutSet,
   WorkoutDetail,
   WorkoutSummary,
 } from '../data/types'
@@ -27,10 +27,10 @@ import {
   startWorkout,
   summarize,
   workoutsBetween,
+  newSet,
 } from '../data/workouts'
 import { useExerciseLookup } from '../exercises'
 import { localDateString } from '../lib/format'
-import { uuid } from '../lib/uuid'
 
 /** The workout in progress (null if none); undefined while loading. */
 export function useActiveWorkout(): { data: WorkoutDetail | null | undefined; isPending: boolean } {
@@ -50,7 +50,7 @@ export function useLastTime(exerciseId: string): { data: ExerciseSession | null 
 }
 
 /** Last time's sets for several exercises at once (exercise id → sets). */
-export function useLastTimes(exerciseIds: string[]): Map<string, SetOut[]> {
+export function useLastTimes(exerciseIds: string[]): Map<string, WorkoutSet[]> {
   const key = exerciseIds.join('|')
   const sessions = useLiveQuery(
     () =>
@@ -101,7 +101,7 @@ export function useWorkoutActions() {
   return useMemo(
     () => ({
       /** Start a routine day in one tap: the day's exercises, with the first set logged. */
-      async startDay(day: RoutineDayOut, firstSet: { weight_kg: number; reps: number }) {
+      async startDay(day: RoutineDay, firstSet: { weight_kg: number; reps: number }) {
         await db.transaction('rw', db.workouts, async () => {
           const workoutId = await startWorkout({
             name: day.name,
@@ -112,16 +112,13 @@ export function useWorkoutActions() {
           for (const [i, { exercise }] of day.exercises.entries()) {
             const workoutExerciseId = await addExercise(workoutId, exercise.id)
             if (i === 0) {
-              await saveSet(workoutId, {
-                id: uuid(),
-                workout_exercise_id: workoutExerciseId,
-                position: 1,
-                ...firstSet,
-                rpe: null,
-                is_warmup: false,
-                notes: null,
-                completed_at: new Date().toISOString(),
-              })
+              await saveSet(
+                workoutId,
+                newSet(workoutExerciseId, 1, {
+                  ...firstSet,
+                  completed_at: new Date().toISOString(),
+                }),
+              )
             }
           }
         })
@@ -143,7 +140,7 @@ export function useWorkoutActions() {
         addExercise(workoutId, exercise.id),
       removeExercise,
       saveSet,
-      deleteSet: (workoutId: string, set: SetOut) => deleteSet(workoutId, set.id),
+      deleteSet: (workoutId: string, set: WorkoutSet) => deleteSet(workoutId, set.id),
       finish: (workoutId: string) => finishWorkout(workoutId),
       discard: (workoutId: string) => deleteWorkout(workoutId),
     }),

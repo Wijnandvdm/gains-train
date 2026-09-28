@@ -27,19 +27,18 @@ export type ExerciseSummary = {
 
 export type ExerciseDetail = ExerciseSummary & { instructions: string[] }
 
-export type ExerciseFilters = { muscles: string[]; equipment: string[]; categories: string[] }
+export type ExerciseFilters = { muscles: string[]; equipment: string[] }
 
 // --- Workouts -----------------------------------------------------------------------------
 
 export type WorkoutStatus = 'in_progress' | 'completed'
 
-export type SetOut = {
+export type WorkoutSet = {
   id: string
   workout_exercise_id: string
   position: number
   weight_kg: number | null
   reps: number | null
-  rpe: number | null
   is_warmup: boolean
   notes: string | null
   completed_at: string | null
@@ -50,7 +49,7 @@ export type StoredWorkoutExercise = {
   exercise_id: ExerciseId
   position: number
   notes: string | null
-  sets: SetOut[]
+  sets: WorkoutSet[]
 }
 
 export type StoredWorkout = {
@@ -69,12 +68,12 @@ export type StoredWorkout = {
   exercise_ids: ExerciseId[]
 }
 
-export type WorkoutExerciseOut = Omit<StoredWorkoutExercise, 'exercise_id'> & {
+export type WorkoutExercise = Omit<StoredWorkoutExercise, 'exercise_id'> & {
   exercise: ExerciseSummary
 }
 
 export type WorkoutDetail = Omit<StoredWorkout, 'exercises' | 'exercise_ids' | 'import_key'> & {
-  exercises: WorkoutExerciseOut[]
+  exercises: WorkoutExercise[]
 }
 
 export type WorkoutSummary = Omit<WorkoutDetail, 'exercises' | 'notes'> & {
@@ -86,9 +85,8 @@ export type WorkoutSummary = Omit<WorkoutDetail, 'exercises' | 'notes'> & {
 /** One past workout's sets for one exercise (for "last time" hints). */
 export type ExerciseSession = {
   workout_id: string
-  workout_name: string | null
   performed_on: string
-  sets: SetOut[]
+  sets: WorkoutSet[]
 }
 
 // --- Routine ------------------------------------------------------------------------------
@@ -97,14 +95,14 @@ export type StoredRoutine = {
   days: { id: string; name: string; exercises: { exercise_id: ExerciseId; sets: number }[] }[]
 }
 
-export type RoutineDayOut = {
+export type RoutineDay = {
   id: string
   position: number
   name: string
   exercises: { exercise: ExerciseSummary; sets: number }[]
 }
 
-export type RoutineOut = { days: RoutineDayOut[]; next_day_id: string | null }
+export type Routine = { days: RoutineDay[]; next_day_id: string | null }
 
 // --- Settings -----------------------------------------------------------------------------
 
@@ -120,15 +118,15 @@ export type Settings = {
 
 // --- Stats --------------------------------------------------------------------------------
 
-export type SetRecordOut = { weight_kg: number; reps: number; performed_on: string }
+export type SetRecord = { weight_kg: number; reps: number; performed_on: string }
 
-export type RecordsOut = {
-  heaviest: SetRecordOut
-  best_e1rm: SetRecordOut
+export type Records = {
+  heaviest: SetRecord
+  best_e1rm: SetRecord
   best_e1rm_kg: number
   best_session_volume_kg: number
   best_session_volume_on: string
-  rep_records: SetRecordOut[]
+  rep_records: SetRecord[]
 }
 
 export type SessionPoint = {
@@ -141,9 +139,9 @@ export type SessionPoint = {
   set_count: number
 }
 
-export type ExerciseStats = { records: RecordsOut | null; sessions: SessionPoint[] }
+export type ExerciseStats = { records: Records | null; sessions: SessionPoint[] }
 
-export type ExerciseOverviewOut = {
+export type ExerciseOverview = {
   exercise: ExerciseSummary
   sets_logged: number
   last_performed_on: string

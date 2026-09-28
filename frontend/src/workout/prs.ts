@@ -3,7 +3,7 @@
  * is ticked: against your records from finished workouts plus the earlier sets of this
  * workout. The definitions match data/stats.ts.
  */
-import type { RecordsOut, SetOut } from '../data/types'
+import type { Records, WorkoutSet } from '../data/types'
 
 export type PrKind = 'weight' | 'e1rm' | 'reps'
 
@@ -25,7 +25,7 @@ const EPSILON = 0.01
 type Lift = { weight: number; reps: number }
 
 /** Sets that count: ticked off, not a warm-up, with weight and reps. */
-export function performed(sets: SetOut[]): Lift[] {
+function performed(sets: WorkoutSet[]): Lift[] {
   return sets.flatMap((s) =>
     s.completed_at && !s.is_warmup && s.weight_kg !== null && s.reps !== null && s.reps >= 1
       ? [{ weight: s.weight_kg, reps: s.reps }]
@@ -37,7 +37,7 @@ export function performed(sets: SetOut[]): Lift[] {
  * Which records `lift` beats. `earlier` are this workout's sets done before it. Nothing
  * counts as a PR the very first time you do an exercise.
  */
-export function detectPRs(lift: Lift, records: RecordsOut | null, earlier: Lift[]): PrKind[] {
+export function detectPRs(lift: Lift, records: Records | null, earlier: Lift[]): PrKind[] {
   if (lift.reps < 1) return []
   const history: Lift[] = [
     ...earlier,
@@ -71,7 +71,7 @@ export function detectPRs(lift: Lift, records: RecordsOut | null, earlier: Lift[
 }
 
 /** PR kinds for each set of an exercise in the workout (in order; empty for non-PRs). */
-export function prsForSets(sets: SetOut[], records: RecordsOut | null): PrKind[][] {
+export function prsForSets(sets: WorkoutSet[], records: Records | null): PrKind[][] {
   const earlier: Lift[] = []
   return sets.map((s) => {
     const [lift] = performed([s])

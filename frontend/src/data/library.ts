@@ -112,17 +112,15 @@ export function searchExercises(
     .map(toSummary)
 }
 
-/** Values for the filter chips: every muscle, equipment and category that occurs. */
+/** Values for the filters: every muscle and piece of equipment that occurs. */
 export function filterValues(exercises: Iterable<ExerciseDetail>): ExerciseFilters {
   const muscles = new Set<string>()
   const equipment = new Set<string>()
-  const categories = new Set<string>()
   for (const e of exercises) {
     e.primary_muscles.forEach((m) => muscles.add(m))
     e.secondary_muscles.forEach((m) => muscles.add(m))
     if (e.equipment) equipment.add(e.equipment)
-    if (e.category) categories.add(e.category)
   }
   const sorted = (s: Set<string>) => [...s].sort()
-  return { muscles: sorted(muscles), equipment: sorted(equipment), categories: sorted(categories) }
+  return { muscles: sorted(muscles), equipment: sorted(equipment) }
 }

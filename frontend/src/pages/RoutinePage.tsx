@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { ExerciseSummary, RoutineOut } from '../data/types'
+import type { ExerciseSummary, Routine } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { Spinner } from '../components/Spinner'
 import { ExercisePicker } from '../components/workout/ExercisePicker'
@@ -13,7 +13,7 @@ import { ErrorMessage } from '../components/ErrorMessage'
 type DraftExercise = { key: string; exercise: ExerciseSummary; sets: number }
 type DraftDay = { key: string; id: string | null; name: string; exercises: DraftExercise[] }
 
-function toDraft(routine: RoutineOut | null): DraftDay[] {
+function toDraft(routine: Routine | null): DraftDay[] {
   if (!routine?.days.length) return [{ key: uuid(), id: null, name: 'Day 1', exercises: [] }]
   return routine.days.map((d) => ({
     key: d.id,
@@ -36,7 +36,7 @@ export function RoutinePage() {
   return <RoutineEditor routine={routine ?? null} />
 }
 
-function RoutineEditor({ routine }: { routine: RoutineOut | null }) {
+function RoutineEditor({ routine }: { routine: Routine | null }) {
   const navigate = useNavigate()
   const save = useAction(saveRoutine)
   const [days, setDays] = useState<DraftDay[]>(() => toDraft(routine))

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import type { RoutineOut, WorkoutSummary } from '../data/types'
+import type { Routine, WorkoutSummary } from '../data/types'
 import { LinePills, WeekMarker } from '../components/GainsLine'
 import { BackIcon, DepotIcon, TicketIcon } from '../components/icons'
 import { type GainsLine, weekOf } from '../data/line'
@@ -25,7 +25,7 @@ import { useWorkoutSummaries } from '../workout/hooks'
 const DAY_COLORS = ['var(--day-1)', 'var(--day-2)', 'var(--day-3)']
 const OTHER_COLOR = 'var(--day-other)'
 
-function dayColors(routine: RoutineOut | null | undefined): Map<string, string> {
+function dayColors(routine: Routine | null | undefined): Map<string, string> {
   return new Map(routine?.days.slice(0, DAY_COLORS.length).map((d, i) => [d.id, DAY_COLORS[i]!]))
 }
 

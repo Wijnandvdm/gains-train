@@ -3,8 +3,6 @@
  * never where clarity matters mid-set (buttons, numbers, errors).
  */
 
-export const TAGLINE = 'All aboard the gains train!'
-
 /** Shown after each logged set, rotating. */
 export const CHEERS = [
   "You're well on track!",

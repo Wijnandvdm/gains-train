@@ -30,7 +30,7 @@ function useLibrary(): { library?: Map<string, ExerciseDetail>; error?: Error; r
 }
 
 /** Library + your custom exercises, by id; undefined while loading. */
-export function useAllExercises() {
+function useAllExercises() {
   const { library, error, retry } = useLibrary()
   const customs = useLiveQuery(() => db.customExercises.toArray(), [])
   const all = useMemo(
@@ -56,7 +56,7 @@ const UNKNOWN: Omit<ExerciseSummary, 'id'> = {
   image_urls: [],
 }
 
-export type ExerciseLookup = (id: ExerciseId) => ExerciseSummary
+type ExerciseLookup = (id: ExerciseId) => ExerciseSummary
 
 /** id → exercise (never throws: an unknown id gets a placeholder); undefined while loading. */
 export function useExerciseLookup(): ExerciseLookup | undefined {

@@ -3,7 +3,7 @@ import { db, getSettings, getStoredRoutine, updateSettings } from '../data/db'
 import { setLibraryForTests } from '../data/library'
 import type {
   ExerciseDetail,
-  SetOut,
+  WorkoutSet,
   Settings,
   StoredRoutine,
   StoredWorkout,
@@ -24,15 +24,14 @@ export function set(
   position: number,
   weight: number | null,
   reps: number | null,
-  overrides: Partial<SetOut> = {},
-): SetOut {
+  overrides: Partial<WorkoutSet> = {},
+): WorkoutSet {
   return {
     id,
     workout_exercise_id: weId,
     position,
     weight_kg: weight,
     reps,
-    rpe: null,
     is_warmup: false,
     notes: null,
     completed_at: '2026-09-15T18:00:00Z',
@@ -43,7 +42,7 @@ export function set(
 /** A finished workout; `exercises` is [exercise id, sets][] in order. */
 export function workout(
   overrides: Partial<StoredWorkout> & { id: string },
-  exercises: [string, SetOut[]][] = [],
+  exercises: [string, WorkoutSet[]][] = [],
 ): StoredWorkout {
   const stored: StoredWorkoutExercise[] = exercises.map(([exerciseId, sets], i) => ({
     id: sets[0]?.workout_exercise_id ?? `${overrides.id}-we${i + 1}`,

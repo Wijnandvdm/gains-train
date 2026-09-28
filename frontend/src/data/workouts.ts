@@ -8,7 +8,7 @@ import type {
   ExerciseId,
   ExerciseSession,
   ExerciseSummary,
-  SetOut,
+  WorkoutSet,
   StoredWorkout,
   WorkoutDetail,
   WorkoutSummary,
@@ -59,7 +59,6 @@ export async function exerciseSessions(
       if (we.exercise_id !== exerciseId) continue
       sessions.push({
         workout_id: w.id,
-        workout_name: w.name,
         performed_on: w.performed_on,
         sets: we.sets,
       })
@@ -71,13 +70,32 @@ export async function exerciseSessions(
 
 // --- Turning stored workouts into what the screens show -----------------------------------
 
-export type ExerciseLookup = (id: ExerciseId) => ExerciseSummary
+type ExerciseLookup = (id: ExerciseId) => ExerciseSummary
 
 /**
  * A set that was actually done: weight and reps, not a warm-up, and ticked off (imported
  * workouts have no tick timestamps, but every set in them was done).
  */
-export function isPerformed(set: SetOut, workout: Pick<StoredWorkout, 'import_key'>): boolean {
+/** A new set row: a work set, empty and not ticked off, unless `fields` say otherwise. */
+export function newSet(
+  workoutExerciseId: string,
+  position: number,
+  fields: Partial<Pick<WorkoutSet, 'weight_kg' | 'reps' | 'notes' | 'completed_at'>> = {},
+): WorkoutSet {
+  return {
+    id: uuid(),
+    workout_exercise_id: workoutExerciseId,
+    position,
+    weight_kg: null,
+    reps: null,
+    is_warmup: false,
+    notes: null,
+    completed_at: null,
+    ...fields,
+  }
+}
+
+export function isPerformed(set: WorkoutSet, workout: Pick<StoredWorkout, 'import_key'>): boolean {
   return (
     set.weight_kg !== null &&
     set.reps !== null &&
@@ -178,7 +196,7 @@ export async function removeExercise(workoutId: string, workoutExerciseId: strin
 }
 
 /** Create or replace a set (matched by id). */
-export async function saveSet(workoutId: string, set: SetOut): Promise<void> {
+export async function saveSet(workoutId: string, set: WorkoutSet): Promise<void> {
   await modify(workoutId, (w) => {
     const we = w.exercises.find((e) => e.id === set.workout_exercise_id)
     if (!we) throw new WorkoutError('Exercise not found in this workout')

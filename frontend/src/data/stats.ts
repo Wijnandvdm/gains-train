@@ -12,12 +12,12 @@
 import { e1rm } from '../workout/prs'
 import type {
   ExerciseId,
-  ExerciseOverviewOut,
+  ExerciseOverview,
   ExerciseStats,
   ExerciseSummary,
-  RecordsOut,
+  Records,
   SessionPoint,
-  SetRecordOut,
+  SetRecord,
   StoredWorkout,
 } from './types'
 import { isPerformed } from './workouts'
@@ -97,13 +97,13 @@ export function sessions(sets: PerformedSet[]): SessionPoint[] {
   return points.sort((a, b) => a.performed_on.localeCompare(b.performed_on))
 }
 
-const record = (s: PerformedSet): SetRecordOut => ({
+const record = (s: PerformedSet): SetRecord => ({
   weight_kg: kg(s.weight_kg),
   reps: s.reps,
   performed_on: s.performed_on,
 })
 
-export function records(sets: PerformedSet[]): RecordsOut | null {
+export function records(sets: PerformedSet[]): Records | null {
   const withReps = sets.filter((s) => s.reps >= 1)
   if (withReps.length === 0) return null
 
@@ -118,7 +118,7 @@ export function records(sets: PerformedSet[]): RecordsOut | null {
     if (!current || s.reps > current.reps) bestAtWeight.set(s.weight_kg, s)
   }
   // …keeping only those not matched by a heavier weight.
-  const repRecords: SetRecordOut[] = []
+  const repRecords: SetRecord[] = []
   let mostRepsHeavier = 0
   for (const weight of [...bestAtWeight.keys()].sort((a, b) => b - a)) {
     const s = bestAtWeight.get(weight)!
@@ -147,8 +147,8 @@ export function exerciseStats(workouts: StoredWorkout[], exerciseId: ExerciseId)
 export function overview(
   workouts: StoredWorkout[],
   lookup: (id: ExerciseId) => ExerciseSummary,
-): ExerciseOverviewOut[] {
-  const rows: ExerciseOverviewOut[] = []
+): ExerciseOverview[] {
+  const rows: ExerciseOverview[] = []
   for (const [exerciseId, group] of groupBy(performedSets(workouts), (s) => s.exercise_id)) {
     const points = sessions(group)
     if (points.length === 0) continue
