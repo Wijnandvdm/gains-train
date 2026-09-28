@@ -10,6 +10,9 @@
 // aren't drawn, so the app can keep ones you logged as custom exercises), and the drawings
 // as <id>/0.svg (start pose) and <id>/1.svg (end pose).
 //
+// Exercises that have no instructions in free-exercise-db get the hand-written ones in
+// exercise-instructions.json (next to this script).
+//
 // Usage: node build-exercises.mjs <free-exercise-db exercises.json> <workout-guide package dir>
 //                                 <exercise-map.json> <output dir>
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -20,6 +23,8 @@ const read = (file) => JSON.parse(readFileSync(file, "utf8"));
 const fed = new Map(read(fedFile).map((e) => [e.id, e]));
 const guide = read(join(wgDir, "manifest.json"));
 const map = read(mapFile);
+// Hand-written how-to steps (by exercise id) for exercises free-exercise-db doesn't cover.
+const ownInstructions = read(new URL("./exercise-instructions.json", import.meta.url));
 
 // Workout Guide's muscle groups → the library's muscles (what the muscle map can show).
 const MUSCLES = {
@@ -98,7 +103,7 @@ for (const ex of guide) {
     secondaryMuscles: (
       match?.secondaryMuscles ?? muscles(ex.secondaryMuscles)
     ).filter((m) => !primary.includes(m)),
-    instructions: match?.instructions ?? [],
+    instructions: match?.instructions?.length ? match.instructions : (ownInstructions[id] ?? []),
     images: frames.map((_, i) => `${id}/${i}.svg`),
   });
 }
@@ -113,5 +118,5 @@ writeFileSync(join(out, "retired.json"), JSON.stringify(retired));
 for (const file of ["ATTRIBUTION.md", "LICENSE-ASSETS"])
   copyFileSync(join(wgDir, file), join(out, file));
 console.log(
-  `${library.length} exercises (${library.length - [...guide].filter((e) => !map[e.slug]).length} with instructions), ${retired.length} retired`,
+  `${library.length} exercises (${library.filter((e) => e.instructions.length).length} with instructions), ${retired.length} retired`,
 );

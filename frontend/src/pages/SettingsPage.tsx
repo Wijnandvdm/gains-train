@@ -213,7 +213,8 @@ function AboutCard() {
         Bryl Lim, based on {link('https://github.com/everkinetic/data', 'Everkinetic')}, under{' '}
         {link('https://creativecommons.org/licenses/by-sa/4.0/', 'CC BY-SA 4.0')}; recoloured to fit
         the app's theme. Exercise instructions:{' '}
-        {link('https://github.com/yuhonas/free-exercise-db', 'free-exercise-db')} (public domain).
+        {link('https://github.com/yuhonas/free-exercise-db', 'free-exercise-db')} (public domain)
+        and our own.
       </p>
     </Card>
   )

@@ -33,6 +33,8 @@ The first run installs the frontend packages and builds the exercise library int
   free-exercise-db id, so data logged with the earlier, photo-based library stays linked; an
   exercise that left the library becomes a custom exercise on first open
   (`frontend/src/data/migrate.ts`).
+- **Hand-written instructions** for every other exercise, in
+  `scripts/exercise-instructions.json`: a few short steps each (setup, movement, a form cue).
 
 Both sources are pinned to a commit; `scripts/build-exercises.mjs` combines them.
 
@@ -128,6 +130,3 @@ Or run the tools directly:
 ```bash
 cd frontend && npm test && npm run lint && npx knip && npm run build
 ```
-
-## TODOS:
-1. Get a how to section for the exercises that do not have one now
