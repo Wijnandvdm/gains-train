@@ -49,7 +49,7 @@ export function stationName(n: number): string {
 /** reached: a station · ticket: saved by a ticket · missed: fell short, streak over ·
  *  open: this week, not there yet · depot: parked, doesn't count ·
  *  before: before your first station ever */
-export type WeekState = 'reached' | 'ticket' | 'missed' | 'open' | 'depot' | 'before'
+type WeekState = 'reached' | 'ticket' | 'missed' | 'open' | 'depot' | 'before'
 
 export type LineWeek = {
   /** The week's Monday, "YYYY-MM-DD". */
@@ -73,6 +73,8 @@ export type GainsLine = {
   nextTicketAt: number
   /** The Sunday the depot stay that includes this week ends; null when not parked. */
   parkedUntil: string | null
+  /** The day this was worked out for, "YYYY-MM-DD". */
+  today: string
 }
 
 /** Monday of the week the day is in. */
@@ -151,5 +153,6 @@ export function gainsLine(
     tickets,
     nextTicketAt: (Math.floor(streak / STATIONS_PER_TICKET) + 1) * STATIONS_PER_TICKET,
     parkedUntil,
+    today,
   }
 }

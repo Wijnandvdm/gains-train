@@ -82,7 +82,11 @@ scripts/frontend-run.sh npx vite build
 scripts/frontend-run.sh npx cap sync android
 
 say "Building the APK"
-(cd frontend/android && ./gradlew --quiet assembleDebug)
+# Every Gradle warning is shown (the progress lines are left out), so it's easy to see when
+# an update (e.g. of Capacitor) makes one appear or go away.
+# (A failing build still stops the script; only the filter may come up empty.)
+(cd frontend/android && ./gradlew --warning-mode all --console plain assembleDebug) 2>&1 |
+  { grep -vE '^> (Task|Configure)|^BUILD SUCCESSFUL|actionable tasks?:|^$' || true; }
 apk=frontend/android/app/build/outputs/apk/debug
 mv "$apk/app-debug.apk" "$apk/gains-train.apk"
 

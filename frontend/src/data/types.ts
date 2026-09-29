@@ -31,7 +31,7 @@ export type ExerciseFilters = { muscles: string[]; equipment: string[] }
 
 // --- Workouts -----------------------------------------------------------------------------
 
-export type WorkoutStatus = 'in_progress' | 'completed'
+type WorkoutStatus = 'in_progress' | 'completed'
 
 export type WorkoutSet = {
   id: string
