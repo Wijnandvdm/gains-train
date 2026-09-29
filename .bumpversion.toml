@@ -1,0 +1,39 @@
+# bump-my-version (github.com/callowayproject/bump-my-version): where the app's version lives.
+# Don't bump by hand: set the kind of release in RELEASE and merge to main (see
+# scripts/release.py and .github/workflows/release.yml).
+[tool.bumpversion]
+current_version = "0.1.0"
+commit = false
+# The release script edits RELEASE and CHANGELOG.md around the bump; it commits everything itself.
+allow_dirty = true
+tag = false
+
+# The Android app: versionName (versionCode is calculated from it in the same file).
+[[tool.bumpversion.files]]
+filename = "frontend/android/app/build.gradle"
+search = 'def appVersion = "{current_version}"'
+replace = 'def appVersion = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "frontend/package.json"
+search = '"version": "{current_version}"'
+replace = '"version": "{new_version}"'
+
+# package-lock.json repeats the version twice; only those two, not any dependency's.
+[[tool.bumpversion.files]]
+filename = "frontend/package-lock.json"
+search = '''
+"name": "frontend",
+  "version": "{current_version}"'''
+replace = '''
+"name": "frontend",
+  "version": "{new_version}"'''
+
+[[tool.bumpversion.files]]
+filename = "frontend/package-lock.json"
+search = '''
+"name": "frontend",
+      "version": "{current_version}"'''
+replace = '''
+"name": "frontend",
+      "version": "{new_version}"'''

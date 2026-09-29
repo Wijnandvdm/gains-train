@@ -30,6 +30,17 @@ repos:
     hooks:
       - id: gitleaks
 
+  # --- Releases ---------------------------------------------------------------
+  # RELEASE must be valid, and a release needs notes under [Unreleased] (scripts/release.py).
+  - repo: local
+    hooks:
+      - id: release-check
+        name: release check (RELEASE + CHANGELOG.md)
+        entry: python3 scripts/release.py check
+        language: system
+        files: ^(RELEASE|CHANGELOG\.md|scripts/release\.py)$
+        pass_filenames: false
+
   # --- Frontend (TypeScript/React) -------------------------------------------
   # scripts/frontend-run.sh runs each tool in frontend/ with the Node from frontend/.nvmrc.
   - repo: local

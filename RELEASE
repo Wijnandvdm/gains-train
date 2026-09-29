@@ -1,0 +1,7 @@
+# What kind of release your next merge to main makes (semantic versioning, semver.org):
+#   major  incompatible changes (e.g. older backups can no longer be restored)
+#   minor  new features, nothing breaks
+#   patch  bug fixes
+#   none   no release (docs, tooling, refactoring)
+# Write what you did under [Unreleased] in CHANGELOG.md. The release sets this back to none.
+release=major

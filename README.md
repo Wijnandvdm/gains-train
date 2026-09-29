@@ -30,6 +30,14 @@ scripts/android.sh
 How it's built, how to install it on your phone, and where the app's id, icons and permissions
 live: see the top of [scripts/android.sh](scripts/android.sh).
 
+## Releases
+
+Versions follow [semantic versioning](https://semver.org). On your branch, write what changed
+under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) and set the kind of release in
+[RELEASE](RELEASE) (`major`, `minor`, `patch` or `none`). Merging to main does the rest: a
+GitHub Action bumps the version everywhere, dates the changelog, tags the release and resets
+`RELEASE` to none. Details: [scripts/release.py](scripts/release.py).
+
 ## Your data: backups
 
 Since the data only exists on the phone, losing the phone, uninstalling the app or clearing
@@ -53,4 +61,3 @@ Backup: every month, 3 months, 6 months, a year, or never).
 ## TODO:
 1. app id `io.github.wijnandvdm.gainstrain` = good?
 2. store name `Gains Train - Workout Tracker` seems fine
-3. semantic versioning and changelog

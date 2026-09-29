@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
 
+// The app's version, set by the release (RELEASE, .bumpversion.toml): don't edit by hand.
+def appVersion = "0.1.0"
+// Google Play needs a number that goes up with every version: 1.4.2 → 10402.
+def appVersionCode = appVersion.tokenize('.').collect { it.toInteger() }.inject(0) { code, part -> code * 100 + part }
+
 android {
     namespace = "io.github.wijnandvdm.gainstrain"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +12,8 @@ android {
         applicationId "io.github.wijnandvdm.gainstrain"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
