@@ -2,7 +2,7 @@
 # Don't bump by hand: set the kind of release in RELEASE and merge to main (see
 # scripts/release.py and .github/workflows/release.yml).
 [tool.bumpversion]
-current_version = "0.1.0"
+current_version = "1.0.0"
 commit = false
 # The release script edits RELEASE and CHANGELOG.md around the bump; it commits everything itself.
 allow_dirty = true

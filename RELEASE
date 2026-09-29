@@ -4,4 +4,4 @@
 #   patch  bug fixes
 #   none   no release (docs, tooling, refactoring)
 # Write what you did under [Unreleased] in CHANGELOG.md. The release sets this back to none.
-release=major
+release=none
