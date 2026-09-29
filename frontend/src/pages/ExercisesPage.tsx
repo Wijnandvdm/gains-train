@@ -1,9 +1,10 @@
 import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import type { ExerciseSummary } from '../api/schema'
+import type { ExerciseSummary } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { SearchIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
+import { usePaged } from '../lib/usePaged'
 import { type ExerciseSearch, useExerciseFilters, useExerciseSearch } from '../exercises'
 
 export function ExercisesPage() {
@@ -39,8 +40,8 @@ export function ExercisesPage() {
 
   const filters = useExerciseFilters()
   const results = useExerciseSearch(search)
-  const exercises = results.data?.pages.flatMap((page) => page.items) ?? []
-  const total = results.data?.pages[0]?.total
+  const { visible: exercises, hasMore, showMore } = usePaged(results.data)
+  const total = results.data?.length
 
   return (
     <section className="flex flex-col gap-4">
@@ -64,11 +65,7 @@ export function ExercisesPage() {
 
       <div className="flex flex-col gap-2">
         {/* Muscles: a horizontally scrolling row of chips (thumb-friendly on phones). */}
-        <div
-          role="group"
-          aria-label="Filter by muscle"
-          className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4"
-        >
+        <div role="group" aria-label="Filter by muscle" className="chip-row">
           <FilterChip active={!search.muscle} onClick={() => setParam('muscle', undefined)}>
             All muscles
           </FilterChip>
@@ -112,17 +109,14 @@ export function ExercisesPage() {
       ) : results.isError ? (
         <div className="py-8 text-center">
           <p className="mb-3">Couldn't load exercises.</p>
-          <button className="btn" onClick={() => results.refetch()}>
+          <button className="btn" onClick={results.retry}>
             Try again
           </button>
         </div>
       ) : exercises.length === 0 ? (
         <p className="py-8 text-center text-neutral-500">No exercises match these filters.</p>
       ) : (
-        // Dim stale results while a new search is loading.
-        <ul
-          className={`flex flex-col gap-2 transition-opacity ${results.isPlaceholderData ? 'opacity-60' : ''}`}
-        >
+        <ul className="flex flex-col gap-2">
           {exercises.map((exercise) => (
             <li key={exercise.id}>
               <ExerciseCard exercise={exercise} />
@@ -131,9 +125,7 @@ export function ExercisesPage() {
         </ul>
       )}
 
-      {results.hasNextPage && (
-        <LoadMore onLoad={() => results.fetchNextPage()} loading={results.isFetchingNextPage} />
-      )}
+      {hasMore && <LoadMore onLoad={showMore} />}
     </section>
   )
 }
@@ -152,7 +144,7 @@ function FilterChip({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`chip ${active ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+      className={`chip ${active ? 'chip-active' : ''}`}
     >
       {children}
     </button>
@@ -187,7 +179,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseSummary }) {
 }
 
 /** Loads the next page when scrolled into view; also a plain button as a fallback. */
-function LoadMore({ onLoad, loading }: { onLoad: () => void; loading: boolean }) {
+function LoadMore({ onLoad }: { onLoad: () => void }) {
   const ref = useRef<HTMLButtonElement>(null)
   // Always calls the latest onLoad, without re-creating the observer when it changes.
   const onVisible = useEffectEvent(onLoad)
@@ -204,8 +196,8 @@ function LoadMore({ onLoad, loading }: { onLoad: () => void; loading: boolean })
   }, [])
 
   return (
-    <button ref={ref} className="btn mx-auto" onClick={onLoad} disabled={loading}>
-      {loading ? 'Loading…' : 'Load more'}
+    <button ref={ref} className="btn mx-auto" onClick={onLoad}>
+      Load more
     </button>
   )
 }

@@ -1,0 +1,47 @@
+# On every merge (push) to main: if RELEASE asks for a release (major, minor or patch),
+# bump the version everywhere, turn [Unreleased] in CHANGELOG.md into that version, set RELEASE
+# back to none, commit and tag it on main, and publish a GitHub Release with the notes.
+# RELEASE=none: nothing happens. See scripts/release.py.
+#
+# The push uses the workflow's own token, which works while main isn't protected by rules
+# like "require a pull request". If you add such rules, give this workflow a deploy key or a
+# GitHub App token that may bypass them.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+# One release at a time; a second merge waits for the first release to finish.
+concurrency: release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: What does RELEASE ask for?
+        id: kind
+        run: echo "kind=$(python3 scripts/release.py kind)" >> "$GITHUB_OUTPUT"
+
+      - name: Release
+        if: steps.kind.outputs.kind != 'none'
+        env:
+          RELEASE_NOTES: ${{ runner.temp }}/release-notes.md
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pipx install bump-my-version==1.5.1
+          python3 scripts/release.py apply
+          version="$(sed -nE 's/^current_version = "(.*)"/\1/p' .bumpversion.toml)"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --all --message "Release $version"
+          git tag --annotate "v$version" --message "Release $version"
+          git push origin HEAD:main "v$version"
+
+          gh release create "v$version" --title "$version" --notes-file "$RELEASE_NOTES"

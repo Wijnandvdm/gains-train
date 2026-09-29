@@ -10,13 +10,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type { SessionPoint } from '../api/schema'
+import type { SessionPoint } from '../data/types'
 import {
   formatDay,
+  formatE1rm,
   formatKg,
   formatSet,
   formatShortDay,
   formatVolume,
+  formatWeight,
   localDateString,
   parseLocalDate,
 } from '../lib/format'
@@ -26,19 +28,19 @@ const METRICS = {
     label: 'Estimated 1RM',
     title: 'Estimated 1RM per session',
     value: (p: SessionPoint) => p.best_e1rm_kg,
-    format: (v: number) => `${formatKg(Math.round(v * 10) / 10)} kg`,
+    format: formatE1rm,
   },
   top: {
     label: 'Top weight',
     title: 'Heaviest set per session',
     value: (p: SessionPoint) => p.top_weight_kg,
-    format: (v: number) => `${formatKg(v)} kg`,
+    format: formatWeight,
   },
   volume: {
     label: 'Volume',
     title: 'Volume per session (weight × reps)',
     value: (p: SessionPoint) => p.volume_kg,
-    format: (v: number) => formatVolume(v),
+    format: formatVolume,
   },
 } as const
 type Metric = keyof typeof METRICS
@@ -57,7 +59,7 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
             type="button"
             aria-pressed={metric === m}
             onClick={() => setMetric(m)}
-            className={`chip text-xs ${metric === m ? 'chip-active' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+            className={`chip text-xs ${metric === m ? 'chip-active' : ''}`}
           >
             {METRICS[m].label}
           </button>

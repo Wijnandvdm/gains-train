@@ -1,20 +1,17 @@
-import { QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { UpdatePrompt } from './components/UpdatePrompt'
+import { syncWithLibrary } from './data/migrate'
 import './index.css'
-import { createQueryClient } from './queryClient'
 import { routes } from './routes'
 
-const queryClient = createQueryClient()
 const router = createBrowserRouter(routes)
+
+// Keep your data in step with this version's exercise library (see data/migrate.ts).
+syncWithLibrary().catch((e: unknown) => console.warn('Exercise library sync failed', e))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <UpdatePrompt />
-    </QueryClientProvider>
+    <RouterProvider router={router} />
   </StrictMode>,
 )

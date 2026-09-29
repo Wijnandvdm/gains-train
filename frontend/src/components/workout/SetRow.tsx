@@ -1,28 +1,37 @@
 import { useState } from 'react'
-import type { SetOut } from '../../api/schema'
-import { formatKg, formatSet, parseReps, parseWeight } from '../../lib/format'
+import type { WorkoutSet } from '../../data/types'
+import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/format'
 import { PR_LABELS, type PrKind } from '../../workout/prs'
 
 type Props = {
-  set: SetOut
+  set: WorkoutSet
   /** "1", "2", … for work sets; "W" for warm-ups */
   label: string
   /** The matching set from last time, shown as a hint and used when ticking an empty row. */
-  previous: SetOut | undefined
+  previous: WorkoutSet | undefined
   /** Records this set beat (empty if none). */
   prs: PrKind[]
-  onSave: (set: SetOut) => void
+  onSave: (set: WorkoutSet) => void
   onDelete: () => void
   onCompleted: () => void
 }
 
-const toText = (value: number | null) => (value === null ? '' : formatKg(value))
+const toText = weightInputText
 
 export function SetRow({ set, label, previous, prs, onSave, onDelete, onCompleted }: Props) {
   // Typing edits a local draft; it's saved on blur or when ticking (not per keystroke).
   const [weight, setWeight] = useState(toText(set.weight_kg))
   const [reps, setReps] = useState(toText(set.reps))
   const [needsReps, setNeedsReps] = useState(false)
+  // When the saved values change elsewhere (e.g. the focus card filled this row), show them.
+  // (React's "adjust state when a prop changes" pattern: no remount, so focus is kept.)
+  // Per field: saving the weight lands a moment later and mustn't wipe reps being typed.
+  const [saved, setSaved] = useState({ weight: set.weight_kg, reps: set.reps })
+  if (saved.weight !== set.weight_kg || saved.reps !== set.reps) {
+    setSaved({ weight: set.weight_kg, reps: set.reps })
+    if (saved.weight !== set.weight_kg) setWeight(toText(set.weight_kg))
+    if (saved.reps !== set.reps) setReps(toText(set.reps))
+  }
   const done = set.completed_at !== null
 
   function commitDraft() {
@@ -76,7 +85,7 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
             role="img"
             aria-label={`Personal record: ${prs.map((k) => PR_LABELS[k]).join(', ')}`}
             title={prs.map((k) => PR_LABELS[k]).join(' · ')}
-            className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+            className="tone-ticket shrink-0 rounded px-1.5 py-0.5 text-xs font-bold"
           >
             {prs.includes('weight') ? '🏆 PR' : 'PR'}
           </span>
@@ -90,7 +99,7 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
         aria-label={`Set ${label} weight (kg)`}
         inputMode="decimal"
         value={weight}
-        placeholder={previous?.weight_kg !== null && previous ? formatKg(previous.weight_kg) : 'kg'}
+        placeholder={previous?.weight_kg != null ? weightInputText(previous.weight_kg) : 'kg'}
         onChange={(e) => setWeight(e.target.value)}
         onBlur={commitDraft}
         onFocus={(e) => e.target.select()}

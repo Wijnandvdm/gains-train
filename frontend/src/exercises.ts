@@ -1,53 +1,100 @@
-import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { api, unwrap } from './api/client'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { useEffect, useMemo, useState } from 'react'
+import { db } from './data/db'
+import {
+  type ExerciseSearch,
+  filterValues,
+  loadLibrary,
+  searchExercises,
+  toSummary,
+} from './data/library'
+import type { ExerciseDetail, ExerciseFilters, ExerciseId, ExerciseSummary } from './data/types'
 
-export type ExerciseSearch = {
-  q?: string
-  muscle?: string
-  equipment?: string
+export type { ExerciseSearch }
+
+/** The exercise library (loaded once), or an error if it couldn't be loaded. */
+export function useLibrary(): {
+  library?: Map<string, ExerciseDetail>
+  error?: Error
+  retry: () => void
+} {
+  const [state, setState] = useState<{ library?: Map<string, ExerciseDetail>; error?: Error }>({})
+  const [attempt, setAttempt] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    loadLibrary().then(
+      (library) => !cancelled && setState({ library }),
+      (error: Error) => !cancelled && setState({ error }),
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [attempt])
+  return { ...state, retry: () => setAttempt((n) => n + 1) }
 }
 
-const PAGE_SIZE = 30
-// The library only changes when it's re-seeded, so cache it generously.
-const LIBRARY_STALE_MS = 60 * 60 * 1000
+/** Library + your custom exercises, by id; undefined while loading. */
+function useAllExercises() {
+  const { library, error, retry } = useLibrary()
+  const customs = useLiveQuery(() => db.customExercises.toArray(), [])
+  const all = useMemo(
+    () =>
+      library && customs
+        ? new Map([...library, ...customs.map((c) => [c.id, c] as const)])
+        : undefined,
+    [library, customs],
+  )
+  return { exercises: all, error, retry }
+}
 
+const UNKNOWN: Omit<ExerciseSummary, 'id'> = {
+  name: 'Unknown exercise',
+  equipment: null,
+  category: null,
+  level: null,
+  mechanic: null,
+  force: null,
+  is_custom: false,
+  primary_muscles: [],
+  secondary_muscles: [],
+  image_urls: [],
+}
+
+type ExerciseLookup = (id: ExerciseId) => ExerciseSummary
+
+/** id → exercise (never throws: an unknown id gets a placeholder); undefined while loading. */
+export function useExerciseLookup(): ExerciseLookup | undefined {
+  const { exercises } = useAllExercises()
+  return useMemo(
+    () =>
+      exercises &&
+      ((id: ExerciseId) => {
+        const e = exercises.get(id)
+        return e ? toSummary(e) : { ...UNKNOWN, id }
+      }),
+    [exercises],
+  )
+}
+
+/** Search results (all of them; screens show them a page at a time). */
 export function useExerciseSearch(search: ExerciseSearch) {
-  return useInfiniteQuery({
-    queryKey: ['exercises', search],
-    queryFn: ({ pageParam, signal }) =>
-      unwrap(
-        api.GET('/api/exercises', {
-          params: { query: { ...search, limit: PAGE_SIZE, offset: pageParam } },
-          signal, // cancels superseded requests while typing
-        }),
-      ),
-    initialPageParam: 0,
-    getNextPageParam: (last) =>
-      last.offset + last.items.length < last.total ? last.offset + last.limit : undefined,
-    // Keep showing the previous results while a new search loads (no flicker).
-    placeholderData: keepPreviousData,
-    staleTime: LIBRARY_STALE_MS,
-  })
+  const { exercises, error, retry } = useAllExercises()
+  const { q, muscle, equipment } = search
+  const data = useMemo(
+    () => exercises && searchExercises(exercises.values(), { q, muscle, equipment }),
+    [exercises, q, muscle, equipment],
+  )
+  return { data, isPending: !data && !error, isError: Boolean(error), retry }
 }
 
-export function useExerciseFilters() {
-  return useQuery({
-    queryKey: ['exercise-filters'],
-    queryFn: () => unwrap(api.GET('/api/exercises/filters')),
-    staleTime: LIBRARY_STALE_MS,
-  })
+export function useExerciseFilters(): { data: ExerciseFilters | undefined } {
+  const { exercises } = useAllExercises()
+  return { data: useMemo(() => exercises && filterValues(exercises.values()), [exercises]) }
 }
 
-export function useExercise(id: number) {
-  return useQuery({
-    queryKey: ['exercise', id],
-    queryFn: () =>
-      unwrap(
-        api.GET('/api/exercises/{exercise_id}', {
-          params: { path: { exercise_id: id } },
-        }),
-      ),
-    staleTime: LIBRARY_STALE_MS,
-    enabled: Number.isInteger(id),
-  })
+/** One exercise; data is null when it doesn't exist. */
+export function useExercise(id: ExerciseId) {
+  const { exercises, error, retry } = useAllExercises()
+  const data = exercises ? (exercises.get(id) ?? null) : undefined
+  return { data, isPending: data === undefined && !error, isError: Boolean(error), retry }
 }

@@ -1,38 +1,46 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ApiError } from '../api/client'
-import type { WorkoutDetail } from '../api/schema'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import type { WorkoutDetail } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { BackIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
 import { formatDay, formatSet } from '../lib/format'
-import { useDeleteWorkout, useWorkout } from '../workout/hooks'
+import { useAction } from '../lib/useAction'
+import { deleteWorkout, useWorkout } from '../workout/hooks'
 import { setLabels } from '../workout/sets'
+import { ErrorMessage } from '../components/ErrorMessage'
 
 /** A finished workout, read-only. */
 export function WorkoutDetailPage() {
   const id = useParams().workoutId!
-  const { data: workout, isPending, error, refetch } = useWorkout(id)
+  const { data: workout, isPending } = useWorkout(id)
+  const navigate = useNavigate()
+  const cameFromApp = useLocation().key !== 'default'
 
   return (
     <section className="flex flex-col gap-4">
       <Link
-        to="/history"
-        className="-ml-2 flex w-fit items-center gap-1 rounded-lg px-2 py-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+        // Back to exactly where you came from (the calendar day); the href is for when
+        // this page was opened directly.
+        onClick={(e) => {
+          if (cameFromApp) {
+            e.preventDefault()
+            navigate(-1)
+          }
+        }}
+        to={
+          workout
+            ? `/history?month=${workout.performed_on.slice(0, 7)}&day=${workout.performed_on}`
+            : '/history'
+        }
+        className="back-link"
       >
         <BackIcon />
         History
       </Link>
       {isPending ? (
         <Spinner />
-      ) : error instanceof ApiError && error.status === 404 ? (
+      ) : !workout ? (
         <p className="py-8 text-center">This workout doesn't exist (anymore).</p>
-      ) : error ? (
-        <div className="py-8 text-center">
-          <p className="mb-3">Couldn't load this workout.</p>
-          <button className="btn" onClick={() => refetch()}>
-            Try again
-          </button>
-        </div>
       ) : (
         <Workout workout={workout} />
       )}
@@ -42,11 +50,14 @@ export function WorkoutDetailPage() {
 
 function Workout({ workout }: { workout: WorkoutDetail }) {
   const navigate = useNavigate()
-  const deleteWorkout = useDeleteWorkout()
+  const remove = useAction(deleteWorkout)
 
   function onDelete() {
     if (!window.confirm('Delete this workout? This can’t be undone.')) return
-    deleteWorkout.mutate(workout.id, { onSuccess: () => navigate('/history', { replace: true }) })
+    remove.run(workout.id).then(
+      () => navigate('/history', { replace: true }),
+      () => {},
+    )
   }
 
   return (
@@ -77,7 +88,7 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
               {we.sets.map((set, i) => (
                 <li key={set.id} className="flex items-baseline gap-3 text-sm">
                   <span
-                    className={`w-6 text-center font-semibold ${set.is_warmup ? 'text-amber-600' : 'text-neutral-500'}`}
+                    className={`w-6 text-center font-semibold ${set.is_warmup ? 'text-amber-600 dark:text-amber-400' : 'text-neutral-500'}`}
                   >
                     {labels[i]}
                   </span>
@@ -94,15 +105,11 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
         type="button"
         className="btn mx-auto text-red-600"
         onClick={onDelete}
-        disabled={deleteWorkout.isPending}
+        disabled={remove.isPending}
       >
         Delete workout
       </button>
-      {deleteWorkout.isError && (
-        <p role="alert" className="text-center text-sm text-red-600">
-          Couldn't delete: {deleteWorkout.error.message}
-        </p>
-      )}
+      <ErrorMessage error={remove.error} prefix="Couldn't delete:" className="text-center" />
     </article>
   )
 }

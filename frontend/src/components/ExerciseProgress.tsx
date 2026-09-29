@@ -1,24 +1,29 @@
 import { lazy, Suspense } from 'react'
-import type { ExerciseStats } from '../api/schema'
-import { formatDay, formatKg, formatSet, formatShortDay, formatVolume } from '../lib/format'
+import type { ExerciseStats } from '../data/types'
+import {
+  formatDay,
+  formatE1rm,
+  formatSet,
+  formatShortDay,
+  formatVolume,
+  formatWeight,
+} from '../lib/format'
 import { useExerciseStats } from '../stats'
 import { Spinner } from './Spinner'
 
 const ProgressChart = lazy(() => import('./ProgressChart'))
 
 /** "Your progress" on an exercise page: records, a chart, and rep records. */
-export function ExerciseProgress({ exerciseId }: { exerciseId: number }) {
-  const { data, isPending, isError } = useExerciseStats(exerciseId)
+export function ExerciseProgress({ exerciseId }: { exerciseId: string }) {
+  const { data } = useExerciseStats(exerciseId)
 
   return (
     <section aria-labelledby="progress-heading" className="flex flex-col gap-3">
       <h2 id="progress-heading" className="font-semibold">
         Your progress
       </h2>
-      {isPending ? (
+      {!data ? (
         <Spinner />
-      ) : isError ? (
-        <p className="text-sm text-neutral-500">Couldn't load your progress.</p>
       ) : !data.records ? (
         <p className="text-sm text-neutral-500">
           You haven't logged this exercise yet. Your records and chart will show up here.
@@ -37,12 +42,12 @@ function Progress({ stats }: { stats: ExerciseStats }) {
       <dl className="grid grid-cols-3 gap-2">
         <StatTile
           label="Heaviest"
-          value={`${formatKg(records.heaviest.weight_kg)} kg`}
+          value={formatWeight(records.heaviest.weight_kg)}
           detail={`× ${records.heaviest.reps} · ${formatShortDay(records.heaviest.performed_on)}`}
         />
         <StatTile
           label="Best e1RM"
-          value={`${formatKg(Math.round(records.best_e1rm_kg * 10) / 10)} kg`}
+          value={formatE1rm(records.best_e1rm_kg)}
           detail={formatSet(records.best_e1rm.weight_kg, records.best_e1rm.reps)}
         />
         <StatTile
@@ -76,7 +81,7 @@ function Progress({ stats }: { stats: ExerciseStats }) {
           <tbody className="tabular-nums">
             {records.rep_records.map((r) => (
               <tr key={r.weight_kg} className="border-t border-neutral-200 dark:border-neutral-800">
-                <td className="px-3 py-1.5">{formatKg(r.weight_kg)} kg</td>
+                <td className="px-3 py-1.5">{formatWeight(r.weight_kg)}</td>
                 <td className="px-3 py-1.5">{r.reps}</td>
                 <td className="px-3 py-1.5 text-right text-neutral-500">
                   {formatDay(r.performed_on)}

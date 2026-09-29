@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import type { RecordsOut, SetOut } from '../api/schema'
+import type { Records, WorkoutSet } from '../data/types'
 import { detectPRs, e1rm, prsForSets } from './prs'
 
 // Records like your Lat Pulldown: 90 × 12 heaviest, then 85 × 12 and 80 × 14.
-const RECORDS: RecordsOut = {
+const RECORDS: Records = {
   heaviest: { weight_kg: 90, reps: 12, performed_on: '2026-09-07' },
   best_e1rm: { weight_kg: 90, reps: 12, performed_on: '2026-09-07' },
   best_e1rm_kg: 126,
@@ -55,13 +55,18 @@ describe('detectPRs', () => {
 })
 
 describe('prsForSets', () => {
-  const set = (id: string, weight: number, reps: number, done = true, warmup = false): SetOut => ({
+  const set = (
+    id: string,
+    weight: number,
+    reps: number,
+    done = true,
+    warmup = false,
+  ): WorkoutSet => ({
     id,
     workout_exercise_id: 'we',
     position: 1,
     weight_kg: weight,
     reps,
-    rpe: null,
     is_warmup: warmup,
     notes: null,
     completed_at: done ? '2026-09-25T18:00:00Z' : null,

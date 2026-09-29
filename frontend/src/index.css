@@ -5,20 +5,66 @@
   --color-brand-50: oklch(0.97 0.03 150);
   --color-brand-100: oklch(0.94 0.06 150);
   --color-brand-500: oklch(0.68 0.17 150);
-  --color-brand-600: oklch(0.58 0.16 150);
+  --color-brand-600: oklch(
+    0.58 0.16 150
+  ); /* = #009342: also the logo, app icons and install colour */
   --color-brand-700: oklch(0.5 0.14 150);
   --color-brand-900: oklch(0.32 0.08 150);
+
+  /* A train rolling across the "workout finished" banner. */
+  --animate-choo: choo 2.6s ease-in-out both;
+  /* Rolls in from the left and parks at the right end of its container. Animates `left`
+     (a % of the container), not `transform`: the icon is mirrored with `scale`, and a
+     transform would move in that mirrored space (i.e. drive backwards). */
+  @keyframes choo {
+    from {
+      left: -3rem;
+    }
+    to {
+      left: calc(100% - 2.5rem);
+    }
+  }
 }
 
-/* Chart chrome: recessive gridlines and the card surface (for the ring around dots). */
+/* Chart chrome: recessive gridlines and the card surface (for the ring around dots).
+   Routine-day colours (calendar): the first three categorical slots of the dataviz
+   palette, validated all-pairs for colour-vision deficiency in both modes. More days
+   fold into "other". Always shown with a legend + names, never colour alone. */
 :root {
   --chart-grid: var(--color-neutral-200);
   --chart-surface: #fff;
+  --day-1: #2a78d6;
+  --day-2: #eb6834;
+  --day-3: #1baf7a;
+  --day-other: var(--color-neutral-400);
+  /* Muscle map (one green ramp, validated): primary darkest, secondary lightest. */
+  --map-body: #d4d4d4;
+  --map-primary: #14532d;
+  --map-secondary: #22c55e;
+  /* Passport stamps, one ink per kind (ring and text on the card; each also has a label). */
+  --stamp-rides: #15803d;
+  --stamp-weight: #1d64c4;
+  --stamp-prs: #b45309;
+  --stamp-streak: #7c3aed;
+  --stamp-explorer: #be185d;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --chart-grid: var(--color-neutral-800);
     --chart-surface: var(--color-neutral-900);
+    --day-1: #3987e5;
+    --day-2: #d95926;
+    --day-3: #199e70;
+    --day-other: var(--color-neutral-500);
+    /* On dark, more work = brighter. */
+    --map-body: #404040;
+    --map-primary: #4ade80;
+    --map-secondary: #166534;
+    --stamp-rides: #4ade80;
+    --stamp-weight: #60a5fa;
+    --stamp-prs: #fbbf24;
+    --stamp-streak: #a78bfa;
+    --stamp-explorer: #f472b6;
   }
 }
 
@@ -55,6 +101,24 @@
   }
   .chip-active {
     @apply border-brand-600 bg-brand-600 text-white;
+  }
+  .chip:not(.chip-active) {
+    @apply hover:bg-neutral-100 dark:hover:bg-neutral-800;
+  }
+  /* A row of chips that scrolls sideways, edge to edge on a phone. */
+  .chip-row {
+    @apply scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4;
+  }
+  /* "‹ Exercises": back to where you came from. */
+  .back-link {
+    @apply -ml-2 flex w-fit items-center gap-1 rounded-lg px-2 py-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100;
+  }
+  /* Colour tones for highlights: brand green (done, reached) and ticket amber (PRs, tickets). */
+  .tone-brand {
+    @apply bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-100;
+  }
+  .tone-ticket {
+    @apply bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300;
   }
   .input {
     @apply w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 dark:border-neutral-700 dark:bg-neutral-900;
