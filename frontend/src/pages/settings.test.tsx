@@ -153,11 +153,12 @@ describe('the backup reminder after a workout', () => {
 /** Files the app hands you as a download (the browser path of saveFile). */
 function captureDownloads(): Blob[] {
   const files: Blob[] = []
-  vi.stubGlobal('URL', {
-    ...URL,
-    createObjectURL: (blob: Blob) => (files.push(blob), 'blob:backup'),
-    revokeObjectURL: () => {},
-  })
+  // A real URL (the app still builds URLs), with the download functions captured.
+  class DownloadURL extends URL {
+    static createObjectURL = (blob: Blob) => (files.push(blob), 'blob:backup')
+    static revokeObjectURL = () => {}
+  }
+  vi.stubGlobal('URL', DownloadURL)
   vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
   return files
 }
