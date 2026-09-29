@@ -27,7 +27,8 @@
 #   frontend/assets/               icon and splash sources; after changing them:
 #                                  npx @capacitor/assets generate --android  (in frontend/)
 #   frontend/android/app/src/main/AndroidManifest.xml
-#                                  no internet permission (nothing can leave the phone) and
+#                                  no permissions, so no internet (nothing can leave the phone;
+#                                  the build fails if one sneaks in, e.g. from a plugin) and
 #                                  no Android cloud backup (data leaves only via Export backup)
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -81,9 +82,20 @@ scripts/frontend-run.sh npx vite build
 scripts/frontend-run.sh npx cap sync android
 
 say "Building the APK"
-(cd frontend/android && ./gradlew --quiet assembleDebug)
+# Every Gradle warning is shown (the progress lines are left out), so it's easy to see when
+# an update (e.g. of Capacitor) makes one appear or go away.
+# (A failing build still stops the script; only the filter may come up empty.)
+(cd frontend/android && ./gradlew --warning-mode all --console plain assembleDebug) 2>&1 |
+  { grep -vE '^> (Task|Configure)|^BUILD SUCCESSFUL|actionable tasks?:|^$' || true; }
 apk=frontend/android/app/build/outputs/apk/debug
 mv "$apk/app-debug.apk" "$apk/gains-train.apk"
+
+# The app promises no internet access: stop if the finished APK asks for it anyway (a new
+# plugin can add permissions through its own manifest).
+aapt2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -1)"
+if "$aapt2" dump permissions "$apk/gains-train.apk" | grep -q "android.permission.INTERNET"; then
+  fail "The app asks for internet access (a plugin added it?): $aapt2 dump permissions $apk/gains-train.apk"
+fi
 say "Done: $apk/gains-train.apk ($(du -h "$apk/gains-train.apk" | cut -f1))"
 
 # 7. Keep a copy

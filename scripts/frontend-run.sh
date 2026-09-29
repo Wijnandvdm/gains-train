@@ -10,7 +10,9 @@ nvm_sh="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
 if [ -s "$nvm_sh" ]; then
   # shellcheck disable=SC1090
   . "$nvm_sh"
-  nvm use --silent >/dev/null
+  # Where nvm doesn't have that version (e.g. GitHub's runners, which have nvm but get Node
+  # from setup-node), keep the Node that's already on the PATH.
+  nvm use --silent >/dev/null 2>&1 || true
 fi
 
 exec "${@/#frontend\//}"

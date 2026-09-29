@@ -172,7 +172,8 @@ export function NextStationCard() {
             </p>
           ) : (
             <p className="text-sm text-neutral-500">
-              {plural(left, 'more ride')} {new Date().getDay() === 0 ? 'today' : 'by Sunday'}{' '}
+              {plural(left, 'more ride')}{' '}
+              {parseLocalDate(line.today).getDay() === 0 ? 'today' : 'by Sunday'}{' '}
               {streak > 0
                 ? `keep${left === 1 ? 's' : ''} your streak going.`
                 : `reach${left === 1 ? 'es' : ''} your first station.`}

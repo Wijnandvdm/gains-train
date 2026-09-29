@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- No Android cloud backup: workouts only leave the phone through Settings → Export backup. -->
     <application
         android:allowBackup="false"
@@ -31,7 +30,7 @@
         </provider>
     </application>
 
-    <!-- No internet access: everything, exercise photos included, is inside the app, and your
-         data never leaves the phone. "remove" also strips it if a plugin's manifest adds it. -->
-    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <!-- No permissions at all, so no internet access: everything, the exercise drawings too, is
+         inside the app, and your data never leaves the phone. scripts/android.sh checks the
+         built app for this. -->
 </manifest>

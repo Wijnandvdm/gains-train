@@ -1,0 +1,46 @@
+# The same checks as the local git hooks (.pre-commit-config.yaml), on GitHub: for pull
+# requests and for main, so nothing skips them when the hooks aren't installed.
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the whole history, for the secret scan
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+      - run: pipx install pre-commit==4.6.2
+
+      # What runs on every commit: formatting, lint, types, release check, …
+      # Except gitleaks: its hook scans only staged changes, and nothing is staged here, so it
+      # would check nothing. The secret scan step below covers the whole history instead.
+      - run: pre-commit run --all-files --show-diff-on-failure
+        env:
+          SKIP: gitleaks
+      # What runs on every push: the tests and knip.
+      - run: pre-commit run --all-files --show-diff-on-failure --hook-stage pre-push
+
+      # The gitleaks hook only looks at staged changes, so scan the whole history here.
+      - name: Secret scan (gitleaks)
+        run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.0 git --redact --verbose /repo

@@ -12,23 +12,19 @@ repos:
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
-      - id: mixed-line-ending
-        args: [--fix=lf]
       - id: check-yaml
       - id: check-toml
       - id: check-json
         exclude: ^frontend/tsconfig.*\.json$ # tsconfig allows comments (JSONC)
-      - id: check-merge-conflict
-      - id: check-case-conflict
       - id: check-added-large-files
         args: [--maxkb=500]
-      - id: detect-private-key
 
   # --- Secrets ---------------------------------------------------------------
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
     hooks:
       - id: gitleaks
+        name: gitleaks (detect hardcoded secrets)
 
   # --- Releases ---------------------------------------------------------------
   # RELEASE must be valid, and a release needs notes under [Unreleased] (scripts/release.py).

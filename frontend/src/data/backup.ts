@@ -10,7 +10,6 @@
  *   settings.csv          your settings, plus the file's format, version and date
  * Older backups (one .json file, version 1) can still be imported.
  */
-import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { readCsv, toCsv } from '../lib/csv'
 import { saveFile } from '../lib/saveFile'
 import {
@@ -81,6 +80,9 @@ export async function exportBackup(now = new Date()): Promise<Backup | null> {
   return backup
 }
 
+/** The zip library, loaded only when you export or import a backup. */
+const zipLibrary = () => import('fflate')
+
 // --- Writing ------------------------------------------------------------------------------
 
 const WORKOUT_COLUMNS = [
@@ -129,6 +131,7 @@ const yesNo = (v: boolean) => (v ? 'yes' : 'no')
 const LIST = '; '
 
 async function backupToZip(backup: Backup): Promise<Uint8Array> {
+  const { strToU8, zipSync } = await zipLibrary()
   const library = await loadLibrary().catch(() => new Map<string, ExerciseDetail>())
   const customs = new Map(backup.custom_exercises.map((c) => [c.id, c]))
   const nameOf = (id: string) => library.get(id)?.name ?? customs.get(id)?.name ?? id
@@ -239,7 +242,12 @@ const list = (v: string | undefined) =>
         .filter(Boolean)
     : []
 
-function table(files: Record<string, Uint8Array>, name: string, required: string[]) {
+function table(
+  files: Record<string, Uint8Array>,
+  name: string,
+  required: string[],
+  strFromU8: (bytes: Uint8Array) => string,
+) {
   const file = files[name]
   if (!file) throw new BackupError(`The backup is incomplete (${name} is missing).`)
   try {
@@ -249,7 +257,8 @@ function table(files: Record<string, Uint8Array>, name: string, required: string
   }
 }
 
-function zipToBackup(bytes: Uint8Array): Backup {
+async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
+  const { strFromU8, unzipSync } = await zipLibrary()
   let files: Record<string, Uint8Array>
   try {
     files = unzipSync(bytes)
@@ -257,7 +266,7 @@ function zipToBackup(bytes: Uint8Array): Backup {
     throw new BackupError("This isn't a gains-train backup file.")
   }
   if (!files['settings.csv']) throw new BackupError("This isn't a gains-train backup file.")
-  const settingsRows = table(files, 'settings.csv', SETTINGS_COLUMNS)
+  const settingsRows = table(files, 'settings.csv', SETTINGS_COLUMNS, strFromU8)
   const setting = Object.fromEntries(settingsRows.map((r) => [r.setting!, r.value!]))
   if (setting.format !== BACKUP_FORMAT)
     throw new BackupError("This isn't a gains-train backup file.")
@@ -265,7 +274,7 @@ function zipToBackup(bytes: Uint8Array): Backup {
   // Workouts: rows grouped by workout, then by exercise, in file order.
   const workouts = new Map<string, StoredWorkout>()
   const exercises = new Map<string, StoredWorkoutExercise>()
-  for (const r of table(files, 'workouts.csv', ['date', 'workout_id'])) {
+  for (const r of table(files, 'workouts.csv', ['date', 'workout_id'], strFromU8)) {
     let w = workouts.get(r.workout_id!)
     if (!w) {
       w = {
@@ -312,7 +321,7 @@ function zipToBackup(bytes: Uint8Array): Backup {
 
   // Routine: rows grouped by day, in file order.
   const days = new Map<string, StoredRoutine['days'][number]>()
-  for (const r of table(files, 'routine.csv', ['day', 'day_id'])) {
+  for (const r of table(files, 'routine.csv', ['day', 'day_id'], strFromU8)) {
     let day = days.get(r.day_id!)
     if (!day) {
       day = { id: r.day_id!, name: r.day!, exercises: [] }
@@ -322,7 +331,7 @@ function zipToBackup(bytes: Uint8Array): Backup {
       day.exercises.push({ exercise_id: r.exercise_id, sets: num(r.sets, 'sets') ?? 3 })
   }
 
-  const custom_exercises = table(files, 'custom-exercises.csv', ['id', 'name']).map(
+  const custom_exercises = table(files, 'custom-exercises.csv', ['id', 'name'], strFromU8).map(
     (r): ExerciseDetail => ({
       id: r.id!,
       name: r.name!,
@@ -339,10 +348,12 @@ function zipToBackup(bytes: Uint8Array): Backup {
     }),
   )
 
-  const rest_prefs = table(files, 'rest-times.csv', ['exercise_id', 'rest_seconds']).map((r) => ({
-    exercise_id: r.exercise_id!,
-    rest_seconds: num(r.rest_seconds, 'rest_seconds') ?? 0,
-  }))
+  const rest_prefs = table(files, 'rest-times.csv', ['exercise_id', 'rest_seconds'], strFromU8).map(
+    (r) => ({
+      exercise_id: r.exercise_id!,
+      rest_seconds: num(r.rest_seconds, 'rest_seconds') ?? 0,
+    }),
+  )
 
   return validateBackup({
     format: BACKUP_FORMAT,
@@ -410,7 +421,7 @@ export async function readBackupFile(file: Blob): Promise<Backup> {
   if (bytes[0] === 0x50 && bytes[1] === 0x4b) return zipToBackup(bytes)
   let data: unknown
   try {
-    data = JSON.parse(strFromU8(bytes))
+    data = JSON.parse(new TextDecoder().decode(bytes))
   } catch {
     throw new BackupError("This isn't a gains-train backup file.")
   }
