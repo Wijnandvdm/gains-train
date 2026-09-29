@@ -37,7 +37,7 @@ flowchart TB
   end
 
   APK -. installs .-> phone
-  DATA <-- "Settings: export / import" --> BACKUP[/"backup file (.json)"/]
+  DATA <-- "Settings: export / import" --> BACKUP[/"backup file (.zip of CSVs)"/]
 ```
 
 - **No server, no accounts.** The app talks to nothing but its own files, and doesn't even

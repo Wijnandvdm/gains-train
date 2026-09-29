@@ -33,10 +33,13 @@ live: see the top of [scripts/android.sh](scripts/android.sh).
 ## Your data: backups
 
 Since the data only exists on the phone, losing the phone, uninstalling the app or clearing
-its storage loses it. In the app, **Settings → Export backup** saves a `gains-train-backup-YYYY-MM-DD.json` file
-(on a phone via the share sheet, e.g. to Google Drive or Files); **Import backup** restores
-it, on the same or a new phone (it replaces what's there). A new phone's first screen also
-offers "Restore a backup".
+its storage loses it. **Settings → Export backup** saves `gains-train-backup-YYYY-MM-DD.zip`
+via the share sheet (e.g. to Google Drive); **Import backup** restores it on the same or a new
+phone, replacing what's there. The zip holds CSV tables (workouts with one row per set,
+routine, custom exercises, rest times, settings), so every part opens in a spreadsheet.
+
+The app suggests a backup after a workout when the last one is half a year old (Settings →
+Backup: every month, 3 months, 6 months, a year, or never).
 
 ## Credits
 
@@ -51,4 +54,3 @@ offers "Restore a backup".
 1. app id `io.github.wijnandvdm.gainstrain` = good?
 2. store name `Gains Train - Workout Tracker` seems fine
 3. semantic versioning and changelog
-4. ask the user if they want to locally back up once in a while, if they answer yes, just run the export functionality. speaking of, can it not be in csv? that's a bit more user friendly than json

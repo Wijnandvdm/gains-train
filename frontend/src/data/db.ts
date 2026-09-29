@@ -39,6 +39,9 @@ export const DEFAULT_SETTINGS: Settings = {
   default_rest_seconds: DEFAULT_REST_SECONDS,
   weekly_target: DEFAULT_WEEKLY_TARGET,
   depot_weeks: [],
+  last_backup_at: null,
+  backup_reminder_months: 6,
+  backup_reminded_at: null,
 }
 
 export async function getSettings(): Promise<Settings> {

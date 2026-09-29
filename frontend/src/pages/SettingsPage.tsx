@@ -4,11 +4,16 @@ import { BackupFileHint } from '../components/BackupFileHint'
 import { FilePicker } from '../components/FilePicker'
 import { DepotControls } from '../components/GainsLine'
 import { DepotIcon } from '../components/icons'
-import { saveFile } from '../lib/saveFile'
-import { backupFileName, createBackup, readBackupFile, restoreBackup } from '../data/backup'
+import {
+  BACKUP_FILE_TYPES,
+  BACKUP_REMINDER_MONTHS,
+  exportBackup,
+  readBackupFile,
+  restoreBackup,
+} from '../data/backup'
 import { WEEKLY_TARGETS } from '../data/line'
 import { DEFAULT_SETTINGS } from '../data/db'
-import { formatClock, plural } from '../lib/format'
+import { formatClock, formatDay, plural } from '../lib/format'
 import { REST_CHOICES } from '../lib/rest'
 import { useGainsLine } from '../line'
 import { useAction } from '../lib/useAction'
@@ -131,11 +136,11 @@ function Switch({
 }
 
 function BackupCard() {
+  const settings = useSettings()
   const [message, setMessage] = useState<string | null>(null)
   const exporting = useAction(async () => {
-    const backup = await createBackup()
-    await saveFile(backupFileName(), JSON.stringify(backup), 'application/json')
-    setMessage(`Backup made: ${plural(backup.workouts.length, 'workout')}.`)
+    const backup = await exportBackup()
+    if (backup) setMessage(`Backup made: ${plural(backup.workouts.length, 'workout')}.`)
   })
   const restoring = useAction(async (file: File) => {
     const backup = await readBackupFile(file)
@@ -146,12 +151,14 @@ function BackupCard() {
     )
   })
   const error = exporting.error ?? restoring.error
+  const last = settings?.last_backup_at
 
   return (
     <Card title="Backup">
       <p className="text-sm text-neutral-500">
         Your data only lives on this phone. Export a backup now and then, and keep the file
-        somewhere safe (e.g. Google Drive). The same file restores everything on a new phone.
+        somewhere safe (e.g. Google Drive). The same file restores everything on a new phone, and
+        each part of it opens in a spreadsheet.
       </p>
       <div className="flex flex-wrap gap-2">
         <button
@@ -164,7 +171,7 @@ function BackupCard() {
         </button>
         <FilePicker
           label="Import backup"
-          accept="application/json,.json"
+          accept={BACKUP_FILE_TYPES}
           disabled={restoring.isPending}
           onFile={(file) => void restoring.run(file).catch(() => {})}
         />
@@ -176,6 +183,29 @@ function BackupCard() {
         </p>
       )}
       <ErrorMessage error={error} />
+      <p className="text-sm text-neutral-500">
+        Last backup: {last ? formatDay(last.slice(0, 10)) : 'none yet'}
+      </p>
+      <label className="flex items-center justify-between gap-3 text-sm">
+        Remind me to back up
+        <select
+          value={settings?.backup_reminder_months ?? DEFAULT_SETTINGS.backup_reminder_months}
+          onChange={(e) => void updateSettings({ backup_reminder_months: Number(e.target.value) })}
+          className="input w-auto py-1 text-base"
+        >
+          {BACKUP_REMINDER_MONTHS.map((m) => (
+            <option key={m} value={m}>
+              {m === 0
+                ? 'Never'
+                : m === 1
+                  ? 'Every month'
+                  : m === 12
+                    ? 'Every year'
+                    : `Every ${m} months`}
+            </option>
+          ))}
+        </select>
+      </label>
     </Card>
   )
 }

@@ -20,6 +20,7 @@ import {
 } from '../workout/hooks'
 import { type NextSet, nextSet, type PlannedExercise, plannedSetCount } from '../workout/plan'
 import { recentRoutines } from '../workout/recent'
+import { BackupReminder } from '../components/BackupReminder'
 import { NextStationCard } from '../components/GainsLine'
 import { StampBadge } from '../components/Passport'
 import { usePassport } from '../passport'
@@ -95,6 +96,7 @@ function FinishedBanner({ workoutId }: { workoutId: string }) {
           </ul>
         </div>
       )}
+      <BackupReminder />
     </div>
   )
 }

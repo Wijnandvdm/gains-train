@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { BackupFileHint } from '../components/BackupFileHint'
 import { FilePicker } from '../components/FilePicker'
 import { TrainIcon } from '../components/icons'
-import { readBackupFile, restoreBackup } from '../data/backup'
+import { BACKUP_FILE_TYPES, readBackupFile, restoreBackup } from '../data/backup'
 import { DEFAULT_REST_SECONDS } from '../lib/rest'
 import { useAction } from '../lib/useAction'
 import { updateSettings } from '../settings'
@@ -66,7 +66,7 @@ export function SetupPage() {
         </h2>
         <FilePicker
           label="Restore a backup"
-          accept="application/json,.json"
+          accept={BACKUP_FILE_TYPES}
           disabled={busy}
           onFile={(file) => void restoring.run(file).catch(() => {})}
         />

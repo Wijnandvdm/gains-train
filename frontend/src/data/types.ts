@@ -115,6 +115,12 @@ export type Settings = {
   weekly_target: number
   /** Weeks parked in the depot (their Mondays): holiday or injury, the streak waits. */
   depot_weeks: string[]
+  /** When you last exported a backup (or the date of the backup you restored). */
+  last_backup_at: string | null
+  /** Remind to back up after this many months without one; 0 = never. */
+  backup_reminder_months: number
+  /** When you last said "not now" to the reminder (it waits a week before asking again). */
+  backup_reminded_at: string | null
 }
 
 // --- Stats --------------------------------------------------------------------------------
