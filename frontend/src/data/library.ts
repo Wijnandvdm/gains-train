@@ -51,7 +51,7 @@ async function fetchExercises(file: string): Promise<Map<string, ExerciseDetail>
 let loading: Promise<Map<string, ExerciseDetail>> | undefined
 let loadingRetired: Promise<Map<string, ExerciseDetail>> | undefined
 
-/** The library by id. Fetched once per app session (and cached by the service worker). */
+/** The library by id. Fetched once per app session. */
 export function loadLibrary(): Promise<Map<string, ExerciseDetail>> {
   loading ??= fetchExercises('exercises.json').catch((e: unknown) => {
     loading = undefined // allow a retry

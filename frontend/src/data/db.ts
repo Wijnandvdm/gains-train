@@ -56,15 +56,3 @@ export async function getStoredRoutine(): Promise<StoredRoutine | null> {
   const row = await db.kv.get('routine')
   return row?.key === 'routine' ? row.value : null
 }
-
-/**
- * Ask the browser to keep this data even under storage pressure. Installed (home screen)
- * apps are generally exempt from eviction anyway; this covers the rest where supported.
- */
-export async function requestPersistentStorage(): Promise<boolean> {
-  try {
-    return (await navigator.storage?.persist?.()) ?? false
-  } catch {
-    return false
-  }
-}

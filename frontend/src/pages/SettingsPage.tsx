@@ -1,5 +1,4 @@
-import { Capacitor } from '@capacitor/core'
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BackupFileHint } from '../components/BackupFileHint'
 import { FilePicker } from '../components/FilePicker'
@@ -182,18 +181,11 @@ function BackupCard() {
 }
 
 function StorageCard() {
-  const [persisted, setPersisted] = useState<boolean | null>(null)
-  useEffect(() => {
-    navigator.storage?.persisted?.().then(setPersisted, () => setPersisted(null))
-  }, [])
   return (
     <Card title="Storage">
       <p className="text-sm text-neutral-500">
-        {Capacitor.isNativePlatform()
-          ? 'Your data stays in the app until you uninstall it (or clear its storage), so export a backup before you do.'
-          : persisted
-            ? 'This phone keeps your data safe from automatic clean-ups.'
-            : 'Tip: add gains-train to your home screen. Browsers may otherwise clear the data of sites you haven’t opened for a while.'}
+        Your data stays in the app until you uninstall it (or clear its storage), so export a backup
+        before you do.
       </p>
     </Card>
   )

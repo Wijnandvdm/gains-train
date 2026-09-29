@@ -1,7 +1,8 @@
 # How gains-train works
 
-gains-train is a web app without a server: the whole app is static files, and everything you
-log stays on your phone. These three diagrams go from the big picture to a single tap.
+gains-train is an Android app without a server: a web app packaged with Capacitor, and
+everything you log stays on your phone. These three diagrams go from the big picture to a
+single tap.
 
 ## 1. The big picture
 
@@ -18,7 +19,6 @@ flowchart TB
     SRC["frontend/src<br/>React app"] --> VITE["npm run build"]
     LIB --> VITE
     VITE --> DIST["dist/<br/>static files"]
-    DIST --> WEB["Any static host<br/>(installable web app)"]
     DIST --> APK["scripts/android.sh<br/>Android app (APK)"]
   end
 
@@ -36,13 +36,12 @@ flowchart TB
     DATA --> LIBC
   end
 
-  WEB -. installs .-> phone
   APK -. installs .-> phone
   DATA <-- "Settings: export / import" --> BACKUP[/"backup file (.json)"/]
 ```
 
-- **No server, no accounts.** The app talks to nothing but its own files. The Android app
-  doesn't even have internet permission.
+- **No server, no accounts.** The app talks to nothing but its own files, and doesn't even
+  have internet permission.
 - **Screens update by themselves.** Hooks use Dexie's live queries: when anything changes in
   the database, every screen showing it re-renders. Nothing is refetched or synced.
 - **Derived, not stored.** Stats, records, the Gains Line streak and the passport are worked
