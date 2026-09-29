@@ -1,6 +1,6 @@
 # bump-my-version (github.com/callowayproject/bump-my-version): where the app's version lives.
 # Don't bump by hand: set the kind of release in RELEASE and merge to main (see
-# scripts/release.py and .github/workflows/release.yml).
+# scripts/release.py and .github/workflows/release.yaml).
 [tool.bumpversion]
 current_version = "1.0.0"
 commit = false

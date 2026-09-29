@@ -24,6 +24,7 @@ repos:
     rev: v8.30.0
     hooks:
       - id: gitleaks
+        name: gitleaks (detect hardcoded secrets)
 
   # --- Releases ---------------------------------------------------------------
   # RELEASE must be valid, and a release needs notes under [Unreleased] (scripts/release.py).

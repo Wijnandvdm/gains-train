@@ -33,7 +33,11 @@ jobs:
       - run: pipx install pre-commit==4.6.2
 
       # What runs on every commit: formatting, lint, types, release check, …
+      # Except gitleaks: its hook scans only staged changes, and nothing is staged here, so it
+      # would check nothing. The secret scan step below covers the whole history instead.
       - run: pre-commit run --all-files --show-diff-on-failure
+        env:
+          SKIP: gitleaks
       # What runs on every push: the tests and knip.
       - run: pre-commit run --all-files --show-diff-on-failure --hook-stage pre-push
 
