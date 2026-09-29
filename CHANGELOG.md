@@ -20,4 +20,3 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - 302 exercises with drawings and how-to steps.
 - Backups as a zip of spreadsheets (CSV), with a reminder every half year.
 - Everything stays on your phone: no account, no internet access.
-

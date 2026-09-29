@@ -9,6 +9,8 @@
 #   4. Git hooks   pre-commit (pre-commit.com), if you have it. On every commit: formatting,
 #                  lint, type check, secret scan. On every push: the tests and knip (unused
 #                  files, exports, packages). Run them all by hand: pre-commit run --all-files
+#                  GitHub runs the same checks on every pull request and on main
+#                  (.github/workflows/checks.yml), so nothing slips through without hooks.
 #   5. Dev server  Vite, reloads as you edit. No offline caching in this mode.
 #
 # Handy commands (from frontend/, or prefix with scripts/frontend-run.sh from the repo root):
