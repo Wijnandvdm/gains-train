@@ -263,13 +263,13 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
   try {
     files = unzipSync(bytes)
   } catch {
-    throw new BackupError("This isn't a gains-train backup file.")
+    throw new BackupError("This isn't a Gains Train backup file.")
   }
-  if (!files['settings.csv']) throw new BackupError("This isn't a gains-train backup file.")
+  if (!files['settings.csv']) throw new BackupError("This isn't a Gains Train backup file.")
   const settingsRows = table(files, 'settings.csv', SETTINGS_COLUMNS, strFromU8)
   const setting = Object.fromEntries(settingsRows.map((r) => [r.setting!, r.value!]))
   if (setting.format !== BACKUP_FORMAT)
-    throw new BackupError("This isn't a gains-train backup file.")
+    throw new BackupError("This isn't a Gains Train backup file.")
 
   // Workouts: rows grouped by workout, then by exercise, in file order.
   const workouts = new Map<string, StoredWorkout>()
@@ -385,7 +385,7 @@ const isObject = (v: unknown): v is Record<string, unknown> =>
 /** Check a backup before it replaces anything (throws BackupError with a reason). */
 function validateBackup(data: unknown): Backup {
   if (!isObject(data) || data.format !== BACKUP_FORMAT) {
-    throw new BackupError("This isn't a gains-train backup file.")
+    throw new BackupError("This isn't a Gains Train backup file.")
   }
   if (typeof data.version !== 'number' || data.version > BACKUP_VERSION) {
     throw new BackupError('This backup was made by a newer version of the app. Update first.')
@@ -423,7 +423,7 @@ export async function readBackupFile(file: Blob): Promise<Backup> {
   try {
     data = JSON.parse(new TextDecoder().decode(bytes))
   } catch {
-    throw new BackupError("This isn't a gains-train backup file.")
+    throw new BackupError("This isn't a Gains Train backup file.")
   }
   return validateBackup(data)
 }

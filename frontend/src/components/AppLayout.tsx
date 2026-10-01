@@ -18,7 +18,7 @@ export function AppLayout() {
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-neutral-50/90 px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">
         <Link to="/workout" className="flex items-center gap-1.5 font-bold tracking-tight">
           <TrainIcon className="h-6 w-6 text-brand-600 dark:text-brand-500" />
-          gains-train
+          Gains Train
         </Link>
         <Link
           to="/settings"

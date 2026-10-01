@@ -5,7 +5,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 const config: CapacitorConfig = {
   // Google Play's package name: permanent once the app is published there.
   appId: 'io.github.wijnandvdm.gainstrain',
-  appName: 'gains-train',
+  appName: 'Gains Train',
   webDir: 'dist',
 }
 

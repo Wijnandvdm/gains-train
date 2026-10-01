@@ -30,6 +30,12 @@ scripts/android.sh
 How it's built, how to install it on your phone, and where the app's id, icons and permissions
 live: see the top of [scripts/android.sh](scripts/android.sh).
 
+## Google Play
+
+`scripts/android.sh --release` builds the signed app bundle to upload. Everything to fill in
+on the Play Console (store listing texts, the answers for each form) is in
+[docs/google-play.md](docs/google-play.md). Privacy policy: [PRIVACY.md](PRIVACY.md).
+
 ## Releases
 
 Versions follow [semantic versioning](https://semver.org). On your branch, write what changed
@@ -58,6 +64,17 @@ Backup: every month, 3 months, 6 months, a year, or never).
 - Exercise instructions and muscles: [free-exercise-db](https://github.com/yuhonas/free-exercise-db)
   (public domain), plus our own for the exercises it doesn't have.
 
-## TODO:
-1. app id `io.github.wijnandvdm.gainstrain` = good?
-2. store name `Gains Train - Workout Tracker` seems fine
+## TODO
+
+1. Create the upload key and point Gradle at it (top of `scripts/android.sh`), and back up
+   the key file and its password somewhere safe.
+2. Get a Google Play developer account (personal, one-time $25, ID check).
+3. Make the store graphics: 512 × 512 icon, 1024 × 500 feature graphic, at least 2 phone
+   screenshots (see [docs/google-play.md](docs/google-play.md)).
+4. Pick the contact email for the store listing (it's public).
+5. Create the app in the Play Console and fill in the store listing and the App content
+   forms from [docs/google-play.md](docs/google-play.md). Push `PRIVACY.md` to main first:
+   the privacy policy link points there.
+6. Upload `scripts/android.sh --release`'s bundle to a closed test track and get 12 testers to
+   opt in and install; keep all of them in for 14 days in a row.
+7. Apply for production access, and publish after Google's review.

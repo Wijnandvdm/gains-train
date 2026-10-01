@@ -142,8 +142,8 @@ describe('backups', () => {
       return new Blob([zipSync(files)])
     }
     const bad: [Blob, RegExp][] = [
-      [new Blob(['date,day,exercise\n']), /isn't a gains-train backup/],
-      [new Blob([JSON.stringify({ format: 'something-else' })]), /isn't a gains-train backup/],
+      [new Blob(['date,day,exercise\n']), /isn't a Gains Train backup/],
+      [new Blob([JSON.stringify({ format: 'something-else' })]), /isn't a Gains Train backup/],
       [
         zip({ 'settings.csv': 'setting,value\nformat,gains-train-backup\nversion,99\n' }),
         /newer version/,
