@@ -80,6 +80,5 @@ Backup: every month, 3 months, 6 months, a year, or never).
 7. Apply for production access, and publish after Google's review.
 
 ## TODOs for the app itself:
-3. week checkmarks on the side of the calendar can be the little circles with a line through them to simulate a station thingy
 4. Can we make the passport stamps or any other circle look like train wheels with the connecting iron rod?
 5. Can we make puns with coal and steam train and stuff?
