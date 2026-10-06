@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gainsLine, stationName, weekOf } from './line'
+import { gainsLine, station, weekOf } from './line'
 
 // The imported log's workouts (performed_on), July–September 2026.
 const LOG = [
@@ -94,10 +94,36 @@ describe('the Gains Line', () => {
     expect(line.parkedUntil).toBe('2026-09-27')
   })
 
-  it('names stations along the line, looping with a lap number', () => {
-    expect(stationName(1)).toBe('Warm-Up Halt')
-    expect(stationName(7)).toBe('PR Central')
-    expect(stationName(21)).toBe('Warm-Up Halt 2')
+  it('drives the Trans-Siberian, station by station, with the real km', () => {
+    expect(station(0)).toMatchObject({ name: 'Moscow', driven: 0, towards: 'Vladivostok' })
+    expect(station(1)).toEqual({
+      name: 'Vladimir',
+      driven: 210,
+      from: 'Moscow',
+      leg: 210,
+      towards: 'Vladivostok',
+      left: 9079,
+    })
+    expect(station(7)).toMatchObject({ name: 'Omsk', driven: 2676, from: 'Tyumen', leg: 572 })
+  })
+
+  it('heads back at the end of the line, and keeps counting the km', () => {
+    expect(station(17)).toMatchObject({
+      name: 'Vladivostok',
+      driven: 9289,
+      from: 'Ussuriysk',
+      leg: 142,
+      towards: 'Moscow', // where it goes next
+      left: 9289,
+    })
+    expect(station(18)).toMatchObject({ name: 'Ussuriysk', driven: 9431, towards: 'Moscow' })
+    expect(station(34)).toMatchObject({
+      name: 'Moscow',
+      driven: 18578,
+      from: 'Vladimir',
+      towards: 'Vladivostok',
+    })
+    expect(station(35)).toMatchObject({ name: 'Vladimir', driven: 18788 })
   })
 
   it('weeks start on Monday', () => {

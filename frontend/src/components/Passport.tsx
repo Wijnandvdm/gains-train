@@ -10,6 +10,7 @@ const KINDS: { kind: StampKind; name: string; unit: string }[] = [
   { kind: 'weight', name: 'Weight hauled', unit: 'tonnes' },
   { kind: 'prs', name: 'Personal records', unit: 'PRs' },
   { kind: 'streak', name: 'Gains Line', unit: 'in a row' },
+  { kind: 'climbing', name: 'Climbing', unit: 'weeks' },
   { kind: 'explorer', name: 'Explorer', unit: 'explored' },
 ]
 const unitOf = (kind: StampKind) => KINDS.find((k) => k.kind === kind)!.unit

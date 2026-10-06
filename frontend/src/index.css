@@ -46,6 +46,7 @@
   --stamp-weight: #1d64c4;
   --stamp-prs: #b45309;
   --stamp-streak: #7c3aed;
+  --stamp-climbing: #b91c1c;
   --stamp-explorer: #be185d;
 }
 @media (prefers-color-scheme: dark) {
@@ -64,6 +65,7 @@
     --stamp-weight: #60a5fa;
     --stamp-prs: #fbbf24;
     --stamp-streak: #a78bfa;
+    --stamp-climbing: #f87171;
     --stamp-explorer: #f472b6;
   }
 }

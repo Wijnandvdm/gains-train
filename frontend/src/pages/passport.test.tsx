@@ -17,7 +17,7 @@ describe('the passport', () => {
     renderApp('/progress')
 
     const passport = await screen.findByRole('region', { name: 'Passport' })
-    expect(within(passport).getByText('2 of 27 stamps')).toBeVisible()
+    expect(within(passport).getByText('2 of 31 stamps')).toBeVisible()
     expect(
       within(passport).getByRole('img', {
         name: `10 rides (finished workouts), earned ${formatShortDay('2026-08-19')}`,
@@ -29,7 +29,13 @@ describe('the passport', () => {
 
     await user.click(within(passport).getByRole('button', { name: 'Show all stamps' }))
     expect(within(passport).getByRole('heading', { name: 'Weight hauled' })).toBeVisible()
-    expect(within(passport).getAllByRole('img')).toHaveLength(27)
+    expect(within(passport).getByRole('heading', { name: 'Climbing' })).toBeVisible()
+    expect(
+      within(passport).getByRole('img', {
+        name: '3 weeks (one exercise stronger every week): 0 of 3',
+      }),
+    ).toBeVisible()
+    expect(within(passport).getAllByRole('img')).toHaveLength(31)
   })
 
   it('announces a new stamp when you finish a workout', async () => {

@@ -8,6 +8,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+
+- Climbing stamps in the passport: one exercise stronger every week, 3, 4, 6 or 8 weeks in
+  a row (heavier, or more reps than the week before).
+
+### Changed
+
+- The Gains Line drives the real Trans-Siberian Railway: each station in a row is the next
+  stop from Moscow to Vladivostok (and back), with the real kilometres driven.
+
 ## [1.0.0] - 2026-09-29
 
 ### Added

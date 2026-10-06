@@ -52,7 +52,8 @@ describe('the Gains Line', () => {
 
     const line = await card()
     expect(within(line).getByText('Next station')).toBeVisible()
-    expect(within(line).getByRole('heading', { name: 'PR Central' })).toBeVisible()
+    expect(within(line).getByRole('heading', { name: 'Omsk' })).toBeVisible()
+    expect(within(line).getByText('572 km from Tyumen')).toBeVisible()
     expect(within(line).getByRole('img', { name: '2 of 3 rides this week' })).toBeVisible()
     expect(within(line).getByText('1 more ride by Sunday keeps your streak going.')).toBeVisible()
     expect(within(line).getByText('6 stations in a row')).toBeVisible()
@@ -65,7 +66,8 @@ describe('the Gains Line', () => {
     renderApp('/workout')
 
     const line = await card()
-    expect(within(line).getByRole('heading', { name: 'PR Central ✓' })).toBeVisible()
+    expect(within(line).getByRole('heading', { name: 'Omsk ✓' })).toBeVisible()
+    expect(within(line).getByText('2,676 km driven · 6,613 km to Vladivostok')).toBeVisible()
     expect(
       within(line).getByText('7 stations in a row! Another ride this week earns a ticket.'),
     ).toBeVisible()
@@ -94,7 +96,8 @@ describe('the Gains Line', () => {
     const line = await card()
     expect(within(line).getByText('Last week fell short, so a new line starts here.')).toBeVisible()
     expect(within(line).getByText('2 more rides by Sunday reach your first station.')).toBeVisible()
-    expect(within(line).getByRole('heading', { name: 'Warm-Up Halt' })).toBeVisible()
+    expect(within(line).getByRole('heading', { name: 'Vladimir' })).toBeVisible()
+    expect(within(line).getByText('210 km from Moscow')).toBeVisible()
   })
 
   describe('the depot', () => {
@@ -118,7 +121,7 @@ describe('the Gains Line', () => {
       expect((await getSettings()).depot_weeks).toEqual(['2026-09-14', '2026-09-21'])
 
       await user.click(within(line).getByRole('button', { name: 'Leave the depot' }))
-      expect(await within(line).findByRole('heading', { name: 'PR Central' })).toBeVisible()
+      expect(await within(line).findByRole('heading', { name: 'Omsk' })).toBeVisible()
       expect((await getSettings()).depot_weeks).toEqual([])
     })
 

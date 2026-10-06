@@ -2,12 +2,13 @@
 // "next station" card on the Workout screen, and the depot. The rules live in data/line.ts.
 import { useState } from 'react'
 import { DEPOT_WEEKS, leaveDepot, parkWeek, parkWeeks } from '../data/depot'
-import { type GainsLine, type LineWeek, MAX_TICKETS, stationName } from '../data/line'
+import { type GainsLine, type LineWeek, MAX_TICKETS, station } from '../data/line'
 import { useGainsLine } from '../line'
 import { formatDay, parseLocalDate, plural } from '../lib/format'
 import { DepotIcon, TicketIcon } from './icons'
 
 const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'short' })
+const km = (n: number) => `${n.toLocaleString()} km`
 
 /** "6 stations in a row" and "1 ticket · next at 8". */
 export function LinePills({
@@ -93,6 +94,7 @@ export function NextStationCard() {
   const rides = thisWeek.rides.length
   const left = target - rides
   const stops = Math.max(target, rides)
+  const stop = station(reached ? streak : streak + 1)
   const parkLastWeek = lastWeek && (
     <button
       type="button"
@@ -111,11 +113,18 @@ export function NextStationCard() {
         </p>
         <h2 className="text-lg font-bold">
           {reached
-            ? `${stationName(streak)} ✓`
+            ? `${stop.name} ✓`
             : parked
               ? `Parked until ${formatDay(line.parkedUntil!)}`
-              : stationName(streak + 1)}
+              : stop.name}
         </h2>
+        {!parked && (
+          <p className="text-sm text-neutral-500">
+            {reached
+              ? `${km(stop.driven)} driven · ${km(stop.left)} to ${stop.towards}`
+              : `${km(stop.leg)} from ${stop.from}`}
+          </p>
+        )}
       </div>
 
       {parked ? (

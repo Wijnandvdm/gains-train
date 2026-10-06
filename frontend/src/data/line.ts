@@ -16,34 +16,65 @@ export const MAX_TICKETS = 2
 const STATIONS_PER_TICKET = 4
 export const WEEKLY_TARGETS = [1, 2, 3, 4, 5, 6, 7]
 
-const STATIONS = [
-  'Warm-Up Halt',
-  'Pump Junction',
-  'Protein Park',
-  'Gainsborough',
-  'Deadlift Dock',
-  'Barbell Bridge',
-  'PR Central',
-  'Squat Rack Road',
-  'Bicep Bay',
-  'Tricep Terminal',
-  'Lat Pulldown Loop',
-  'Bench Press Bend',
-  'Calf Raise Crossing',
-  'Hamstring Heights',
-  'Shoulder Summit',
-  'Glute Gorge',
-  'Core Corner',
-  'Iron Isle',
-  'Plate Load Plaza',
-  'Gains Grand Central',
+/**
+ * The line the train drives: the Trans-Siberian Railway, Moscow to Vladivostok, with the km
+ * from Moscow (train 002M's timetable, via en.wikipedia.org/wiki/Trans-Siberian_Railway).
+ * Each station in a row is the next stop; at the end of the line the train heads back.
+ */
+const ROUTE: [string, number][] = [
+  ['Moscow', 0],
+  ['Vladimir', 210],
+  ['Nizhny Novgorod', 461],
+  ['Kirov', 917],
+  ['Perm', 1397],
+  ['Yekaterinburg', 1816],
+  ['Tyumen', 2104],
+  ['Omsk', 2676],
+  ['Novosibirsk', 3303],
+  ['Krasnoyarsk', 4065],
+  ['Taishet', 4483],
+  ['Irkutsk', 5153],
+  ['Ulan-Ude', 5609],
+  ['Chita', 6166],
+  ['Birobidzhan', 8312],
+  ['Khabarovsk', 8493],
+  ['Ussuriysk', 9147],
+  ['Vladivostok', 9289],
 ]
+const LEGS = ROUTE.length - 1
+const LENGTH = ROUTE[LEGS]![1]
 
-/** The name of the n-th station in a row (1-based); the line loops with a lap number. */
-export function stationName(n: number): string {
-  const lap = Math.floor((n - 1) / STATIONS.length)
-  const name = STATIONS[(n - 1) % STATIONS.length]!
-  return lap === 0 ? name : `${name} ${lap + 1}`
+export type Station = {
+  name: string
+  /** The km the train has driven to get here, all trips together. */
+  driven: number
+  /** The leg that ends here: where it came from, and how far that is. */
+  from: string
+  leg: number
+  /** Where the train heads next (the end of the line it's driving towards), and how far. */
+  towards: string
+  left: number
+}
+
+/** The n-th station in a row (0: the start, in Moscow). */
+export function station(n: number): Station {
+  const at = (i: number) => {
+    const trip = Math.floor(i / LEGS) // even: towards Vladivostok; odd: back to Moscow
+    const stop = i % LEGS
+    const index = trip % 2 === 0 ? stop : LEGS - stop
+    return { trip, index, km: ROUTE[index]![1] }
+  }
+  const here = at(n)
+  const previous = at(Math.max(0, n - 1))
+  const outbound = here.trip % 2 === 0 // the trip it's on now, or starts here
+  return {
+    name: ROUTE[here.index]![0],
+    driven: here.trip * LENGTH + (outbound ? here.km : LENGTH - here.km),
+    from: ROUTE[previous.index]![0],
+    leg: Math.abs(here.km - previous.km),
+    towards: outbound ? ROUTE[LEGS]![0] : ROUTE[0]![0],
+    left: outbound ? LENGTH - here.km : here.km,
+  }
 }
 
 /** reached: a station · ticket: saved by a ticket · missed: fell short, streak over ·

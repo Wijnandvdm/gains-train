@@ -34,7 +34,14 @@ describe('the passport', () => {
       'prs-1 2026-09-08 b',
       'streak-4 2026-09-22 d', // a ride every week, target 1
     ])
-    expect(p.progress).toEqual({ rides: 4, weight: 43, prs: 2, streak: 4, explorer: 1 })
+    expect(p.progress).toEqual({
+      rides: 4,
+      weight: 43,
+      prs: 2,
+      streak: 4,
+      climbing: 2, // a → b climbed, c didn't, c → d climbed
+      explorer: 1,
+    })
   })
 
   it('counts one PR per exercise per workout, per exercise', () => {
@@ -97,7 +104,61 @@ describe('the passport', () => {
 
   it('has every stamp still to earn on day one', () => {
     const p = passport([], LINE, LIB)
-    expect(p.stamps).toHaveLength(27)
+    expect(p.stamps).toHaveLength(31)
     expect(earned(p)).toEqual([])
+  })
+})
+
+describe('the Climbing stamps', () => {
+  const climbing = (p: ReturnType<typeof passport>) =>
+    earned(p).filter((s) => s.startsWith('climbing'))
+
+  it('stamps one exercise getting stronger every week, weeks in a row', () => {
+    const workouts = [
+      ride('a', '2026-08-31', [[60, 8]]),
+      ride('b', '2026-09-07', [[60, 9]]), // more reps
+      ride('c', '2026-09-14', [
+        [60, 8],
+        [62.5, 8],
+      ]), // heavier (the second set)
+      ride('d', '2026-09-21', [[65, 6]]), // heavier
+    ]
+    const p = passport(workouts, LINE, LIB)
+    expect(climbing(p)).toEqual(['climbing-3 2026-09-14 c', 'climbing-4 2026-09-21 d'])
+    expect(p.progress.climbing).toBe(4)
+  })
+
+  it('compares with the whole week before, however many times you trained it', () => {
+    const workouts = [
+      ride('a', '2026-08-31', [[60, 8]]),
+      ride('b', '2026-09-03', [[60, 10]]), // same week: this is the one to beat
+      ride('c', '2026-09-07', [[60, 9]]), // beats a, not b: no climb
+      ride('d', '2026-09-14', [[60, 10]]),
+    ]
+    expect(passport(workouts, LINE, LIB).progress.climbing).toBe(2) // c → d
+  })
+
+  it('starts over after a week without the exercise, or a week that was no stronger', () => {
+    const workouts = [
+      ride('a', '2026-08-31', [[60, 8]]),
+      ride('b', '2026-09-07', [[60, 9]]),
+      // the week of 14 September: no Rows
+      ride('c', '2026-09-21', [[60, 10]]),
+      ride('d', '2026-09-28', [[60, 10]]), // the same as last week
+      ride('e', '2026-10-05', [[60, 11]]),
+    ]
+    expect(passport(workouts, LINE, LIB).progress.climbing).toBe(2)
+  })
+
+  it('counts each exercise on its own', () => {
+    const workouts = [
+      ride('a', '2026-08-31', [[60, 8]], 'Rows'),
+      ride('b', '2026-09-01', [[20, 8]], 'Curl'),
+      ride('c', '2026-09-07', [[20, 9]], 'Curl'), // Rows skipped this week
+      ride('d', '2026-09-14', [[62.5, 8]], 'Rows'),
+      ride('e', '2026-09-15', [[20, 10]], 'Curl'),
+    ]
+    const p = passport(workouts, LINE, LIB)
+    expect(climbing(p)).toEqual(['climbing-3 2026-09-15 e'])
   })
 })
