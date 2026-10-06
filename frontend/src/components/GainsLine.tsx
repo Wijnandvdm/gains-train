@@ -35,15 +35,51 @@ export function LinePills({
   )
 }
 
-/** The week column of the calendar: how that week went. */
-export function WeekMarker({ week, target }: { week: LineWeek | undefined; target: number }) {
-  const base = 'mx-auto grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold'
+/**
+ * The week column of the calendar: how that week went, on a track like a metro map. The track
+ * runs on from the week before and into the week after while the line goes on; a missed week
+ * breaks it.
+ */
+export function WeekMarker({
+  week,
+  target,
+  fromAbove,
+  onBelow,
+}: {
+  week: LineWeek | undefined
+  target: number
+  /** The line comes in from the week before. */
+  fromAbove: boolean
+  /** The line goes on into the week after. */
+  onBelow: boolean
+}) {
+  // The track reaches past the cell, over the gap between the calendar's rows.
+  const track = 'absolute left-1/2 w-1 -translate-x-1/2 bg-brand-600 dark:bg-brand-500'
+  return (
+    <div className="relative grid h-11 place-items-center">
+      {fromAbove && (
+        <span aria-hidden="true" data-track="above" className={`${track} -top-0.5 bottom-1/2`} />
+      )}
+      {onBelow && (
+        <span aria-hidden="true" data-track="below" className={`${track} top-1/2 -bottom-0.5`} />
+      )}
+      <span className="relative">
+        <Marker week={week} target={target} />
+      </span>
+    </div>
+  )
+}
+
+function Marker({ week, target }: { week: LineWeek | undefined; target: number }) {
+  const base = 'grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold'
   switch (week?.state) {
     case 'reached':
       return (
-        <span role="img" aria-label="Station reached" className={`${base} bg-brand-600 text-white`}>
-          ✓
-        </span>
+        <span
+          role="img"
+          aria-label="Station reached"
+          className="block h-5 w-5 rounded-full border-4 border-brand-600 bg-white dark:border-brand-500 dark:bg-neutral-900"
+        />
       )
     case 'ticket':
       return (
@@ -74,7 +110,7 @@ export function WeekMarker({ week, target }: { week: LineWeek | undefined; targe
         <span
           role="img"
           aria-label={`${week.rides.length} of ${target} rides so far`}
-          className={`${base} border-2 border-dashed border-brand-600 text-brand-700 dark:border-brand-500 dark:text-brand-500`}
+          className={`${base} border-2 border-dashed border-brand-600 bg-white text-brand-700 dark:border-brand-500 dark:bg-neutral-900 dark:text-brand-500`}
         >
           {week.rides.length}/{target}
         </span>

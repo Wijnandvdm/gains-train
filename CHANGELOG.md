@@ -17,6 +17,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - The Gains Line drives the real Trans-Siberian Railway: each station in a row is the next
   stop from Moscow to Vladivostok (and back), with the real kilometres driven.
+- The calendar's week column is a track, like a metro map: each station reached is a ring on
+  the line, and a missed week breaks it.
 
 ## [1.0.0] - 2026-09-29
 

@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import type { Routine, WorkoutSummary } from '../data/types'
 import { LinePills, WeekMarker } from '../components/GainsLine'
 import { BackIcon, DepotIcon, TicketIcon } from '../components/icons'
-import { type GainsLine, weekOf } from '../data/line'
+import { type GainsLine, nextMonday, onTheLine, previousMonday, weekOf } from '../data/line'
 import { useGainsLine } from '../line'
 import { Spinner } from '../components/Spinner'
 import {
@@ -292,15 +292,29 @@ function CalendarGrid({
               )
             })}
             <td className="p-0">
-              <WeekMarker
-                week={line?.weeks.get(weekOf(week.find(Boolean)!))}
-                target={line?.target ?? 0}
-              />
+              <WeekColumn monday={weekOf(week.find(Boolean)!)} line={line} />
             </td>
           </tr>
         ))}
       </tbody>
     </table>
+  )
+}
+
+/** The week's marker, with the track joining the weeks before and after while the line runs. */
+function WeekColumn({ monday, line }: { monday: string; line: GainsLine | undefined }) {
+  const at = (m: string) => line?.weeks.get(m)
+  // The track joins two weeks when the first is on the line and the second goes on with it,
+  // or is this week, with the train on its way.
+  const joins = (a: string, b: string) =>
+    onTheLine(at(a)) && (onTheLine(at(b)) || at(b)?.state === 'open')
+  return (
+    <WeekMarker
+      week={at(monday)}
+      target={line?.target ?? 0}
+      fromAbove={joins(previousMonday(monday), monday)}
+      onBelow={joins(monday, nextMonday(monday))}
+    />
   )
 }
 

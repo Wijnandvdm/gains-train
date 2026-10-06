@@ -116,10 +116,18 @@ export function weekOf(isoDate: string): string {
   )
 }
 
-export const nextMonday = (monday: string) => {
+const addWeeks = (monday: string, weeks: number) => {
   const d = parseLocalDate(monday)
-  return localDateString(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7))
+  return localDateString(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7 * weeks))
 }
+export const nextMonday = (monday: string) => addWeeks(monday, 1)
+export const previousMonday = (monday: string) => addWeeks(monday, -1)
+
+/** Whether the week is part of a line: a station, saved by a ticket, or parked mid-streak. */
+export const onTheLine = (week: LineWeek | undefined) =>
+  week?.state === 'reached' ||
+  week?.state === 'ticket' ||
+  (week?.state === 'depot' && week.streak > 0)
 
 /**
  * @param rideDays performed_on of every finished workout, in any order

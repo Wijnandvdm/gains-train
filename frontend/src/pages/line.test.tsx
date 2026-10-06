@@ -100,6 +100,52 @@ describe('the Gains Line', () => {
     expect(within(line).getByText('210 km from Moscow')).toBeVisible()
   })
 
+  /** The calendar row of the week with that day: its track pieces, and the row itself. */
+  async function calendarWeek(day: string) {
+    const button = await screen.findByRole('button', {
+      name: new RegExp(`^${formatDay(day)}(:|$)`),
+    })
+    const row = button.closest('tr')!
+    const tracks = [...row.querySelectorAll<HTMLElement>('[data-track]')].map(
+      (t) => t.dataset.track,
+    )
+    return { row, tracks }
+  }
+
+  it('draws the line down the calendar, station by station', async () => {
+    today(new Date(2026, 8, 17, 12))
+    await seedDevice({ workouts: rides(DAYS) })
+    renderApp('/history?month=2026-09')
+    await screen.findAllByRole('img', { name: 'Station reached' }) // the line has loaded
+
+    // The week of 31 Aug: a ticket keeps the line going.
+    expect((await calendarWeek('2026-09-01')).tracks).toEqual(['above', 'below'])
+    const station = await calendarWeek('2026-09-07')
+    expect(station.tracks).toEqual(['above', 'below'])
+    expect(within(station.row).getByRole('img', { name: 'Station reached' })).toBeVisible()
+    // This week: the train is on its way, the line doesn't go on yet.
+    expect((await calendarWeek('2026-09-14')).tracks).toEqual(['above'])
+    expect((await calendarWeek('2026-09-21')).tracks).toEqual([])
+  })
+
+  it('breaks the line after a missed week', async () => {
+    today(new Date(2026, 8, 17, 12))
+    await seedDevice({
+      settings: { weekly_target: 2 },
+      workouts: rides(['2026-09-01', '2026-09-02', '2026-09-14', '2026-09-15']),
+    })
+    renderApp('/history?month=2026-09')
+    await screen.findAllByRole('img', { name: 'Station reached' }) // the line has loaded
+
+    // A station, but the week after was missed.
+    expect((await calendarWeek('2026-09-01')).tracks).toEqual([])
+    const missed = await calendarWeek('2026-09-07')
+    expect(within(missed.row).getByRole('img', { name: 'Missed' })).toBeVisible()
+    expect(missed.tracks).toEqual([])
+    // A new line starts here.
+    expect((await calendarWeek('2026-09-14')).tracks).toEqual([])
+  })
+
   describe('the depot', () => {
     it('parks the train from the card, and leaves again', async () => {
       today(new Date(2026, 8, 17, 12))
