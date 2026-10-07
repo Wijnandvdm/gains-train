@@ -19,6 +19,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   stop from Moscow to Vladivostok (and back), with the real kilometres driven.
 - The calendar's week column is a track, like a metro map: each station reached is a ring on
   the line, and a missed week breaks it.
+- History's calendar shows each week filling up instead of a colour per routine day: a
+  day's ring fills with the week's rides so far (a third, two thirds, …) and the ride that
+  reaches the station closes it.
 
 ## [1.0.0] - 2026-09-29
 

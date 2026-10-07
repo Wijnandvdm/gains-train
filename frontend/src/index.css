@@ -26,17 +26,10 @@
   }
 }
 
-/* Chart chrome: recessive gridlines and the card surface (for the ring around dots).
-   Routine-day colours (calendar): the first three categorical slots of the dataviz
-   palette, validated all-pairs for colour-vision deficiency in both modes. More days
-   fold into "other". Always shown with a legend + names, never colour alone. */
+/* Chart chrome: recessive gridlines and the card surface (for the ring around dots). */
 :root {
   --chart-grid: var(--color-neutral-200);
   --chart-surface: #fff;
-  --day-1: #2a78d6;
-  --day-2: #eb6834;
-  --day-3: #1baf7a;
-  --day-other: var(--color-neutral-400);
   /* Muscle map (one green ramp, validated): primary darkest, secondary lightest. */
   --map-body: #d4d4d4;
   --map-primary: #14532d;
@@ -53,10 +46,6 @@
   :root {
     --chart-grid: var(--color-neutral-800);
     --chart-surface: var(--color-neutral-900);
-    --day-1: #3987e5;
-    --day-2: #d95926;
-    --day-3: #199e70;
-    --day-other: var(--color-neutral-500);
     /* On dark, more work = brighter. */
     --map-body: #404040;
     --map-primary: #4ade80;
