@@ -12,6 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - Climbing stamps in the passport: one exercise stronger every week, 3, 4, 6 or 8 weeks in
   a row (heavier, or more reps than the week before).
+- Coal and steam: more cheers after a set, and after a workout the weight you moved,
+  shovelled into the firebox (plus a word from the boiler when you set a record).
 
 ### Changed
 

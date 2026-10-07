@@ -3,6 +3,7 @@ import type { WorkoutSummary } from '../data/types'
 import { LinePills, WeekMarker } from '../components/GainsLine'
 import { BackIcon, DepotIcon, TicketIcon } from '../components/icons'
 import { type GainsLine, nextMonday, onTheLine, previousMonday, weekOf } from '../data/line'
+import { HISTORY } from '../copy'
 import { useGainsLine } from '../line'
 import { Spinner } from '../components/Spinner'
 import {
@@ -362,9 +363,7 @@ function DayWorkouts({
     <div className="flex flex-col gap-2">
       <h2 className="font-semibold">{formatDay(day)}</h2>
       {workouts.length === 0 ? (
-        <p className="text-sm text-neutral-500">
-          {isFuture ? 'Not there yet.' : 'Rest day. The train was in the depot. 🚂'}
-        </p>
+        <p className="text-sm text-neutral-500">{isFuture ? 'Not there yet.' : HISTORY.restDay}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {workouts.map((workout) => (

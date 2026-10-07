@@ -26,6 +26,8 @@ export type Stamp = {
 
 export type Passport = {
   stamps: Stamp[]
+  /** The workouts that set a personal record. */
+  recordWorkouts: ReadonlySet<string>
   /**
    * How far you are, per kind: rides, tonnes hauled, PRs, best streak, most weeks climbing,
    * exercises done.
@@ -165,7 +167,8 @@ export function passport(
   })
 
   // PRs
-  const prs = prWorkouts(done).map((m, i) => ({ value: i + 1, at: m }))
+  const prMilestones = prWorkouts(done)
+  const prs = prMilestones.map((m, i) => ({ value: i + 1, at: m }))
 
   // Streaks on the Gains Line: the week's target ride reaches the station
   const weeks = gainsLine(
@@ -248,6 +251,7 @@ export function passport(
         badge: 'All',
       },
     ],
+    recordWorkouts: new Set(prMilestones.map((m) => m.workoutId)),
     progress: {
       rides: rides.length,
       weight: Math.floor(total / 1000),

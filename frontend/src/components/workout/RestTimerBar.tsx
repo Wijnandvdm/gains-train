@@ -1,3 +1,4 @@
+import { REST } from '../../copy'
 import { formatClock } from '../../lib/format'
 import type { useRestTimer } from '../../workout/restTimer'
 
@@ -18,9 +19,9 @@ export function RestTimerBar({ timer }: { timer: ReturnType<typeof useRestTimer>
         }`}
       >
         <div className="relative flex-1 pl-2">
-          <p className="text-xs text-neutral-500">{timer.done ? 'Rest over' : 'Station stop'}</p>
+          <p className="text-xs text-neutral-500">{timer.done ? 'Rest over' : REST.resting}</p>
           <p className="text-2xl font-bold tabular-nums" aria-live="polite">
-            {timer.done ? 'All aboard! 🚂' : formatClock(timer.remaining)}
+            {timer.done ? REST.done : formatClock(timer.remaining)}
           </p>
           <div className="mt-1 h-1 rounded bg-neutral-200 dark:bg-neutral-800">
             <div

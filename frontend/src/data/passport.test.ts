@@ -34,6 +34,7 @@ describe('the passport', () => {
       'prs-1 2026-09-08 b',
       'streak-4 2026-09-22 d', // a ride every week, target 1
     ])
+    expect(p.recordWorkouts).toEqual(new Set(['b', 'd']))
     expect(p.progress).toEqual({
       rides: 4,
       weight: 43,

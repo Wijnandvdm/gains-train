@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { BackupFileHint } from '../components/BackupFileHint'
 import { FilePicker } from '../components/FilePicker'
 import { TrainIcon } from '../components/icons'
+import { SETUP } from '../copy'
 import { BACKUP_FILE_TYPES, readBackupFile, restoreBackup } from '../data/backup'
 import { DEFAULT_REST_SECONDS } from '../lib/rest'
 import { useAction } from '../lib/useAction'
@@ -54,10 +55,8 @@ export function SetupPage() {
         <div className="rounded-2xl bg-brand-600 p-3 text-white">
           <TrainIcon className="h-10 w-10" />
         </div>
-        <h1 className="text-2xl font-bold">Let's lay the tracks</h1>
-        <p className="text-neutral-500">
-          Two questions, then every workout is one tap per set. Choo choo.
-        </p>
+        <h1 className="text-2xl font-bold">{SETUP.title}</h1>
+        <p className="text-neutral-500">{SETUP.intro}</p>
       </header>
 
       <section className="flex flex-col gap-2" aria-labelledby="been-here">
@@ -131,7 +130,7 @@ export function SetupPage() {
         disabled={!mode || busy}
         onClick={() => void finishing.run().catch(() => {})}
       >
-        {finishing.isPending ? 'Laying tracks…' : 'All aboard! 🚂'}
+        {finishing.isPending ? SETUP.starting : SETUP.start}
       </button>
     </main>
   )

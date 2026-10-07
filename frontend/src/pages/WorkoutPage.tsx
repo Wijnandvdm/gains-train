@@ -8,7 +8,7 @@ import { RestTimerBar } from '../components/workout/RestTimerBar'
 import { WorkoutTrack } from '../components/workout/WorkoutTrack'
 import { TrainIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
-import { cheer } from '../copy'
+import { cheer, firebox, WORKOUT } from '../copy'
 import { formatDay, plural } from '../lib/format'
 import { newSet } from '../data/workouts'
 import { useRoutine } from '../routine'
@@ -30,7 +30,7 @@ import { useSkipped } from '../workout/skipped'
 export function WorkoutPage() {
   const active = useActiveWorkout()
   const routine = useRoutine()
-  const [finishedId, setFinishedId] = useState<string | null>(null)
+  const [finished, setFinished] = useState<{ id: string; day: string } | null>(null)
   // With a routine, the next day is shown ready to go; this switches to the other options.
   const [choosing, setChoosing] = useState(false)
 
@@ -41,7 +41,7 @@ export function WorkoutPage() {
         workout={active.data}
         routine={routine.data ?? null}
         onFinished={() => {
-          setFinishedId(active.data!.id)
+          setFinished({ id: active.data!.id, day: active.data!.performed_on })
           setChoosing(false)
         }}
       />
@@ -50,7 +50,7 @@ export function WorkoutPage() {
   const hasRoutine = Boolean(routine.data?.days.length)
   return (
     <section className="flex flex-col gap-6">
-      {finishedId && <FinishedBanner workoutId={finishedId} />}
+      {finished && <FinishedBanner workoutId={finished.id} day={finished.day} />}
       <NextStationCard />
       {hasRoutine && !choosing ? (
         <UpNext routine={routine.data!} onOther={() => setChoosing(true)} />
@@ -61,8 +61,11 @@ export function WorkoutPage() {
   )
 }
 
-function FinishedBanner({ workoutId }: { workoutId: string }) {
-  const stamps = usePassport()?.stamps.filter((s) => s.earnedBy === workoutId) ?? []
+function FinishedBanner({ workoutId, day }: { workoutId: string; day: string }) {
+  const passport = usePassport()
+  const stamps = passport?.stamps.filter((s) => s.earnedBy === workoutId) ?? []
+  const volume = useWorkoutSummaries(day, day).data?.find((w) => w.id === workoutId)?.volume_kg
+  const coal = volume === undefined ? null : firebox(volume)
   return (
     <div
       role="status"
@@ -74,12 +77,14 @@ function FinishedBanner({ workoutId }: { workoutId: string }) {
         className="absolute top-2 left-3 h-7 w-7 -scale-x-100 text-brand-600 motion-safe:animate-choo dark:text-brand-500"
       />
       <p>
-        <strong>End of the line!</strong> Workout saved. See it in{' '}
+        <strong>{WORKOUT.finished}</strong> Workout saved. See it in{' '}
         <Link to="/history" className="font-semibold underline">
           History
         </Link>
         .
       </p>
+      {coal && <p className="mt-1">{coal}</p>}
+      {passport?.recordWorkouts.has(workoutId) && <p className="mt-1">{WORKOUT.record}</p>}
       {stamps.length > 0 && (
         <div className="mt-3 flex flex-col gap-2">
           <p className="font-semibold">
@@ -129,7 +134,7 @@ function UpNext({ routine, onOther }: { routine: Routine; onOther: () => void })
     <>
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium text-brand-600 dark:text-brand-500">
-          {dayId === routine.next_day_id ? 'Next stop' : 'Changing tracks'}
+          {dayId === routine.next_day_id ? WORKOUT.nextDay : WORKOUT.otherDay}
         </p>
         <h1 className="text-2xl font-bold">{day.name}</h1>
         {routine.days.length > 1 && (
@@ -384,7 +389,7 @@ function ActiveWorkout({
       ) : (
         workout.exercises.length > 0 && (
           <div className="card flex flex-col items-center gap-3 p-4 text-center">
-            <p className="font-semibold">End of the line! 🚂 That's everything you planned.</p>
+            <p className="font-semibold">{WORKOUT.planDone}</p>
             <button type="button" className="btn btn-primary w-full py-3" onClick={finish}>
               Finish workout
             </button>

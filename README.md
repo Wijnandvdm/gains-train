@@ -78,6 +78,3 @@ Backup: every month, 3 months, 6 months, a year, or never).
 6. Upload `scripts/android.sh --release`'s bundle to a closed test track and get 12 testers to
    opt in and install; keep all of them in for 14 days in a row.
 7. Apply for production access, and publish after Google's review.
-
-## TODOs for the app itself:
-5. Can we make puns with coal and steam train and stuff?
