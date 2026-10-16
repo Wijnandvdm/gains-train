@@ -91,5 +91,3 @@ Backup: every month, 3 months, 6 months, a year, or never).
 5. option for Custom exercises back in
 
 6. Option to edit past workouts
-
-7. The phones back button (not the apps) should return user to previous screen

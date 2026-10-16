@@ -212,6 +212,27 @@ export async function deleteSet(workoutId: string, setId: string): Promise<void>
   })
 }
 
+/**
+ * Change a workout's sets afterwards, all at once: per exercise (by its id in the workout),
+ * the sets as they should be, in order. Every set kept counts as done: one that was never
+ * ticked off gets the workout's end time.
+ */
+export async function editSets(workoutId: string, sets: Map<string, WorkoutSet[]>): Promise<void> {
+  await modify(workoutId, (w) => {
+    const done = w.ended_at ?? new Date().toISOString()
+    for (const we of w.exercises) {
+      const edited = sets.get(we.id)
+      if (!edited) continue
+      we.sets = edited.map((s, i) => ({
+        ...s,
+        workout_exercise_id: we.id,
+        position: i + 1,
+        completed_at: s.completed_at ?? done,
+      }))
+    }
+  })
+}
+
 export async function finishWorkout(workoutId: string, endedAt = new Date().toISOString()) {
   await modify(workoutId, (w) => {
     if (w.status === 'in_progress') {

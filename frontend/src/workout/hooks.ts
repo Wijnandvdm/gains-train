@@ -18,6 +18,7 @@ import {
   addExercise,
   deleteSet,
   deleteWorkout,
+  editSets,
   exerciseSessions,
   finishWorkout,
   getWorkout,
@@ -94,7 +95,7 @@ export function useWorkout(id: string): {
   return { data, isPending: data === undefined }
 }
 
-export { deleteWorkout }
+export { deleteWorkout, editSets }
 
 /** Changing the active workout. Writes go straight to the device; screens follow live. */
 export function useWorkoutActions() {

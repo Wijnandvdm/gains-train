@@ -14,6 +14,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   weeks in a row (heavier, or more reps than the week before).
 - Coal and steam: more cheers after a set, and after a workout the weight you moved,
   shovelled into the firebox (plus a word from the boiler when you set a record).
+- Edit a past workout: change a set's weight or reps, remove sets you didn't do, or add one
+  you forgot. Records, charts, the Gains Line and stamps follow.
 
 ### Changed
 
