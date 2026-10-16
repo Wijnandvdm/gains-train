@@ -29,7 +29,7 @@ describe('the passport', () => {
 
     await user.click(within(passport).getByRole('button', { name: 'Show all stamps' }))
     expect(within(passport).getByRole('heading', { name: 'Weight hauled' })).toBeVisible()
-    expect(within(passport).getByRole('heading', { name: 'Climbing' })).toBeVisible()
+    expect(within(passport).getByRole('heading', { name: 'Full steam ahead' })).toBeVisible()
     expect(
       within(passport).getByRole('img', {
         name: '3 weeks (one exercise stronger every week): 0 of 3',

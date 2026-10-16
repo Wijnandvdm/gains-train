@@ -78,3 +78,20 @@ Backup: every month, 3 months, 6 months, a year, or never).
 6. Upload `scripts/android.sh --release`'s bundle to a closed test track and get 12 testers to
    opt in and install; keep all of them in for 14 days in a row.
 7. Apply for production access, and publish after Google's review.
+
+# TODO:
+1. Add custom settings per exercise (s/m/l/xl, 13, -1, etc. Think leg curl). These settings should be visible next to thr weight and reps and should perhaps dissappear when first set is done?
+
+2. Ability to restructure workouts on the go by drag and dropping an exercise lower or higher (perhaps also put in a different from the routine exercise). There should be a small text that asks you if you wamt that to be the standard from now on that dissappears when you ignore it for a few seconds or put in number and weight for the exercise
+
+3. Three digits weights dont fit completely in the weights section during a workout (humblebrag spotted)
+
+4. How does stick figures work for representing exercises? I have a feeling that I do miss a few. Perhaps also generate them with AI? Chatgpt?
+
+5. option for Custom exercises back in
+
+6. Option to edit past workouts
+
+7. The phones back button (not the apps) should return user to previous screen
+
+8. Rename the climbing achievement to full steam ahead
