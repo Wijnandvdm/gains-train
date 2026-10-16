@@ -55,13 +55,13 @@ function RoutineEditor({ routine }: { routine: Routine | null }) {
         exercises: d.exercises.map((e) => ({ exercise_id: e.exercise.id, sets: e.sets })),
       })),
     })
-    navigate('/workout')
+    navigate('/workout', { replace: true }) // back goes where you came from, not here
   }
 
   async function onDelete() {
     if (!window.confirm('Stop using a routine? Your past workouts are kept.')) return
     await deleteRoutine()
-    navigate('/workout')
+    navigate('/workout', { replace: true })
   }
 
   return (

@@ -25,6 +25,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   day's ring fills with the week's rides so far (a third, two thirds, …) and the ride that
   reaches the station closes it.
 
+### Fixed
+
+- The phone's back button goes back to the previous screen; before, it closed the app on any
+  screen. On the first screen it puts the app in the background, keeping a rest timer or a
+  workout in progress.
+
 ## [1.0.0] - 2026-09-29
 
 ### Added

@@ -93,5 +93,3 @@ Backup: every month, 3 months, 6 months, a year, or never).
 6. Option to edit past workouts
 
 7. The phones back button (not the apps) should return user to previous screen
-
-8. Rename the climbing achievement to full steam ahead
