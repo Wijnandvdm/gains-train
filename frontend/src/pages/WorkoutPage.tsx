@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { RoutineDay, Routine, WorkoutDetail } from '../data/types'
+import type { ExerciseSummary, RoutineDay, Routine, WorkoutDetail } from '../data/types'
 import { ExerciseBlock } from '../components/workout/ExerciseBlock'
 import { ExercisePicker } from '../components/workout/ExercisePicker'
 import { FocusCard } from '../components/workout/FocusCard'
 import { RestTimerBar } from '../components/workout/RestTimerBar'
+import { RoutineSuggestion, type Suggestion } from '../components/workout/RoutineSuggestion'
+import { SortableExercises } from '../components/workout/SortableExercises'
+import { moved, orderDiffers } from '../workout/reorder'
 import { WorkoutTrack } from '../components/workout/WorkoutTrack'
 import { TrainIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
@@ -311,6 +314,53 @@ function ActiveWorkout({
   const allSets = workout.exercises.flatMap((we) => we.sets)
   const doneSets = allSets.filter((s) => s.completed_at).length
 
+  // After you change a routine workout: make it the routine day's standard? It's asked with
+  // the sets done so far: logging a set means you've moved on, so the question goes.
+  const [asked, setAsked] = useState<{ suggestion: Suggestion; atSets: number } | null>(null)
+  const suggestion = asked?.atSets === doneSets ? asked.suggestion : null
+  const ask = (s: Suggestion) => setAsked({ suggestion: s, atSets: doneSets })
+  const dayIds = routineDay?.exercises.map((re) => re.exercise.id) ?? []
+  const dayHas = (exerciseId: string) => dayIds.includes(exerciseId)
+
+  async function move(workoutExerciseId: string, toIndex: number) {
+    await actions.moveExercise(workout.id, workoutExerciseId, toIndex)
+    if (!routineDay) return
+    const from = workout.exercises.findIndex((we) => we.id === workoutExerciseId)
+    const order = moved(workout.exercises, from, toIndex).map((we) => we.exercise.id)
+    if (orderDiffers(dayIds, order)) {
+      ask({
+        dayId: routineDay.id,
+        question: 'Do the exercises in this order from now on?',
+        change: { kind: 'order', exerciseIds: order },
+      })
+    }
+  }
+
+  async function add(exercise: ExerciseSummary) {
+    await actions.addExercise(workout.id, exercise)
+    if (!routineDay || dayHas(exercise.id)) return
+    // It went in last: in the routine, after the last of today's exercises the day has.
+    const after =
+      workout.exercises
+        .map((we) => we.exercise.id)
+        .filter(dayHas)
+        .at(-1) ?? null
+    ask({
+      dayId: routineDay.id,
+      question: `Add ${exercise.name} to ${routineDay.name} from now on?`,
+      change: { kind: 'add', exerciseId: exercise.id, after, sets: 3 },
+    })
+  }
+
+  function removed(exercise: ExerciseSummary) {
+    if (!routineDay || !dayHas(exercise.id)) return
+    ask({
+      dayId: routineDay.id,
+      question: `Take ${exercise.name} out of ${routineDay.name} from now on?`,
+      change: { kind: 'remove', exerciseId: exercise.id },
+    })
+  }
+
   function confirm(target: NextSet, values: { weight_kg: number; reps: number }) {
     const completed_at = new Date().toISOString()
     const sets = target.item.sets
@@ -400,14 +450,27 @@ function ActiveWorkout({
       {workout.exercises.length === 0 && (
         <p className="py-4 text-center text-neutral-500">Add your first exercise to get going.</p>
       )}
-      {workout.exercises.map((we) => (
-        <ExerciseBlock
-          key={we.id}
-          workoutId={workout.id}
-          workoutExercise={we}
-          onSetCompleted={restTimer.startFor}
+      {suggestion && (
+        <RoutineSuggestion
+          key={suggestion.question}
+          suggestion={suggestion}
+          onDone={() => setAsked(null)}
         />
-      ))}
+      )}
+      <SortableExercises
+        items={workout.exercises.map((we) => ({ id: we.id, name: we.exercise.name, we }))}
+        onMove={(item, toIndex) => void move(item.id, toIndex)}
+      >
+        {({ we }, dragHandle) => (
+          <ExerciseBlock
+            workoutId={workout.id}
+            workoutExercise={we}
+            onSetCompleted={restTimer.startFor}
+            onRemoved={() => removed(we.exercise)}
+            dragHandle={workout.exercises.length > 1 ? dragHandle : undefined}
+          />
+        )}
+      </SortableExercises>
 
       <button type="button" className="btn py-3" onClick={() => setPicking(true)}>
         + Add exercise
@@ -425,7 +488,7 @@ function ActiveWorkout({
         <ExercisePicker
           onClose={() => setPicking(false)}
           onPick={(exercise) => {
-            actions.addExercise(workout.id, exercise)
+            void add(exercise)
             setPicking(false)
           }}
         />

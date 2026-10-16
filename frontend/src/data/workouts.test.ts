@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { WorkoutSet, StoredWorkout } from './types'
 import { db } from './db'
 import {
+  moveExercise,
   activeWorkout,
   addExercise,
   deleteSet,
@@ -179,5 +180,26 @@ describe('workouts on the device', () => {
     const id = await start()
     expect(await db.workouts.count()).toBe(1)
     expect((await db.workouts.get(id))?.name).toBe('Legs')
+  })
+})
+
+describe('reordering a workout', () => {
+  it('moves an exercise, and numbers them again', async () => {
+    const id = await startWorkout({
+      name: null,
+      performed_on: '2026-10-16',
+      started_at: '2026-10-16T18:00:00Z',
+      routine_day_id: null,
+    })
+    const a = await addExercise(id, 'A')
+    await addExercise(id, 'B')
+    await addExercise(id, 'C')
+    await moveExercise(id, a, 2)
+    const w = (await db.workouts.get(id))!
+    expect(w.exercises.map((we) => [we.exercise_id, we.position])).toEqual([
+      ['B', 1],
+      ['C', 2],
+      ['A', 3],
+    ])
   })
 })

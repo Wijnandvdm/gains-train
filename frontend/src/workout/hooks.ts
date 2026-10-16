@@ -21,6 +21,7 @@ import {
   editSets,
   exerciseSessions,
   finishWorkout,
+  moveExercise,
   getWorkout,
   hydrate,
   removeExercise,
@@ -140,6 +141,7 @@ export function useWorkoutActions() {
       addExercise: (workoutId: string, exercise: ExerciseSummary) =>
         addExercise(workoutId, exercise.id),
       removeExercise,
+      moveExercise,
       saveSet,
       deleteSet: (workoutId: string, set: WorkoutSet) => deleteSet(workoutId, set.id),
       finish: (workoutId: string) => finishWorkout(workoutId),

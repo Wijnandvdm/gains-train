@@ -195,6 +195,20 @@ export async function removeExercise(workoutId: string, workoutExerciseId: strin
   })
 }
 
+/** Move an exercise to another place in the workout (0 = first); the rest shift around it. */
+export async function moveExercise(
+  workoutId: string,
+  workoutExerciseId: string,
+  toIndex: number,
+): Promise<void> {
+  await modify(workoutId, (w) => {
+    const from = w.exercises.findIndex((we) => we.id === workoutExerciseId)
+    if (from < 0) throw new WorkoutError('Exercise not found in this workout')
+    const [moved] = w.exercises.splice(from, 1)
+    w.exercises.splice(Math.max(0, Math.min(toIndex, w.exercises.length)), 0, moved!)
+  })
+}
+
 /** Create or replace a set (matched by id). */
 export async function saveSet(workoutId: string, set: WorkoutSet): Promise<void> {
   await modify(workoutId, (w) => {

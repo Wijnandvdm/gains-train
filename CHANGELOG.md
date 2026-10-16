@@ -22,6 +22,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Machine settings per exercise (Seat 4, Pad L, −1): on the set card until the first set is
   done (⚙ shows them again), and changeable there, in the routine editor or on the
   exercise's page. Backups include them (backup format 3).
+- Change a workout on the go: drag an exercise up or down by its ≡ (what's next follows the
+  new order). In a routine workout, reordering, adding or removing an exercise asks whether
+  to make it your routine from now on; ignore it and it goes away, nothing changed.
 
 ### Changed
 

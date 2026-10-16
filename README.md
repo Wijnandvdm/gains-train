@@ -81,6 +81,4 @@ Backup: every month, 3 months, 6 months, a year, or never).
 7. Apply for production access, and publish after Google's review.
 
 # TODO:
-1. Ability to restructure workouts on the go by drag and dropping an exercise lower or higher (perhaps also put in a different from the routine exercise). There should be a small text that asks you if you want that to be the standard from now on that dissappears when you ignore it for a few seconds or put in number and weight for the exercise
-
-2. How does stick figures work for representing exercises? I have a feeling that I do miss a few. Perhaps also generate them with AI? Chatgpt?
+1. How does stick figures work for representing exercises? I have a feeling that I do miss a few. Perhaps also generate them with AI? Chatgpt?
