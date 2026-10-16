@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/format'
+import { fitFontSize } from '../../lib/fitText'
 import { type NextSet, weightStep } from '../../workout/plan'
 import { ExerciseThumb } from '../ExerciseImage'
 
@@ -59,7 +60,8 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-3">
+      {/* Weight a little wider than reps (rarely more than 2 digits), so 100 kg fits too. */}
+      <div className="grid grid-cols-[1.15fr_1fr] gap-2">
         <Stepper
           label="kg"
           value={weight}
@@ -120,10 +122,10 @@ function Stepper({
   step: number
 }) {
   const button =
-    'h-12 w-12 shrink-0 rounded-lg bg-neutral-100 text-xl font-semibold active:bg-neutral-200 dark:bg-neutral-800 dark:active:bg-neutral-700'
+    'h-12 w-10 shrink-0 rounded-lg bg-neutral-100 text-xl font-semibold active:bg-neutral-200 dark:bg-neutral-800 dark:active:bg-neutral-700'
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="flex w-full items-center gap-1.5">
+      <div className="flex w-full items-center gap-1">
         <button
           type="button"
           className={button}
@@ -132,15 +134,20 @@ function Stepper({
         >
           −
         </button>
-        <input
-          aria-label={label}
-          inputMode={inputMode}
-          value={value}
-          placeholder="–"
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={(e) => e.target.select()}
-          className="w-full min-w-0 rounded-lg bg-transparent py-2 text-center text-3xl font-bold tabular-nums outline-none focus:ring-2 focus:ring-brand-500"
-        />
+        {/* A size container: the number shrinks to fit when it’s long (102.5 kg). Without
+            container units (a very old WebView) it stays text-3xl, as before. */}
+        <div className="@container min-w-0 flex-1">
+          <input
+            aria-label={label}
+            inputMode={inputMode}
+            value={value}
+            placeholder="–"
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            style={{ fontSize: fitFontSize(value || '–') }}
+            className="w-full min-w-0 rounded-lg bg-transparent py-2 text-center text-3xl leading-9 font-bold tabular-nums outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
         <button type="button" className={button} onClick={onPlus} aria-label={`+ ${step} ${label}`}>
           +
         </button>

@@ -35,6 +35,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - The phone's back button goes back to the previous screen; before, it closed the app on any
   screen. On the first screen it puts the app in the background, keeping a rest timer or a
   workout in progress.
+- Weights of 100 kg and more fit in the workout's set card; longer numbers (102.5) shrink to
+  fit instead of being cut off.
 
 ## [1.0.0] - 2026-09-29
 
