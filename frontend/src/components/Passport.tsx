@@ -119,7 +119,7 @@ export function StampBadge({
             ? 'shadow-[inset_0_0_0_3px_var(--chart-surface),inset_0_0_0_5px_currentColor]'
             : 'border-dashed border-neutral-300 text-neutral-400 dark:border-neutral-700 dark:text-neutral-500'
         }`}
-        style={earned ? { color: `var(--stamp-${stamp.kind})`, rotate: `${tilt}deg` } : undefined}
+        style={earned ? { color: `var(--ink-${stamp.kind})`, rotate: `${tilt}deg` } : undefined}
       >
         <span className="flex flex-col leading-none">
           <span className="text-lg font-black tabular-nums">{value}</span>

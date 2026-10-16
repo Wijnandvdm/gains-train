@@ -105,19 +105,19 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
             <Line
               type="monotone"
               dataKey={value}
-              stroke="var(--color-brand-600)"
+              stroke="var(--color-train-600)"
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
               dot={{
                 r: 4,
-                fill: 'var(--color-brand-600)',
+                fill: 'var(--color-train-600)',
                 stroke: 'var(--chart-surface)',
                 strokeWidth: 2,
               }}
               activeDot={{
                 r: 6,
-                fill: 'var(--color-brand-600)',
+                fill: 'var(--color-train-600)',
                 stroke: 'var(--chart-surface)',
                 strokeWidth: 2,
               }}

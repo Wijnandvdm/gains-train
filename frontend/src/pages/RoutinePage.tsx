@@ -203,7 +203,7 @@ function RoutineEditor({ routine }: { routine: Routine | null }) {
       {routine && (
         <button
           type="button"
-          className="mx-auto text-sm text-neutral-500 hover:text-red-600"
+          className="mx-auto text-sm text-neutral-500 hover:text-error-600 dark:hover:text-error-400"
           onClick={() => void onDelete()}
         >
           Stop using a routine

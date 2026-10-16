@@ -52,7 +52,7 @@ export function SetupPage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 p-6 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       <header className="flex flex-col items-center gap-3 text-center">
-        <div className="rounded-2xl bg-brand-600 p-3 text-white">
+        <div className="rounded-2xl bg-train-600 p-3 text-white">
           <TrainIcon className="h-10 w-10" />
         </div>
         <h1 className="text-2xl font-bold">{SETUP.title}</h1>
@@ -78,7 +78,7 @@ export function SetupPage() {
           <label
             key={m.value}
             className={`card flex cursor-pointer items-start gap-3 p-3 transition ${
-              mode === m.value ? 'border-brand-600 ring-2 ring-brand-500/30' : ''
+              mode === m.value ? 'border-train-600 ring-2 ring-train-500/30' : ''
             }`}
           >
             <input
@@ -87,7 +87,7 @@ export function SetupPage() {
               value={m.value}
               checked={mode === m.value}
               onChange={() => setMode(m.value)}
-              className="mt-1 accent-brand-600"
+              className="mt-1 accent-train-600"
             />
             <span>
               <span className="block font-medium">{m.title}</span>

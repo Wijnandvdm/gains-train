@@ -135,7 +135,7 @@ function Switch({
       {label}
       <span
         aria-hidden="true"
-        className={`relative h-6 w-11 shrink-0 rounded-full transition ${checked ? 'bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition ${checked ? 'bg-done-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}
       >
         <span
           className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left] ${checked ? 'left-5.5' : 'left-0.5'}`}
@@ -188,7 +188,7 @@ function BackupCard() {
       </div>
       <BackupFileHint />
       {message && (
-        <p role="status" className="text-sm text-brand-700 dark:text-brand-500">
+        <p role="status" className="text-sm text-done-700 dark:text-done-500">
           {message}
         </p>
       )}

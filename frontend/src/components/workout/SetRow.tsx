@@ -61,19 +61,19 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
   }
 
   const input =
-    'w-full rounded-md border border-transparent bg-neutral-100 px-1 py-1.5 text-center tabular-nums outline-none placeholder:text-neutral-400 focus:border-brand-500 dark:bg-neutral-800 dark:placeholder:text-neutral-500'
+    'w-full rounded-md border border-transparent bg-neutral-100 px-1 py-1.5 text-center tabular-nums outline-none placeholder:text-neutral-400 focus:border-train-500 dark:bg-neutral-800 dark:placeholder:text-neutral-500'
 
   return (
     <li
       className={`grid grid-cols-[2.25rem_1fr_4.5rem_3.5rem_2.5rem_1.75rem] items-center gap-1.5 rounded-lg px-1 py-1 ${
-        done ? 'bg-brand-50 dark:bg-brand-900/40' : ''
+        done ? 'bg-done-50 dark:bg-done-900/40' : ''
       }`}
     >
       <button
         type="button"
         onClick={() => onSave({ ...set, is_warmup: !set.is_warmup })}
         className={`rounded-md py-1.5 text-sm font-semibold ${
-          set.is_warmup ? 'text-amber-600 dark:text-amber-400' : 'text-neutral-500'
+          set.is_warmup ? 'text-ticket-700 dark:text-ticket-400' : 'text-neutral-500'
         }`}
         aria-label={`Set ${label}${set.is_warmup ? ' (warm-up)' : ''}: toggle warm-up`}
       >
@@ -116,7 +116,7 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
         }}
         onBlur={commitDraft}
         onFocus={(e) => e.target.select()}
-        className={`${input} ${needsReps ? 'border-red-500!' : ''}`}
+        className={`${input} ${needsReps ? 'border-error-500!' : ''}`}
       />
       <button
         type="button"
@@ -125,7 +125,7 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
         aria-label={`Set ${label} done`}
         className={`flex h-9 items-center justify-center rounded-md text-lg font-bold transition ${
           done
-            ? 'bg-brand-600 text-white'
+            ? 'bg-done-700 text-white'
             : 'bg-neutral-100 text-neutral-400 hover:text-neutral-700 dark:bg-neutral-800'
         }`}
       >
@@ -135,7 +135,7 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
         type="button"
         onClick={onDelete}
         aria-label={`Delete set ${label}`}
-        className="text-lg text-neutral-400 hover:text-red-600"
+        className="text-lg text-neutral-400 hover:text-error-600 dark:hover:text-error-400"
       >
         ×
       </button>

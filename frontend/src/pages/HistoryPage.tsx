@@ -300,7 +300,7 @@ function RideRing({
           fill="none"
           strokeWidth={stroke}
           strokeDasharray={dashes.flat().join(' ')}
-          className="stroke-brand-600 dark:stroke-brand-500"
+          className="stroke-done-600 dark:stroke-done-500"
         />
       )}
     </svg>
@@ -352,7 +352,7 @@ function WorkoutCard({ workout }: { workout: WorkoutSummary }) {
   return (
     <Link
       to={inProgress ? '/workout' : `/history/${workout.id}`}
-      className="card flex flex-col gap-1 p-3 transition hover:border-brand-500"
+      className="card flex flex-col gap-1 p-3 transition hover:border-train-500"
     >
       <span className="truncate font-medium">{workout.name ?? 'Workout'}</span>
       <span className="truncate text-sm text-neutral-500">
@@ -360,7 +360,7 @@ function WorkoutCard({ workout }: { workout: WorkoutSummary }) {
       </span>
       <span className="flex gap-3 text-sm">
         {inProgress ? (
-          <span className="font-medium text-brand-600 dark:text-brand-500">In progress</span>
+          <span className="font-medium text-train-600 dark:text-train-500">In progress</span>
         ) : (
           <>
             <span>{plural(workout.set_count, 'set')}</span>

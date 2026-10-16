@@ -100,7 +100,7 @@ describe('live workout', () => {
       'aria-pressed',
       'false',
     )
-    expect(within(block).getByLabelText('Set 1 reps')).toHaveClass('border-red-500!')
+    expect(within(block).getByLabelText('Set 1 reps')).toHaveClass('border-error-500!')
   })
 })
 

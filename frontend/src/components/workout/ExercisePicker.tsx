@@ -42,7 +42,7 @@ export function ExercisePicker({
     <button
       type="button"
       onClick={() => setCreating(query)}
-      className="card flex w-full items-center gap-3 border-dashed p-3 text-left font-medium text-brand-700 transition hover:border-brand-500 dark:text-brand-500"
+      className="card flex w-full items-center gap-3 border-dashed p-3 text-left font-medium text-train-700 transition hover:border-train-500 dark:text-train-500"
     >
       + Create “{query}”
     </button>
@@ -109,7 +109,7 @@ export function ExercisePicker({
                   <button
                     type="button"
                     onClick={() => onPick(exercise)}
-                    className="card flex w-full items-center gap-3 p-2 text-left transition hover:border-brand-500"
+                    className="card flex w-full items-center gap-3 p-2 text-left transition hover:border-train-500"
                   >
                     <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
                     <span className="min-w-0 flex-1">

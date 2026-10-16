@@ -12,7 +12,10 @@ export function ErrorMessage({
 }) {
   if (!error) return null
   return (
-    <p role="alert" className={`text-sm whitespace-pre-line text-red-600 ${className}`}>
+    <p
+      role="alert"
+      className={`text-sm whitespace-pre-line text-error-600 dark:text-error-400 ${className}`}
+    >
       {prefix && `${prefix} `}
       {error.message}
     </p>

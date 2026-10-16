@@ -38,8 +38,9 @@
 #
 # Where things live:
 #   frontend/capacitor.config.ts   the app id (permanent once on Google Play) and name
-#   frontend/assets/               icon and splash sources; after changing them:
-#                                  npx @capacitor/assets generate --android  (in frontend/)
+#   frontend/assets/               icon and splash sources, in the train colour (--train in
+#                                  frontend/src/index.css); after changing that colour:
+#                                  python3 scripts/recolor-icons.py
 #   frontend/android/app/src/main/AndroidManifest.xml
 #                                  no permissions, so no internet (nothing can leave the phone;
 #                                  the build fails if one sneaks in, e.g. from a plugin) and

@@ -83,7 +83,7 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
         <h1 className="text-2xl font-bold">{exercise.name}</h1>
         <ul className="flex flex-wrap gap-1.5" aria-label="Details">
           {exercise.is_custom && (
-            <li className="rounded bg-brand-100 px-2 py-0.5 text-sm font-medium text-brand-700 dark:bg-brand-900 dark:text-brand-100">
+            <li className="rounded bg-train-100 px-2 py-0.5 text-sm font-medium text-train-700 dark:bg-train-900 dark:text-train-100">
               Custom
             </li>
           )}
@@ -156,7 +156,7 @@ function CustomControls({ exercise }: { exercise: ExerciseDetail }) {
         {use === null && (
           <button
             type="button"
-            className="btn text-red-600"
+            className="btn text-error-600 dark:text-error-400"
             disabled={remove.isPending}
             onClick={() => {
               if (!window.confirm(`Delete “${exercise.name}”?`)) return

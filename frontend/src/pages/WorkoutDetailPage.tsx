@@ -102,7 +102,7 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
                   {we.sets.map((set, i) => (
                     <li key={set.id} className="flex items-baseline gap-3 text-sm">
                       <span
-                        className={`w-6 text-center font-semibold ${set.is_warmup ? 'text-amber-600 dark:text-amber-400' : 'text-neutral-500'}`}
+                        className={`w-6 text-center font-semibold ${set.is_warmup ? 'text-ticket-700 dark:text-ticket-400' : 'text-neutral-500'}`}
                       >
                         {labels[i]}
                       </span>
@@ -117,7 +117,7 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
 
           <button
             type="button"
-            className="btn mx-auto text-red-600"
+            className="btn mx-auto text-error-600 dark:text-error-400"
             onClick={onDelete}
             disabled={remove.isPending}
           >
@@ -133,7 +133,7 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
 type Draft = { set: WorkoutSet; weight: string; reps: string }
 
 const input =
-  'w-full rounded-md border border-transparent bg-neutral-100 px-1 py-1.5 text-center tabular-nums outline-none focus:border-brand-500 dark:bg-neutral-800'
+  'w-full rounded-md border border-transparent bg-neutral-100 px-1 py-1.5 text-center tabular-nums outline-none focus:border-train-500 dark:bg-neutral-800'
 
 /** Weight and reps as typed; a set is valid with a weight (0 for bodyweight) and 1 rep or more. */
 const isValid = (d: Draft) => parseWeight(d.weight) !== null && (parseReps(d.reps) ?? 0) >= 1
@@ -199,7 +199,7 @@ function EditSets({ workout, onDone }: { workout: WorkoutDetail; onDone: () => v
                     className="grid grid-cols-[1.5rem_1fr_auto_1fr_auto_2rem] items-center gap-1.5 text-sm"
                   >
                     <span
-                      className={`text-center font-semibold ${d.set.is_warmup ? 'text-amber-600 dark:text-amber-400' : 'text-neutral-500'}`}
+                      className={`text-center font-semibold ${d.set.is_warmup ? 'text-ticket-700 dark:text-ticket-400' : 'text-neutral-500'}`}
                     >
                       {labels[i]}
                     </span>
@@ -210,7 +210,7 @@ function EditSets({ workout, onDone }: { workout: WorkoutDetail; onDone: () => v
                       value={d.weight}
                       onChange={(e) => update({ weight: e.target.value })}
                       onFocus={(e) => e.target.select()}
-                      className={`${input} ${parseWeight(d.weight) === null ? 'border-red-500!' : ''}`}
+                      className={`${input} ${parseWeight(d.weight) === null ? 'border-error-500!' : ''}`}
                     />
                     <span className="text-neutral-500">kg ×</span>
                     <input
@@ -220,7 +220,7 @@ function EditSets({ workout, onDone }: { workout: WorkoutDetail; onDone: () => v
                       value={d.reps}
                       onChange={(e) => update({ reps: e.target.value })}
                       onFocus={(e) => e.target.select()}
-                      className={`${input} ${(parseReps(d.reps) ?? 0) < 1 ? 'border-red-500!' : ''}`}
+                      className={`${input} ${(parseReps(d.reps) ?? 0) < 1 ? 'border-error-500!' : ''}`}
                     />
                     <span className="text-neutral-500">reps</span>
                     <button
@@ -242,7 +242,7 @@ function EditSets({ workout, onDone }: { workout: WorkoutDetail; onDone: () => v
             </ol>
             <button
               type="button"
-              className="self-start text-sm font-medium text-brand-700 dark:text-brand-500"
+              className="self-start text-sm font-medium text-train-700 dark:text-train-500"
               onClick={() => {
                 // A forgotten set is usually like the one before it.
                 const last = sets.at(-1)

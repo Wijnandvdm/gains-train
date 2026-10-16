@@ -17,7 +17,7 @@ export function ExerciseThumb({ name, src }: { name: string; src?: string }) {
     return (
       <div
         aria-hidden="true"
-        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-lg font-bold text-brand-700 dark:bg-brand-900 dark:text-brand-100"
+        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-train-100 text-lg font-bold text-train-700 dark:bg-train-900 dark:text-train-100"
       >
         {initials(name)}
       </div>

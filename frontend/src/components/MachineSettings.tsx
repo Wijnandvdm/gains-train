@@ -59,7 +59,7 @@ export function MachineSettings({ exerciseId }: { exerciseId: string }) {
 }
 
 const input =
-  'w-full min-w-0 rounded-md border border-transparent bg-neutral-100 px-2 py-1.5 text-sm outline-none focus:border-brand-500 dark:bg-neutral-800'
+  'w-full min-w-0 rounded-md border border-transparent bg-neutral-100 px-2 py-1.5 text-sm outline-none focus:border-train-500 dark:bg-neutral-800'
 
 function EditSettings({
   exerciseId,
@@ -119,7 +119,7 @@ function EditSettings({
         <button
           type="button"
           onClick={() => setRows([...rows, { name: '', value: '' }])}
-          className="self-start text-sm font-medium text-brand-700 dark:text-brand-500"
+          className="self-start text-sm font-medium text-train-700 dark:text-train-500"
         >
           + Add setting
         </button>

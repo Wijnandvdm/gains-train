@@ -15,7 +15,7 @@ export function RestTimerBar({ timer }: { timer: ReturnType<typeof useRestTimer>
     >
       <div
         className={`card mx-auto flex max-w-2xl items-center gap-3 overflow-hidden p-2 shadow-lg ${
-          timer.done ? 'border-brand-500' : ''
+          timer.done ? 'border-train-500' : ''
         }`}
       >
         <div className="relative flex-1 pl-2">
@@ -25,7 +25,7 @@ export function RestTimerBar({ timer }: { timer: ReturnType<typeof useRestTimer>
           </p>
           <div className="mt-1 h-1 rounded bg-neutral-200 dark:bg-neutral-800">
             <div
-              className="h-1 rounded bg-brand-600 transition-[width] duration-300"
+              className="h-1 rounded bg-train-600 transition-[width] duration-300"
               style={{ width: `${progress * 100}%` }}
             />
           </div>

@@ -130,7 +130,7 @@ function OverviewCard({ row }: { row: ExerciseOverview }) {
   return (
     <Link
       to={`/exercises/${exercise.id}`}
-      className="card flex items-center gap-3 p-2 transition hover:border-brand-500"
+      className="card flex items-center gap-3 p-2 transition hover:border-train-500"
     >
       <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
       <div className="min-w-0 flex-1">

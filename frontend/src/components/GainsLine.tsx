@@ -43,7 +43,7 @@ export function LinePills({ line }: { line: GainsLine }) {
         }
         more={changeTarget}
       >
-        <span className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 tone-brand">
+        <span className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 tone-done">
           <span aria-hidden="true" className="h-3 w-3 rounded-full border-[3px] border-current" />
           {streak === 0 ? 'No stations yet' : `${plural(streak, 'station')} in a row`}
         </span>
@@ -101,7 +101,7 @@ export function WeekMarker({
   onBelow: boolean
 }) {
   // The track reaches past the cell, over the gap between the calendar's rows.
-  const track = 'absolute left-1/2 w-1 -translate-x-1/2 bg-brand-600 dark:bg-brand-500'
+  const track = 'absolute left-1/2 w-1 -translate-x-1/2 bg-train-600 dark:bg-train-500'
   return (
     <div className="relative grid h-11 place-items-center">
       {fromAbove && (
@@ -129,7 +129,7 @@ function Marker({ week, target }: { week: LineWeek | undefined; target: number }
         <span
           role="img"
           aria-label="Station reached"
-          className="block h-5 w-5 rounded-full border-4 border-brand-600 bg-white dark:border-brand-500 dark:bg-neutral-900"
+          className="block h-5 w-5 rounded-full border-4 border-done-600 bg-white dark:border-done-500 dark:bg-neutral-900"
         />
       )
     case 'ticket':
@@ -161,7 +161,7 @@ function Marker({ week, target }: { week: LineWeek | undefined; target: number }
         <span
           role="img"
           aria-label={`${week.rides.length} of ${target} rides so far`}
-          className={`${base} border-2 border-dashed border-brand-600 bg-white text-brand-700 dark:border-brand-500 dark:bg-neutral-900 dark:text-brand-500`}
+          className={`${base} border-2 border-dashed border-train-600 bg-white text-train-700 dark:border-train-500 dark:bg-neutral-900 dark:text-train-500`}
         >
           {week.rides.length}/{target}
         </span>
@@ -195,7 +195,7 @@ export function NextStationCard() {
   return (
     <section aria-label="The Gains Line" className="card flex flex-col gap-3 p-3">
       <div>
-        <p className="text-xs font-semibold tracking-wide text-brand-700 uppercase dark:text-brand-500">
+        <p className="text-xs font-semibold tracking-wide text-train-700 uppercase dark:text-train-500">
           {reached ? 'Station reached' : parked ? 'In the depot' : 'Next station'}
         </p>
         <h2 className="text-lg font-bold">
@@ -260,7 +260,7 @@ export function NextStationCard() {
           </div>
 
           {reached ? (
-            <p className={`rounded-lg px-3 py-2 text-sm tone-brand`}>
+            <p className={`rounded-lg px-3 py-2 text-sm tone-done`}>
               {plural(streak, 'station')} in a row!{' '}
               {line.tickets < MAX_TICKETS
                 ? 'Another ride this week earns a ticket.'
@@ -346,19 +346,19 @@ export function DepotControls({ line, compact = false }: { line: GainsLine; comp
 
 function Stop({ done, goal, first }: { done: boolean; goal: boolean; first: boolean }) {
   const color = done
-    ? 'border-brand-600 bg-brand-600'
+    ? 'border-done-600 bg-done-600'
     : 'border-neutral-300 bg-white dark:border-neutral-700 dark:bg-neutral-900'
   return (
     <>
       {!first && (
         <span
           aria-hidden="true"
-          className={`h-1.5 flex-1 ${done ? 'bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+          className={`h-1.5 flex-1 ${done ? 'bg-done-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}
         />
       )}
       <span
         aria-hidden="true"
-        className={`shrink-0 rounded-full border-4 ${goal ? `h-7 w-7 ${done ? color : 'border-brand-600 bg-white dark:bg-neutral-900'}` : `h-5 w-5 ${color}`}`}
+        className={`shrink-0 rounded-full border-4 ${goal ? `h-7 w-7 ${done ? color : 'border-train-600 bg-white dark:bg-neutral-900'}` : `h-5 w-5 ${color}`}`}
       />
     </>
   )

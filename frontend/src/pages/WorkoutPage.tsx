@@ -69,12 +69,12 @@ function FinishedBanner({ workoutId, day }: { workoutId: string; day: string }) 
   return (
     <div
       role="status"
-      className="relative overflow-hidden rounded-lg bg-brand-50 px-4 pt-9 pb-3 text-brand-900 dark:bg-brand-900/40 dark:text-brand-100"
+      className="relative overflow-hidden rounded-lg bg-done-50 px-4 pt-9 pb-3 text-done-900 dark:bg-done-900/40 dark:text-done-100"
     >
       {/* Rolls across once; stays parked on the left with reduced motion. */}
       <TrainIcon
         aria-hidden="true"
-        className="absolute top-2 left-3 h-7 w-7 -scale-x-100 text-brand-600 motion-safe:animate-choo dark:text-brand-500"
+        className="absolute top-2 left-3 h-7 w-7 -scale-x-100 text-train-600 motion-safe:animate-choo dark:text-train-500"
       />
       <p>
         <strong>{WORKOUT.finished}</strong> Workout saved. See it in{' '}
@@ -133,7 +133,7 @@ function UpNext({ routine, onOther }: { routine: Routine; onOther: () => void })
   return (
     <>
       <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium text-brand-600 dark:text-brand-500">
+        <p className="text-sm font-medium text-train-600 dark:text-train-500">
           {dayId === routine.next_day_id ? WORKOUT.nextDay : WORKOUT.otherDay}
         </p>
         <h1 className="text-2xl font-bold">{day.name}</h1>
@@ -238,7 +238,7 @@ function StartWorkout({ onBack }: { onBack?: () => void }) {
                   type="button"
                   disabled={starting}
                   onClick={() => start({ name: w.name!, copyFrom: w.id })}
-                  className="card flex w-full flex-col gap-0.5 p-3 text-left transition hover:border-brand-500"
+                  className="card flex w-full flex-col gap-0.5 p-3 text-left transition hover:border-train-500"
                 >
                   <span className="flex items-baseline justify-between gap-2">
                     <span className="font-medium">{w.name}</span>
@@ -373,7 +373,7 @@ function ActiveWorkout({
       {doneSets > 0 && (
         <p
           aria-live="polite"
-          className="-mt-2 text-center text-sm font-medium text-brand-700 dark:text-brand-500"
+          className="-mt-2 text-center text-sm font-medium text-train-700 dark:text-train-500"
         >
           {cheer(doneSets)}
         </p>
@@ -414,7 +414,7 @@ function ActiveWorkout({
       </button>
       <button
         type="button"
-        className="mx-auto text-sm text-neutral-500 hover:text-red-600"
+        className="mx-auto text-sm text-neutral-500 hover:text-error-600 dark:hover:text-error-400"
         onClick={discard}
       >
         Discard workout

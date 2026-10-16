@@ -1,16 +1,83 @@
 @import 'tailwindcss';
 
-/* Brand colour; everything else uses Tailwind's neutral palette. */
-@theme {
-  --color-brand-50: oklch(0.97 0.03 150);
-  --color-brand-100: oklch(0.94 0.06 150);
-  --color-brand-500: oklch(0.68 0.17 150);
-  --color-brand-600: oklch(
-    0.58 0.16 150
-  ); /* = #009342: also the logo, app icons and install colour */
-  --color-brand-700: oklch(0.5 0.14 150);
-  --color-brand-900: oklch(0.32 0.08 150);
+/* ============================================================================================
+ * COLOURS: change them here.
+ *
+ * Every colour in the app comes from this list (the rest is Tailwind's neutral greys). Change
+ * a hex code and everything using it follows, in light and dark mode: the lighter and darker
+ * shades (backgrounds, hover, text in dark mode) are mixed from it automatically, below.
+ * Keep train, done and error fairly dark: white text sits on them.
+ *
+ * The app icon and splash screen are images: after changing --train, recolour them with
+ * python3 scripts/recolor-icons.py
+ * ========================================================================================== */
+:root {
+  /* The app itself: logo, header, links, focus outlines, the next-station card, the Gains
+     Line track, the train on the move. */
+  --train: #009342;
+  /* Done and good: ✓ Done and the other main buttons, ticked sets, stations reached, filled
+     ride rings, "workout saved". */
+  --done: #009342;
+  /* Tickets (they save your streak) and warm-up sets. */
+  --ticket: #d97706;
+  /* Something's wrong: error messages, Delete, a field that needs fixing. */
+  --error: #dc2626;
+  /* The muscle map: the muscles an exercise works. */
+  --muscle: #15803d;
 
+  /* Passport stamps, one ink per kind. */
+  --stamp-rides: #15803d;
+  --stamp-weight: #1d64c4;
+  --stamp-prs: #b45309;
+  --stamp-streak: #7c3aed;
+  --stamp-steam: #b91c1c;
+  --stamp-explorer: #be185d;
+}
+
+/* --- Worked out from the colours above: no need to change anything below this line. ------- */
+
+/* Shades for Tailwind classes (bg-train-600, text-done-700, …): 50 lightest, 600 the colour
+   itself, 900 darkest. */
+@theme inline {
+  --color-train-50: color-mix(in srgb, var(--train) 8%, white);
+  --color-train-100: color-mix(in srgb, var(--train) 16%, white);
+  --color-train-300: color-mix(in srgb, var(--train) 35%, white);
+  --color-train-400: color-mix(in srgb, var(--train) 50%, white);
+  --color-train-500: color-mix(in srgb, var(--train) 62%, white);
+  --color-train-600: var(--train);
+  --color-train-700: color-mix(in srgb, var(--train) 82%, black);
+  --color-train-800: color-mix(in srgb, var(--train) 68%, black);
+  --color-train-900: color-mix(in srgb, var(--train) 45%, black);
+  --color-done-50: color-mix(in srgb, var(--done) 8%, white);
+  --color-done-100: color-mix(in srgb, var(--done) 16%, white);
+  --color-done-300: color-mix(in srgb, var(--done) 35%, white);
+  --color-done-400: color-mix(in srgb, var(--done) 50%, white);
+  --color-done-500: color-mix(in srgb, var(--done) 62%, white);
+  --color-done-600: var(--done);
+  --color-done-700: color-mix(in srgb, var(--done) 82%, black);
+  --color-done-800: color-mix(in srgb, var(--done) 68%, black);
+  --color-done-900: color-mix(in srgb, var(--done) 45%, black);
+  --color-ticket-50: color-mix(in srgb, var(--ticket) 8%, white);
+  --color-ticket-100: color-mix(in srgb, var(--ticket) 16%, white);
+  --color-ticket-300: color-mix(in srgb, var(--ticket) 35%, white);
+  --color-ticket-400: color-mix(in srgb, var(--ticket) 50%, white);
+  --color-ticket-500: color-mix(in srgb, var(--ticket) 62%, white);
+  --color-ticket-600: var(--ticket);
+  --color-ticket-700: color-mix(in srgb, var(--ticket) 82%, black);
+  --color-ticket-800: color-mix(in srgb, var(--ticket) 68%, black);
+  --color-ticket-900: color-mix(in srgb, var(--ticket) 45%, black);
+  --color-error-50: color-mix(in srgb, var(--error) 8%, white);
+  --color-error-100: color-mix(in srgb, var(--error) 16%, white);
+  --color-error-300: color-mix(in srgb, var(--error) 35%, white);
+  --color-error-400: color-mix(in srgb, var(--error) 50%, white);
+  --color-error-500: color-mix(in srgb, var(--error) 62%, white);
+  --color-error-600: var(--error);
+  --color-error-700: color-mix(in srgb, var(--error) 82%, black);
+  --color-error-800: color-mix(in srgb, var(--error) 68%, black);
+  --color-error-900: color-mix(in srgb, var(--error) 45%, black);
+}
+
+@theme {
   /* A train rolling across the "workout finished" banner. */
   --animate-choo: choo 2.6s ease-in-out both;
   /* Rolls in from the left and parks at the right end of its container. Animates `left`
@@ -26,36 +93,35 @@
   }
 }
 
-/* Chart chrome: recessive gridlines and the card surface (for the ring around dots). */
+/* Colours used outside Tailwind classes: chart lines, the muscle map, stamp inks. */
 :root {
   --chart-grid: var(--color-neutral-200);
   --chart-surface: #fff;
-  /* Muscle map (one green ramp, validated): primary darkest, secondary lightest. */
-  --map-body: #d4d4d4;
-  --map-primary: #14532d;
-  --map-secondary: #22c55e;
-  /* Passport stamps, one ink per kind (ring and text on the card; each also has a label). */
-  --stamp-rides: #15803d;
-  --stamp-weight: #1d64c4;
-  --stamp-prs: #b45309;
-  --stamp-streak: #7c3aed;
-  --stamp-steam: #b91c1c;
-  --stamp-explorer: #be185d;
+  /* Muscle map: primary muscles darkest, secondary lighter. */
+  --map-body: var(--color-neutral-300);
+  --map-primary: var(--muscle);
+  --map-secondary: color-mix(in srgb, var(--muscle) 40%, white);
+  --ink-rides: var(--stamp-rides);
+  --ink-weight: var(--stamp-weight);
+  --ink-prs: var(--stamp-prs);
+  --ink-streak: var(--stamp-streak);
+  --ink-steam: var(--stamp-steam);
+  --ink-explorer: var(--stamp-explorer);
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --chart-grid: var(--color-neutral-800);
     --chart-surface: var(--color-neutral-900);
-    /* On dark, more work = brighter. */
-    --map-body: #404040;
-    --map-primary: #4ade80;
-    --map-secondary: #166534;
-    --stamp-rides: #4ade80;
-    --stamp-weight: #60a5fa;
-    --stamp-prs: #fbbf24;
-    --stamp-streak: #a78bfa;
-    --stamp-steam: #f87171;
-    --stamp-explorer: #f472b6;
+    /* On dark, more work = brighter; stamp inks lighter, to read on the dark card. */
+    --map-body: var(--color-neutral-700);
+    --map-primary: color-mix(in srgb, var(--muscle) 62%, white);
+    --map-secondary: color-mix(in srgb, var(--muscle) 45%, black);
+    --ink-rides: color-mix(in srgb, var(--stamp-rides) 55%, white);
+    --ink-weight: color-mix(in srgb, var(--stamp-weight) 55%, white);
+    --ink-prs: color-mix(in srgb, var(--stamp-prs) 55%, white);
+    --ink-streak: color-mix(in srgb, var(--stamp-streak) 55%, white);
+    --ink-steam: color-mix(in srgb, var(--stamp-steam) 55%, white);
+    --ink-explorer: color-mix(in srgb, var(--stamp-explorer) 55%, white);
   }
 }
 
@@ -81,8 +147,9 @@
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800;
   }
+  /* The main action (✓ Done, Save, …): done green, a shade darker so white text reads well. */
   .btn-primary {
-    @apply border-transparent bg-brand-600 text-white hover:bg-brand-700 dark:hover:bg-brand-700;
+    @apply border-transparent bg-done-700 text-white hover:bg-done-800 dark:hover:bg-done-800;
   }
   .card {
     @apply rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900;
@@ -91,7 +158,7 @@
     @apply inline-flex shrink-0 items-center rounded-full border border-neutral-300 px-3 py-1 text-sm whitespace-nowrap capitalize transition dark:border-neutral-700;
   }
   .chip-active {
-    @apply border-brand-600 bg-brand-600 text-white;
+    @apply border-train-600 bg-train-600 text-white;
   }
   .chip:not(.chip-active) {
     @apply hover:bg-neutral-100 dark:hover:bg-neutral-800;
@@ -104,15 +171,15 @@
   .back-link {
     @apply -ml-2 flex w-fit items-center gap-1 rounded-lg px-2 py-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100;
   }
-  /* Colour tones for highlights: brand green (done, reached) and ticket amber (PRs, tickets). */
-  .tone-brand {
-    @apply bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-100;
+  /* Colour tones for highlights: done green (done, reached) and ticket amber (PRs, tickets). */
+  .tone-done {
+    @apply bg-done-50 text-done-700 dark:bg-done-900/40 dark:text-done-100;
   }
   .tone-ticket {
-    @apply bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300;
+    @apply bg-ticket-100 text-ticket-800 dark:bg-ticket-900/40 dark:text-ticket-300;
   }
   .input {
-    @apply w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 dark:border-neutral-700 dark:bg-neutral-900;
+    @apply w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 outline-none focus:border-train-500 focus:ring-2 focus:ring-train-500/30 dark:border-neutral-700 dark:bg-neutral-900;
   }
 }
 

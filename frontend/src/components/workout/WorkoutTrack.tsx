@@ -28,7 +28,7 @@ export function WorkoutTrack({ stations }: { stations: Station[] }) {
       aria-valuetext={`${done} of ${total} sets`}
       className="relative h-11"
     >
-      {/* Sleepers, then the rail; the part already travelled is in brand green. */}
+      {/* Sleepers, then the rail; the part already travelled is in the train colour. */}
       <div
         className="absolute inset-x-3 top-8 h-2.5 -translate-y-1/2"
         style={{
@@ -38,7 +38,7 @@ export function WorkoutTrack({ stations }: { stations: Station[] }) {
       />
       <div className="absolute inset-x-3 top-8 h-0.5 -translate-y-1/2 rounded bg-neutral-300 dark:bg-neutral-700" />
       <div
-        className="absolute top-8 left-3 h-0.5 -translate-y-1/2 rounded bg-brand-600 motion-safe:transition-[width] motion-safe:duration-700"
+        className="absolute top-8 left-3 h-0.5 -translate-y-1/2 rounded bg-train-600 motion-safe:transition-[width] motion-safe:duration-700"
         style={{ width: `calc((100% - 1.5rem) * ${done / total})` }}
       />
       {stations.map((s, i) => (
@@ -47,7 +47,7 @@ export function WorkoutTrack({ stations }: { stations: Station[] }) {
           title={s.name}
           className={`absolute top-8 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 ${
             s.done >= s.planned
-              ? 'border-brand-600 bg-brand-600'
+              ? 'border-done-600 bg-done-600'
               : 'border-neutral-400 bg-neutral-50 dark:border-neutral-500 dark:bg-neutral-950'
           }`}
           style={{ left: at(positions[i]!) }}
@@ -55,7 +55,7 @@ export function WorkoutTrack({ stations }: { stations: Station[] }) {
       ))}
       {/* The icon faces left; mirror it so the train heads down the line. */}
       <TrainIcon
-        className="absolute top-0 h-7 w-7 -translate-x-1/2 -scale-x-100 text-brand-600 motion-safe:transition-[left] motion-safe:duration-700 dark:text-brand-500"
+        className="absolute top-0 h-7 w-7 -translate-x-1/2 -scale-x-100 text-train-600 motion-safe:transition-[left] motion-safe:duration-700 dark:text-train-500"
         style={{ left: at(done / total) }}
       />
     </div>

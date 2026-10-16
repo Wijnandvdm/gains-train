@@ -39,7 +39,7 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
   return (
     <section
       aria-label="Current set"
-      className="card flex flex-col gap-4 border-brand-500 p-4 shadow-sm"
+      className="card flex flex-col gap-4 border-train-500 p-4 shadow-sm"
     >
       <header className="flex items-center gap-3">
         <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
@@ -64,7 +64,7 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
         {/* Big enough to read at arm's length, mid-set. */}
         <div
           aria-label={`Set ${next.setNumber} of ${next.plannedSets}`}
-          className="flex shrink-0 flex-col items-center rounded-xl bg-brand-600 px-3 py-1 text-white"
+          className="flex shrink-0 flex-col items-center rounded-xl bg-train-600 px-3 py-1 text-white"
         >
           <span aria-hidden="true" className="text-2xl leading-tight font-bold tabular-nums">
             {next.setNumber}/{next.plannedSets}
@@ -161,7 +161,7 @@ function Stepper({
             onChange={(e) => onChange(e.target.value)}
             onFocus={(e) => e.target.select()}
             style={{ fontSize: fitFontSize(value || '–') }}
-            className="w-full min-w-0 rounded-lg bg-transparent py-2 text-center text-3xl leading-9 font-bold tabular-nums outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full min-w-0 rounded-lg bg-transparent py-2 text-center text-3xl leading-9 font-bold tabular-nums outline-none focus:ring-2 focus:ring-train-500"
           />
         </div>
         <button type="button" className={button} onClick={onPlus} aria-label={`+ ${step} ${label}`}>

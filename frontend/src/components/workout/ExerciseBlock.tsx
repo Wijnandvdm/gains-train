@@ -59,7 +59,7 @@ export function ExerciseBlock({ workoutId, workoutExercise, onSetCompleted }: Pr
         <button
           type="button"
           onClick={remove}
-          className="rounded-md px-2 py-1 text-sm text-neutral-500 hover:text-red-600"
+          className="rounded-md px-2 py-1 text-sm text-neutral-500 hover:text-error-600 dark:hover:text-error-400"
         >
           Remove
         </button>
