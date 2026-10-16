@@ -27,7 +27,7 @@ flowchart TB
     UI["Screens<br/>pages/ + components/"]
     HOOKS["Hooks<br/>workout/hooks.ts, stats.ts, line.ts, …"]
     DATA["Data layer<br/>data/*.ts: workouts, stats, routine,<br/>streak, passport, backup"]
-    DB[("IndexedDB, via Dexie<br/>workouts · routine · settings<br/>rest times · custom exercises")]
+    DB[("IndexedDB, via Dexie<br/>workouts · routine · settings<br/>rest times · machine settings<br/>custom exercises")]
     LIBC["Exercise library<br/>data/library.ts"]
     UI -- "reads (live)" --> HOOKS
     HOOKS --> DATA

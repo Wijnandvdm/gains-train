@@ -9,6 +9,10 @@ import type { ExerciseDetail, Settings, StoredRoutine, StoredWorkout } from './t
 
 export type RestPref = { exercise_id: string; rest_seconds: number } // 0 = no rest timer
 
+/** How you set up the machine for an exercise, e.g. Seat 4, Pad L (see data/machineSettings.ts). */
+export type MachineSetting = { name: string; value: string }
+export type MachineSettings = { exercise_id: string; settings: MachineSetting[] }
+
 /** Small singleton documents (the routine, settings), stored by key. */
 type KeyValue = { key: 'routine'; value: StoredRoutine } | { key: 'settings'; value: Settings }
 
@@ -16,6 +20,7 @@ class GainsDb extends Dexie {
   workouts!: EntityTable<StoredWorkout, 'id'>
   customExercises!: EntityTable<ExerciseDetail, 'id'>
   restPrefs!: EntityTable<RestPref, 'exercise_id'>
+  machineSettings!: EntityTable<MachineSettings, 'exercise_id'>
   kv!: EntityTable<KeyValue, 'key'>
 
   constructor(name = 'gains-train') {
@@ -28,6 +33,8 @@ class GainsDb extends Dexie {
       restPrefs: 'exercise_id',
       kv: 'key',
     })
+    // 2: machine settings per exercise. Dexie adds the table and keeps everything else.
+    this.version(2).stores({ machineSettings: 'exercise_id' })
   }
 }
 

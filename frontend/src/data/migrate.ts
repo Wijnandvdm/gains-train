@@ -50,13 +50,15 @@ async function usedExerciseIds(): Promise<Set<string>> {
     day.exercises.forEach((e) => ids.add(e.exercise_id))
   }
   for (const pref of await db.restPrefs.toArray()) ids.add(pref.exercise_id)
+  for (const m of await db.machineSettings.toArray()) ids.add(m.exercise_id)
   return ids
 }
 
 /** Point everything at the new ids, and drop the old custom exercises. */
 async function renameExercises(renames: Map<string, string>): Promise<void> {
   const to = (id: string) => renames.get(id) ?? id
-  await db.transaction('rw', db.workouts, db.customExercises, db.restPrefs, db.kv, async () => {
+  const tables = [db.workouts, db.customExercises, db.restPrefs, db.machineSettings, db.kv]
+  await db.transaction('rw', tables, async () => {
     const workouts = await db.workouts
       .where('exercise_ids')
       .anyOf([...renames.keys()])
@@ -88,6 +90,11 @@ async function renameExercises(renames: Map<string, string>): Promise<void> {
         await db.restPrefs.put({ ...pref, exercise_id: target })
       }
       await db.restPrefs.delete(from)
+      const machine = await db.machineSettings.get(from)
+      if (machine && !(await db.machineSettings.get(target))) {
+        await db.machineSettings.put({ ...machine, exercise_id: target })
+      }
+      await db.machineSettings.delete(from)
     }
     await db.customExercises.bulkDelete([...renames.keys()])
   })

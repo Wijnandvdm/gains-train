@@ -3,6 +3,7 @@ import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/fo
 import { fitFontSize } from '../../lib/fitText'
 import { type NextSet, weightStep } from '../../workout/plan'
 import { ExerciseThumb } from '../ExerciseImage'
+import { MachineSettings } from '../MachineSettings'
 
 type Props = {
   next: NextSet
@@ -21,6 +22,10 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
   const [weight, setWeight] = useState(toText(next.prefill.weight))
   const [reps, setReps] = useState(toText(next.prefill.reps))
   const step = weightStep(exercise)
+  // Machine settings show while you set up the machine, until the exercise's first set is
+  // done; after that the ⚙ shows them again.
+  const setUp = next.item.sets.some((s) => s.completed_at)
+  const [showSettings, setShowSettings] = useState(false)
 
   const repCount = parseReps(reps)
   const weightKg = weight.trim() === '' ? 0 : parseWeight(weight)
@@ -46,6 +51,16 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
             </p>
           )}
         </div>
+        {setUp && !showSettings && (
+          <button
+            type="button"
+            aria-label="Show machine settings"
+            onClick={() => setShowSettings(true)}
+            className="shrink-0 rounded-lg p-2 text-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            ⚙
+          </button>
+        )}
         {/* Big enough to read at arm's length, mid-set. */}
         <div
           aria-label={`Set ${next.setNumber} of ${next.plannedSets}`}
@@ -59,6 +74,7 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
           </span>
         </div>
       </header>
+      {(!setUp || showSettings) && <MachineSettings exerciseId={exercise.id} />}
 
       {/* Weight a little wider than reps (rarely more than 2 digits), so 100 kg fits too. */}
       <div className="grid grid-cols-[1.15fr_1fr] gap-2">

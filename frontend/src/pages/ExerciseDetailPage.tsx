@@ -8,6 +8,7 @@ import {
 } from '../data/customExercises'
 import type { ExerciseDetail } from '../data/types'
 import { CustomExerciseForm } from '../components/CustomExerciseForm'
+import { MachineSettings } from '../components/MachineSettings'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { useAction } from '../lib/useAction'
 import { Drawing } from '../components/ExerciseImage'
@@ -98,6 +99,11 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
       </header>
 
       {exercise.is_custom && <CustomControls exercise={exercise} />}
+
+      <section className="flex flex-col gap-2">
+        <h2 className="font-semibold">Machine settings</h2>
+        <MachineSettings exerciseId={exercise.id} />
+      </section>
 
       <MusclesWorked primary={exercise.primary_muscles} secondary={exercise.secondary_muscles} />
 

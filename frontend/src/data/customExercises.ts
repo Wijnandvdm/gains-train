@@ -93,8 +93,9 @@ export async function deleteCustomExercise(id: string): Promise<void> {
         : 'It’s in your routine: take it out there first.',
     )
   }
-  await db.transaction('rw', db.customExercises, db.restPrefs, async () => {
+  await db.transaction('rw', db.customExercises, db.restPrefs, db.machineSettings, async () => {
     await db.customExercises.delete(id)
-    await db.restPrefs.delete(id) // its rest time, if you set one
+    await db.restPrefs.delete(id) // its rest time and machine settings, if you set any
+    await db.machineSettings.delete(id)
   })
 }

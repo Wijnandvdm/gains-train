@@ -7,6 +7,7 @@
  *   routine.csv           one row per exercise in each routine day
  *   custom-exercises.csv  your own exercises
  *   rest-times.csv        your rest time per exercise
+ *   machine-settings.csv  your machine settings per exercise, one row per setting (since 3)
  *   settings.csv          your settings, plus the file's format, version and date
  * Older backups (one .json file, version 1) can still be imported.
  */
@@ -17,6 +18,7 @@ import {
   DEFAULT_SETTINGS,
   getSettings,
   getStoredRoutine,
+  type MachineSettings,
   type RestPref,
   updateSettings,
 } from './db'
@@ -31,7 +33,7 @@ import type {
 } from './types'
 
 export const BACKUP_FORMAT = 'gains-train-backup'
-export const BACKUP_VERSION = 2
+export const BACKUP_VERSION = 3
 /** What the import file picker accepts: backups (.zip) and older ones (.json). */
 export const BACKUP_FILE_TYPES = '.zip,application/zip,.json,application/json'
 /** Reminder choices in months (0 = never). */
@@ -44,6 +46,8 @@ export type Backup = {
   workouts: StoredWorkout[]
   custom_exercises: ExerciseDetail[]
   rest_prefs: RestPref[]
+  /** Since version 3; older backups have none. */
+  machine_settings: MachineSettings[]
   routine: StoredRoutine | null
   settings: Settings
 }
@@ -58,6 +62,7 @@ export async function createBackup(now = new Date()): Promise<Backup> {
     workouts: await db.workouts.toArray(),
     custom_exercises: await db.customExercises.toArray(),
     rest_prefs: await db.restPrefs.toArray(),
+    machine_settings: await db.machineSettings.toArray(),
     routine: await getStoredRoutine(),
     settings: await getSettings(),
   }
@@ -122,6 +127,7 @@ const CUSTOM_COLUMNS = [
   'id',
 ]
 const REST_COLUMNS = ['exercise', 'rest_seconds', 'exercise_id']
+const MACHINE_COLUMNS = ['exercise', 'setting', 'value', 'exercise_id']
 const SETTINGS_COLUMNS = ['setting', 'value']
 
 const text = (v: string | number | null | undefined) =>
@@ -203,6 +209,15 @@ async function backupToZip(backup: Backup): Promise<Uint8Array> {
     exercise_id: r.exercise_id,
   }))
 
+  const machine = backup.machine_settings.flatMap((m) =>
+    m.settings.map((s) => ({
+      exercise: nameOf(m.exercise_id),
+      setting: s.name,
+      value: s.value,
+      exercise_id: m.exercise_id,
+    })),
+  )
+
   const s = backup.settings
   const settings = Object.entries({
     format: backup.format,
@@ -221,6 +236,7 @@ async function backupToZip(backup: Backup): Promise<Uint8Array> {
     'routine.csv': strToU8(toCsv(ROUTINE_COLUMNS, routine)),
     'custom-exercises.csv': strToU8(toCsv(CUSTOM_COLUMNS, custom)),
     'rest-times.csv': strToU8(toCsv(REST_COLUMNS, rest)),
+    'machine-settings.csv': strToU8(toCsv(MACHINE_COLUMNS, machine)),
     'settings.csv': strToU8(toCsv(SETTINGS_COLUMNS, settings)),
   })
 }
@@ -355,6 +371,16 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
     }),
   )
 
+  // Since version 3: one row per setting, gathered per exercise.
+  const machine = new Map<string, MachineSettings>()
+  if (files['machine-settings.csv']) {
+    for (const r of table(files, 'machine-settings.csv', ['exercise_id'], strFromU8)) {
+      const m = machine.get(r.exercise_id!) ?? { exercise_id: r.exercise_id!, settings: [] }
+      m.settings.push({ name: r.setting ?? '', value: r.value ?? '' })
+      machine.set(m.exercise_id, m)
+    }
+  }
+
   return validateBackup({
     format: BACKUP_FORMAT,
     version: num(setting.version, 'version') ?? BACKUP_VERSION,
@@ -362,6 +388,7 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
     workouts: [...workouts.values()],
     custom_exercises,
     rest_prefs,
+    machine_settings: [...machine.values()],
     routine: days.size ? { days: [...days.values()] } : null,
     settings: {
       ...DEFAULT_SETTINGS,
@@ -408,8 +435,12 @@ function validateBackup(data: unknown): Backup {
   if (data.routine !== null && !(isObject(data.routine) && Array.isArray(data.routine.days))) {
     throw new BackupError('The backup is damaged (routine).')
   }
+  if (data.machine_settings !== undefined && !Array.isArray(data.machine_settings)) {
+    throw new BackupError('The backup is damaged (machine_settings).')
+  }
   return {
     ...(data as unknown as Backup),
+    machine_settings: (data.machine_settings as MachineSettings[] | undefined) ?? [],
     settings: { ...DEFAULT_SETTINGS, ...(isObject(data.settings) ? data.settings : {}) },
   }
 }
@@ -430,16 +461,13 @@ export async function readBackupFile(file: Blob): Promise<Backup> {
 
 /** Replace everything on the device with the backup's contents (all or nothing). */
 export async function restoreBackup(backup: Backup): Promise<Backup> {
-  await db.transaction('rw', db.workouts, db.customExercises, db.restPrefs, db.kv, async () => {
-    await Promise.all([
-      db.workouts.clear(),
-      db.customExercises.clear(),
-      db.restPrefs.clear(),
-      db.kv.clear(),
-    ])
+  const tables = [db.workouts, db.customExercises, db.restPrefs, db.machineSettings, db.kv]
+  await db.transaction('rw', tables, async () => {
+    await Promise.all(tables.map((t) => t.clear()))
     await db.workouts.bulkAdd(backup.workouts)
     await db.customExercises.bulkAdd(backup.custom_exercises)
     await db.restPrefs.bulkAdd(backup.rest_prefs)
+    await db.machineSettings.bulkAdd(backup.machine_settings)
     if (backup.routine) await db.kv.put({ key: 'routine', value: backup.routine })
     // The backup you restore from counts as your last backup.
     await db.kv.put({

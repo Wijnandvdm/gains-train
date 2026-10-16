@@ -50,7 +50,8 @@ Since the data only exists on the phone, losing the phone, uninstalling the app 
 its storage loses it. **Settings → Export backup** saves `gains-train-backup-YYYY-MM-DD.zip`
 via the share sheet (e.g. to Google Drive); **Import backup** restores it on the same or a new
 phone, replacing what's there. The zip holds CSV tables (workouts with one row per set,
-routine, custom exercises, rest times, settings), so every part opens in a spreadsheet.
+routine, custom exercises, rest times, machine settings, settings), so every part opens in a
+spreadsheet.
 
 The app suggests a backup after a workout when the last one is half a year old (Settings →
 Backup: every month, 3 months, 6 months, a year, or never).

@@ -4,6 +4,7 @@ import type { ExerciseSummary, Routine } from '../data/types'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { Spinner } from '../components/Spinner'
 import { ExercisePicker } from '../components/workout/ExercisePicker'
+import { MachineSettings } from '../components/MachineSettings'
 import { useAction } from '../lib/useAction'
 import { uuid } from '../lib/uuid'
 import { deleteRoutine, saveRoutine, useRoutine } from '../routine'
@@ -104,63 +105,69 @@ function RoutineEditor({ routine }: { routine: Routine | null }) {
 
           <ol className="flex flex-col gap-2">
             {day.exercises.map((item, i) => (
-              <li key={item.key} className="flex items-center gap-2">
-                <ExerciseThumb name={item.exercise.name} src={item.exercise.image_urls[0]} />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                  {item.exercise.name}
-                </span>
-                <label className="flex items-center gap-1 text-sm text-neutral-500">
-                  <IconButton
-                    label={`Fewer sets of ${item.exercise.name}`}
-                    disabled={item.sets <= 1}
-                    onClick={() =>
-                      updateDay(day.key, (d) => ({
-                        ...d,
-                        exercises: d.exercises.map((e) =>
-                          e.key === item.key ? { ...e, sets: e.sets - 1 } : e,
-                        ),
-                      }))
-                    }
-                  >
-                    −
-                  </IconButton>
-                  <span className="w-12 text-center tabular-nums" aria-live="polite">
-                    {item.sets} sets
+              <li key={item.key} className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <ExerciseThumb name={item.exercise.name} src={item.exercise.image_urls[0]} />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                    {item.exercise.name}
                   </span>
+                  <label className="flex items-center gap-1 text-sm text-neutral-500">
+                    <IconButton
+                      label={`Fewer sets of ${item.exercise.name}`}
+                      disabled={item.sets <= 1}
+                      onClick={() =>
+                        updateDay(day.key, (d) => ({
+                          ...d,
+                          exercises: d.exercises.map((e) =>
+                            e.key === item.key ? { ...e, sets: e.sets - 1 } : e,
+                          ),
+                        }))
+                      }
+                    >
+                      −
+                    </IconButton>
+                    <span className="w-12 text-center tabular-nums" aria-live="polite">
+                      {item.sets} sets
+                    </span>
+                    <IconButton
+                      label={`More sets of ${item.exercise.name}`}
+                      disabled={item.sets >= 20}
+                      onClick={() =>
+                        updateDay(day.key, (d) => ({
+                          ...d,
+                          exercises: d.exercises.map((e) =>
+                            e.key === item.key ? { ...e, sets: e.sets + 1 } : e,
+                          ),
+                        }))
+                      }
+                    >
+                      +
+                    </IconButton>
+                  </label>
                   <IconButton
-                    label={`More sets of ${item.exercise.name}`}
-                    disabled={item.sets >= 20}
+                    label={`Move ${item.exercise.name} up`}
+                    onClick={() =>
+                      updateDay(day.key, (d) => ({ ...d, exercises: move(d.exercises, i, i - 1) }))
+                    }
+                  >
+                    ↑
+                  </IconButton>
+                  <IconButton
+                    label={`Remove ${item.exercise.name}`}
                     onClick={() =>
                       updateDay(day.key, (d) => ({
                         ...d,
-                        exercises: d.exercises.map((e) =>
-                          e.key === item.key ? { ...e, sets: e.sets + 1 } : e,
-                        ),
+                        exercises: d.exercises.filter((e) => e.key !== item.key),
                       }))
                     }
                   >
-                    +
+                    ×
                   </IconButton>
-                </label>
-                <IconButton
-                  label={`Move ${item.exercise.name} up`}
-                  onClick={() =>
-                    updateDay(day.key, (d) => ({ ...d, exercises: move(d.exercises, i, i - 1) }))
-                  }
-                >
-                  ↑
-                </IconButton>
-                <IconButton
-                  label={`Remove ${item.exercise.name}`}
-                  onClick={() =>
-                    updateDay(day.key, (d) => ({
-                      ...d,
-                      exercises: d.exercises.filter((e) => e.key !== item.key),
-                    }))
-                  }
-                >
-                  ×
-                </IconButton>
+                </div>
+                {/* The exercise's own, saved straight away (not with the routine). */}
+                <div className="pl-12">
+                  <MachineSettings exerciseId={item.exercise.id} />
+                </div>
               </li>
             ))}
           </ol>

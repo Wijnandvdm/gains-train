@@ -14,6 +14,7 @@ const BACKUP: Backup = {
   workouts: [LAST_DAY2],
   custom_exercises: [],
   rest_prefs: [],
+  machine_settings: [],
   routine: DAY2_ROUTINE,
   settings: {
     ...DEFAULT_SETTINGS,
