@@ -1,5 +1,5 @@
-import { type ReactNode, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { BackupFileHint } from '../components/BackupFileHint'
 import { FilePicker } from '../components/FilePicker'
 import { DepotControls } from '../components/GainsLine'
@@ -23,6 +23,14 @@ import { ErrorMessage } from '../components/ErrorMessage'
 export function SettingsPage() {
   const settings = useSettings()
   const line = useGainsLine()
+  // Coming from "Change it →" (a Gains Line bubble): straight to the weekly target.
+  const { hash } = useLocation()
+  const weeklyTarget = useRef<HTMLSelectElement>(null)
+  useEffect(() => {
+    if (hash !== '#weekly-target' || !settings) return
+    weeklyTarget.current?.scrollIntoView({ block: 'center' })
+    weeklyTarget.current?.focus()
+  }, [hash, settings])
   return (
     <section className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold">Settings</h1>
@@ -56,6 +64,8 @@ export function SettingsPage() {
         <label className="flex items-center justify-between gap-3 text-sm">
           Rides per week to reach a station
           <select
+            id="weekly-target"
+            ref={weeklyTarget}
             value={settings?.weekly_target ?? DEFAULT_SETTINGS.weekly_target}
             onChange={(e) => void updateSettings({ weekly_target: Number(e.target.value) })}
             className="input w-auto py-1 text-base"

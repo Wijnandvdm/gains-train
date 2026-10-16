@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { StoredRoutine } from '../data/types'
@@ -38,7 +38,7 @@ describe('calendar history', () => {
   })
   afterEach(() => vi.useRealTimers())
 
-  it('shows the month with rides filling up each week, a legend and totals', async () => {
+  it('shows the month with rides filling up each week, and totals', async () => {
     await seed()
     renderApp('/history?month=2026-09')
 
@@ -46,7 +46,7 @@ describe('calendar history', () => {
     expect(await screen.findByText('3 rides · 9 sets · 9 000 kg')).toBeVisible()
 
     // The rings come with the Gains Line, which may load a moment later.
-    expect(await screen.findByText(/Rings fill up with each ride of the week/)).toBeVisible()
+    await screen.findByRole('img', { name: 'Station reached' })
     // Each day's button names its workouts and the ride of the week (the ring isn't the only cue).
     expect(day('2026-09-15')).toHaveAccessibleName(
       `${formatDay('2026-09-15')}: Day2 · Back, Cardio: ride 3 of 3 this week`,
@@ -63,9 +63,46 @@ describe('calendar history', () => {
     expect(within(week).getByRole('img', { name: 'Station reached' })).toBeVisible()
     expect(screen.getByText('1 station in a row')).toBeVisible()
 
-    // The latest ride day is selected, with its workouts below.
+    // No legends: things explain themselves when tapped.
+    expect(screen.queryByRole('list', { name: 'Week legend' })).toBeNull()
+
+    // The latest ride day is selected, with its workouts below (and its ride of the week).
     expect(day('2026-09-15')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Ride 3 of 3 this week: station reached')).toBeVisible()
     expect(screen.getByRole('link', { name: /Cardio/ })).toHaveAttribute('href', '/history/extra')
+  })
+
+  it('explains a week marker or pill when you tap it', async () => {
+    await seed()
+    const user = userEvent.setup()
+    renderApp('/history?month=2026-09')
+
+    await user.click(await screen.findByRole('button', { name: 'Station reached' }))
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'Station Vladimir: you rode 3 times this week, your target of 3.',
+    )
+    await user.click(screen.getByRole('heading', { name: 'History' })) // anywhere else
+    expect(screen.queryByRole('note')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: /^0 tickets/ }))
+    expect(screen.getByRole('note')).toHaveTextContent(
+      /^Tickets save your streak in a week that falls short\. You earn one every 4 stations/,
+    )
+  })
+
+  it('takes you from a week bubble straight to your weekly target', async () => {
+    await seed()
+    const user = userEvent.setup()
+    const router = renderApp('/history?month=2026-09')
+
+    await user.click(await screen.findByRole('button', { name: 'Station reached' }))
+    expect(screen.getByRole('note')).toHaveTextContent('Want a different number of rides per week?')
+    await user.click(screen.getByRole('link', { name: 'Change it →' }))
+
+    // Settings loads on first use, then the router moves on.
+    await waitFor(() => expect(router.state.location.pathname).toBe('/settings'))
+    const target = await screen.findByLabelText('Rides per week to reach a station')
+    await waitFor(() => expect(target).toHaveFocus())
   })
 
   it('selects days and moves between months', async () => {

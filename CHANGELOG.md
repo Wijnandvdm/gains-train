@@ -32,6 +32,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - History's calendar shows each week filling up instead of a colour per routine day: a
   day's ring fills with the week's rides so far (a third, two thirds, …) and the ride that
   reaches the station closes it.
+- No more legends in History: tap a week marker or the streak and ticket pills for what they
+  mean that week, in a small bubble; a selected day says which ride of the week it was. The
+  week and streak bubbles link straight to your weekly target in Settings.
 
 ### Fixed
 

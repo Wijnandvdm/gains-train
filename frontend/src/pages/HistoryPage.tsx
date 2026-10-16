@@ -1,7 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import type { WorkoutSummary } from '../data/types'
 import { LinePills, WeekMarker } from '../components/GainsLine'
-import { BackIcon, DepotIcon, TicketIcon } from '../components/icons'
+import { BackIcon } from '../components/icons'
 import { type GainsLine, nextMonday, onTheLine, previousMonday, weekOf } from '../data/line'
 import { HISTORY } from '../copy'
 import { useGainsLine } from '../line'
@@ -72,9 +72,7 @@ export function HistoryPage() {
         )}
       </div>
 
-      {line && (
-        <LinePills streak={line.streak} tickets={line.tickets} nextTicketAt={line.nextTicketAt} />
-      )}
+      {line && <LinePills line={line} />}
 
       <div className="card flex flex-col gap-3 p-3">
         <div className="flex items-center justify-between">
@@ -110,52 +108,6 @@ export function HistoryPage() {
           line={line}
           onSelect={(day) => go({ day })}
         />
-
-        {line && finished.length > 0 && (
-          <p className="flex flex-wrap items-center gap-1.5 text-xs text-neutral-500">
-            <span aria-hidden="true" className="flex gap-0.5">
-              {Array.from({ length: Math.min(line.target, 3) }, (_, i) => (
-                <RideRing key={i} rides={i + 1} target={Math.min(line.target, 3)} size={16} />
-              ))}
-            </span>
-            Rings fill up with each ride of the week; {line.target}{' '}
-            {line.target === 1 ? 'ride closes' : 'rides close'} the circle.
-          </p>
-        )}
-        {line && line.weeks.size > 1 && (
-          <ul
-            className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-500"
-            aria-label="Week legend"
-          >
-            <li className="flex items-center gap-1.5">
-              <span
-                aria-hidden="true"
-                className="block h-4 w-4 rounded-full border-[3px] border-brand-600 bg-white dark:border-brand-500 dark:bg-neutral-900"
-              />
-              {line.target} rides: station reached
-            </li>
-            <li className="flex items-center gap-1.5">
-              <span
-                aria-hidden="true"
-                className="grid h-4 w-4 place-items-center rounded-full tone-ticket"
-              >
-                <TicketIcon className="h-3 w-3" />
-              </span>
-              saved by a ticket
-            </li>
-            {[...line.weeks.values()].some((w) => w.state === 'depot') && (
-              <li className="flex items-center gap-1.5">
-                <span
-                  aria-hidden="true"
-                  className="grid h-4 w-4 place-items-center rounded-full bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
-                >
-                  <DepotIcon className="h-3 w-3" />
-                </span>
-                in the depot
-              </li>
-            )}
-          </ul>
-        )}
       </div>
 
       {isPending ? (
@@ -171,6 +123,8 @@ export function HistoryPage() {
             <DayWorkouts
               day={selected}
               workouts={byDay.get(selected) ?? []}
+              rides={ridesUpTo(line, selected, byDay.get(selected) ?? [])}
+              target={line?.target ?? 0}
               isFuture={selected > today}
             />
           )}
@@ -223,10 +177,7 @@ function CalendarGrid({
               const dayWorkouts = byDay.get(day) ?? []
               const isSelected = day === selected
               const isToday = day === today
-              // The week's rides up to and including this day (finished workouts only).
-              const rides = dayWorkouts.some((w) => w.status === 'completed')
-                ? (line?.weeks.get(weekOf(day))?.rides.filter((d) => d <= day).length ?? 0)
-                : 0
+              const rides = ridesUpTo(line, day, dayWorkouts)
               const target = line?.target ?? 0
               const label = [
                 formatDay(day),
@@ -275,6 +226,12 @@ function CalendarGrid({
       </tbody>
     </table>
   )
+}
+
+/** The week's rides up to and including this day: 0 when the day has no finished ride. */
+function ridesUpTo(line: GainsLine | undefined, day: string, workouts: WorkoutSummary[]): number {
+  if (!workouts.some((w) => w.status === 'completed')) return 0
+  return line?.weeks.get(weekOf(day))?.rides.filter((d) => d <= day).length ?? 0
 }
 
 /** The week's marker, with the track joining the weeks before and after while the line runs. */
@@ -353,15 +310,28 @@ function RideRing({
 function DayWorkouts({
   day,
   workouts,
+  rides,
+  target,
   isFuture,
 }: {
   day: string
   workouts: WorkoutSummary[]
+  /** The week's rides up to this day (its ring in the calendar). */
+  rides: number
+  target: number
   isFuture: boolean
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="font-semibold">{formatDay(day)}</h2>
+      <div>
+        <h2 className="font-semibold">{formatDay(day)}</h2>
+        {rides > 0 && target > 0 && (
+          <p className="text-sm text-neutral-500">
+            Ride {rides} of {target} this week
+            {rides === target ? ': station reached' : rides > target ? ': a bonus ride' : ''}
+          </p>
+        )}
+      </div>
       {workouts.length === 0 ? (
         <p className="text-sm text-neutral-500">{isFuture ? 'Not there yet.' : HISTORY.restDay}</p>
       ) : (

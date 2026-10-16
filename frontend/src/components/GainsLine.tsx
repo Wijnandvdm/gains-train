@@ -1,38 +1,85 @@
 // The Gains Line on screen: streak and ticket pills, the week markers in the calendar, the
 // "next station" card on the Workout screen, and the depot. The rules live in data/line.ts.
+// Pills and markers explain themselves when tapped (no legends).
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { DEPOT_WEEKS, leaveDepot, parkWeek, parkWeeks } from '../data/depot'
-import { type GainsLine, type LineWeek, MAX_TICKETS, station } from '../data/line'
+import {
+  type GainsLine,
+  type LineWeek,
+  MAX_TICKETS,
+  station,
+  STATIONS_PER_TICKET,
+} from '../data/line'
 import { useGainsLine } from '../line'
 import { formatDay, parseLocalDate, plural } from '../lib/format'
+import { Explain } from './Explain'
 import { DepotIcon, TicketIcon } from './icons'
 
 const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'short' })
 const km = (n: number) => `${n.toLocaleString()} km`
 
-/** "6 stations in a row" and "1 ticket · next at 8". */
-export function LinePills({
-  streak,
-  tickets,
-  nextTicketAt,
-}: {
-  streak: number
-  tickets: number
-  nextTicketAt: number
-}) {
+/** In a bubble about your weekly target: straight to where you change it. */
+const changeTarget = (
+  <>
+    Want a different number of rides per week?{' '}
+    <Link to="/settings#weekly-target" className="font-semibold whitespace-nowrap underline">
+      Change it →
+    </Link>
+  </>
+)
+
+/** "6 stations in a row" and "1 ticket · next at 8"; tap one for what it means. */
+export function LinePills({ line }: { line: GainsLine }) {
+  const { streak, tickets, target, nextTicketAt } = line
+  const here = station(streak)
   return (
     <div className="flex flex-wrap gap-2 text-sm font-semibold">
-      <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 tone-brand`}>
-        <span aria-hidden="true" className="h-3 w-3 rounded-full border-[3px] border-current" />
-        {streak === 0 ? 'No stations yet' : `${plural(streak, 'station')} in a row`}
-      </span>
-      <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 tone-ticket`}>
-        <TicketIcon className="h-4 w-4" />
-        {plural(tickets, 'ticket')}
-        {tickets < MAX_TICKETS && ` · next at ${nextTicketAt}`}
-      </span>
+      <Explain
+        text={
+          streak === 0
+            ? `No stations yet: ride ${plural(target, 'time')} in a week to reach your first station.`
+            : `${plural(streak, 'station')} in a row: every week with ${plural(target, 'ride')} is a station. You're at ${here.name}, ${km(here.driven)} driven.`
+        }
+        more={changeTarget}
+      >
+        <span className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 tone-brand">
+          <span aria-hidden="true" className="h-3 w-3 rounded-full border-[3px] border-current" />
+          {streak === 0 ? 'No stations yet' : `${plural(streak, 'station')} in a row`}
+        </span>
+      </Explain>
+      <Explain
+        text={`Tickets save your streak in a week that falls short. You earn one every ${STATIONS_PER_TICKET} stations in a row and one for each ride above ${target} in a week, and hold at most ${MAX_TICKETS}.${tickets < MAX_TICKETS ? ` The next one comes at ${nextTicketAt} stations in a row.` : ''}`}
+      >
+        <span className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 tone-ticket">
+          <TicketIcon className="h-4 w-4" />
+          {plural(tickets, 'ticket')}
+          {tickets < MAX_TICKETS && ` · next at ${nextTicketAt}`}
+        </span>
+      </Explain>
     </div>
   )
+}
+
+/** What happened in a week, for its marker's bubble. */
+function weekStory(week: LineWeek, target: number): string {
+  const rides = `${week.rides.length} of ${plural(target, 'ride')}`
+  switch (week.state) {
+    case 'reached':
+      return `Station ${station(week.streak).name}: you rode ${plural(week.rides.length, 'time')} this week, your target of ${target}.`
+    case 'ticket':
+      return `Saved by a ticket: ${rides}, and a ticket kept your streak going.`
+    case 'missed':
+      return `Missed: ${rides} and no ticket to save it, so a new line started after this week.`
+    case 'depot':
+      return 'In the depot: parked for a holiday or injury, so this week doesn’t count against your streak.'
+    case 'open': {
+      const left = target - week.rides.length
+      return `This week so far: ${rides}. ${plural(left, 'more ride')} by Sunday reach${left === 1 ? 'es' : ''} the next station.`
+    }
+    default:
+      return ''
+  }
 }
 
 /**
@@ -63,9 +110,13 @@ export function WeekMarker({
       {onBelow && (
         <span aria-hidden="true" data-track="below" className={`${track} top-1/2 -bottom-0.5`} />
       )}
-      <span className="relative">
-        <Marker week={week} target={target} />
-      </span>
+      {week && week.state !== 'before' ? (
+        <span className="relative">
+          <Explain text={weekStory(week, target)} more={changeTarget} align="right">
+            <Marker week={week} target={target} />
+          </Explain>
+        </span>
+      ) : null}
     </div>
   )
 }
@@ -227,7 +278,7 @@ export function NextStationCard() {
         </>
       )}
 
-      <LinePills streak={streak} tickets={line.tickets} nextTicketAt={line.nextTicketAt} />
+      <LinePills line={line} />
       {!reached && <DepotControls line={line} compact />}
     </section>
   )

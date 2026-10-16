@@ -46,7 +46,7 @@ describe('editing a past workout', () => {
 
     expect(await screen.findByRole('button', { name: 'Edit' })).toBeVisible()
     const shown = screen.getByRole('region', { name: 'Seated Cable Rows' })
-    expect(within(shown).getByText('82.5 × 12')).toBeVisible()
+    expect(await within(shown).findByText('82.5 × 12')).toBeVisible() // once the save shows
     expect(await storedSets()).toEqual(['82.5×12 ✓', '80×11 ✓', '80×11 ✓'])
   })
 
