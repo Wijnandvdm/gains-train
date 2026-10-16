@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
+import { createCustomExercise } from '../../data/customExercises'
 import type { ExerciseSummary } from '../../data/types'
 import { useExerciseSearch } from '../../exercises'
 import { usePaged } from '../../lib/usePaged'
+import { CustomExerciseForm } from '../CustomExerciseForm'
 import { ExerciseThumb } from '../ExerciseImage'
 import { SearchIcon } from '../icons'
 import { Spinner } from '../Spinner'
 
-/** Full-screen sheet to search for an exercise and add it to the workout. */
+/**
+ * Full-screen sheet to search for an exercise and add it to the workout. Not in the library?
+ * The last row makes it as your own exercise, named as you searched, and adds it.
+ */
 export function ExercisePicker({
   onPick,
   onClose,
@@ -17,6 +22,7 @@ export function ExercisePicker({
   const [text, setText] = useState('')
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const [creating, setCreating] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => setQuery(text.trim()), 250)
@@ -32,6 +38,15 @@ export function ExercisePicker({
 
   const results = useExerciseSearch({ q: query || undefined })
   const { visible: exercises, hasMore, showMore } = usePaged(results.data)
+  const create = query && (
+    <button
+      type="button"
+      onClick={() => setCreating(query)}
+      className="card flex w-full items-center gap-3 border-dashed p-3 text-left font-medium text-brand-700 transition hover:border-brand-500 dark:text-brand-500"
+    >
+      + Create “{query}”
+    </button>
+  )
 
   return (
     <div
@@ -64,7 +79,16 @@ export function ExercisePicker({
         </div>
 
         <div className="-mx-4 flex-1 overflow-y-auto px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          {results.isPending ? (
+          {creating !== null ? (
+            <CustomExerciseForm
+              title="New exercise"
+              initial={{ name: creating, muscle: null }}
+              submitLabel="Create and add"
+              onSave={createCustomExercise}
+              onSaved={onPick}
+              onCancel={() => setCreating(null)}
+            />
+          ) : results.isPending ? (
             <Spinner />
           ) : results.isError ? (
             <p className="py-8 text-center text-neutral-500">
@@ -74,7 +98,10 @@ export function ExercisePicker({
               </button>
             </p>
           ) : exercises.length === 0 ? (
-            <p className="py-8 text-center text-neutral-500">No exercises found.</p>
+            <div className="flex flex-col gap-2">
+              <p className="py-6 text-center text-neutral-500">No exercises found.</p>
+              {create}
+            </div>
           ) : (
             <ul className="flex flex-col gap-2">
               {exercises.map((exercise) => (
@@ -103,6 +130,7 @@ export function ExercisePicker({
                   </button>
                 </li>
               )}
+              {create && <li>{create}</li>}
             </ul>
           )}
         </div>

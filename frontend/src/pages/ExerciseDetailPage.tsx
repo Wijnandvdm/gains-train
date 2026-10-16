@@ -1,6 +1,15 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import {
+  customExerciseUse,
+  deleteCustomExercise,
+  updateCustomExercise,
+} from '../data/customExercises'
 import type { ExerciseDetail } from '../data/types'
+import { CustomExerciseForm } from '../components/CustomExerciseForm'
+import { ErrorMessage } from '../components/ErrorMessage'
+import { useAction } from '../lib/useAction'
 import { Drawing } from '../components/ExerciseImage'
 import { ExerciseProgress } from '../components/ExerciseProgress'
 import { BackIcon } from '../components/icons'
@@ -88,6 +97,8 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
         </ul>
       </header>
 
+      {exercise.is_custom && <CustomControls exercise={exercise} />}
+
       <MusclesWorked primary={exercise.primary_muscles} secondary={exercise.secondary_muscles} />
 
       <ExerciseProgress exerciseId={exercise.id} />
@@ -103,6 +114,65 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
         </section>
       )}
     </article>
+  )
+}
+
+/** Your own exercise: change it (name, muscle, how-to steps), or delete it while unused. */
+function CustomControls({ exercise }: { exercise: ExerciseDetail }) {
+  const navigate = useNavigate()
+  const [editing, setEditing] = useState(false)
+  const use = useLiveQuery(() => customExerciseUse(exercise.id), [exercise.id])
+  const remove = useAction(deleteCustomExercise)
+
+  if (editing) {
+    return (
+      <CustomExerciseForm
+        title="Change exercise"
+        initial={{
+          name: exercise.name,
+          muscle: exercise.primary_muscles[0] ?? null,
+          instructions: exercise.instructions,
+        }}
+        withSteps
+        submitLabel="Save"
+        onSave={(input) => updateCustomExercise(exercise.id, input)}
+        onSaved={() => setEditing(false)}
+        onCancel={() => setEditing(false)}
+      />
+    )
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className="btn" onClick={() => setEditing(true)}>
+          {exercise.instructions.length > 0 ? 'Edit' : 'Edit · add how-to steps'}
+        </button>
+        {use === null && (
+          <button
+            type="button"
+            className="btn text-red-600"
+            disabled={remove.isPending}
+            onClick={() => {
+              if (!window.confirm(`Delete “${exercise.name}”?`)) return
+              remove.run(exercise.id).then(
+                () => navigate('/exercises', { replace: true }),
+                () => {},
+              )
+            }}
+          >
+            Delete
+          </button>
+        )}
+      </div>
+      {use && (
+        <p className="text-sm text-neutral-500">
+          {use === 'workouts'
+            ? 'You’ve logged this exercise, so it can’t be deleted: your history needs it.'
+            : 'It’s in your routine, so it can’t be deleted; take it out there first.'}
+        </p>
+      )}
+      <ErrorMessage error={remove.error} prefix="Couldn't delete:" />
+    </div>
   )
 }
 

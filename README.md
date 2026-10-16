@@ -82,7 +82,7 @@ Backup: every month, 3 months, 6 months, a year, or never).
 # TODO:
 1. Add custom settings per exercise (s/m/l/xl, 13, -1, etc. Think leg curl). These settings should be visible next to thr weight and reps and should perhaps dissappear when first set is done?
 
-2. Ability to restructure workouts on the go by drag and dropping an exercise lower or higher (perhaps also put in a different from the routine exercise). There should be a small text that asks you if you wamt that to be the standard from now on that dissappears when you ignore it for a few seconds or put in number and weight for the exercise
+2. Ability to restructure workouts on the go by drag and dropping an exercise lower or higher (perhaps also put in a different from the routine exercise). There should be a small text that asks you if you want that to be the standard from now on that dissappears when you ignore it for a few seconds or put in number and weight for the exercise
 
 3. Three digits weights dont fit completely in the weights section during a workout (humblebrag spotted)
 
@@ -90,4 +90,4 @@ Backup: every month, 3 months, 6 months, a year, or never).
 
 5. option for Custom exercises back in
 
-6. Option to edit past workouts
+6. check out the hex color #cc0000 for theme color

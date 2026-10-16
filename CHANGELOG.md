@@ -16,6 +16,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   shovelled into the firebox (plus a word from the boiler when you set a record).
 - Edit a past workout: change a set's weight or reps, remove sets you didn't do, or add one
   you forgot. Records, charts, the Gains Line and stamps follow.
+- Your own exercises, for what the library doesn't have: make one right from the exercise
+  picker (or Exercises → New exercise) with a name and main muscle, and add how-to steps
+  any time later. Rename it, or delete it while you haven't used it.
 
 ### Changed
 
