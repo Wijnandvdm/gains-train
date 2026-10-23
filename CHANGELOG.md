@@ -19,8 +19,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Your own exercises, for what the library doesn't have: make one right from the exercise
   picker (or Exercises → New exercise) with a name and main muscle, and add how-to steps
   any time later. Rename it, or delete it while you haven't used it.
-- Machine settings per exercise (Seat 4, Pad L, −1): on the set card until the first set is
-  done (⚙ shows them again), and changeable there, in the routine editor or on the
+- Exercise preferences per exercise (Seat 4, Pad L, −1): on the set card until the first set
+  is done (⚙ shows them again), and changeable there, in the routine editor or on the
   exercise's page. Backups include them (backup format 3).
 - One or two dumbbells, per exercise: choose on its page whether you log one dumbbell, the
   weight of each of two, or the total. The set card says "kg each" or "kg total", and volume

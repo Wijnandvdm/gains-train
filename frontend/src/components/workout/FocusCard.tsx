@@ -25,7 +25,7 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
   const step = weightStep(exercise)
   // "kg each" or "kg total" for two-dumbbell exercises, so it's clear what to type.
   const unit = weightUnit(useDumbbellMode(exercise) ?? null)
-  // Machine settings show while you set up the machine, until the exercise's first set is
+  // Exercise preferences show while you set up the machine, until the exercise's first set is
   // done; after that the ⚙ shows them again.
   const setUp = next.item.sets.some((s) => s.completed_at)
   const [showSettings, setShowSettings] = useState(false)
@@ -57,7 +57,7 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
         {setUp && !showSettings && (
           <button
             type="button"
-            aria-label="Show machine settings"
+            aria-label="Show exercise preferences"
             onClick={() => setShowSettings(true)}
             className="shrink-0 rounded-lg p-2 text-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >

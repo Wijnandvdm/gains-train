@@ -53,7 +53,7 @@ describe('one or two dumbbells', () => {
   it('has no choice for exercises without dumbbells', async () => {
     await seedDevice()
     renderApp('/exercises/Seated_Cable_Rows')
-    await screen.findByRole('heading', { name: 'Machine settings' })
+    await screen.findByRole('heading', { name: 'Exercise preferences' })
     expect(screen.queryByRole('radiogroup', { name: 'Dumbbells' })).toBeNull()
   })
 })

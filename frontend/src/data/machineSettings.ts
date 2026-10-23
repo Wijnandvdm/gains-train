@@ -1,8 +1,8 @@
 /**
- * Machine settings: how you set up the machine for an exercise, the same every time (Seat 4,
- * Pad L, Back −1). Per exercise, not per workout or routine: change them anywhere (the set
- * card, the routine editor, the exercise's page) and they're the same everywhere. A setting
- * can also be just a value ("13").
+ * Exercise preferences ("machine settings" in the code, the data and backups): how you set up
+ * the machine for an exercise, the same every time (Seat 4, Pad L, Back −1). Per exercise, not
+ * per workout or routine: change them anywhere (the set card, the routine editor, the
+ * exercise's page) and they're the same everywhere. A setting can also be just a value ("13").
  */
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type MachineSetting } from './db'

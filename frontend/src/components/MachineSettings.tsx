@@ -1,4 +1,4 @@
-// An exercise's machine settings (Seat 4, Pad L) as chips, changed right there: on the set
+// An exercise's preferences (Seat 4, Pad L: how you set it up) as chips, changed right there: on the set
 // card, in the routine editor and on the exercise's page. The rules live in
 // data/machineSettings.ts.
 import { useState } from 'react'
@@ -30,13 +30,13 @@ export function MachineSettings({ exerciseId }: { exerciseId: string }) {
         onClick={() => setEditing(true)}
         className="self-start text-sm text-neutral-500 underline"
       >
-        + Machine settings
+        + Exercise preferences
       </button>
     )
   }
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <ul aria-label="Machine settings" className="contents">
+      <ul aria-label="Exercise preferences" className="contents">
         {settings.map((s, i) => (
           <li
             key={i}
@@ -48,7 +48,7 @@ export function MachineSettings({ exerciseId }: { exerciseId: string }) {
       </ul>
       <button
         type="button"
-        aria-label="Change machine settings"
+        aria-label="Change exercise preferences"
         onClick={() => setEditing(true)}
         className="rounded-md px-1.5 py-0.5 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
       >
@@ -77,7 +77,7 @@ function EditSettings({
 
   return (
     <form
-      aria-label="Machine settings"
+      aria-label="Exercise preferences"
       className="flex flex-col gap-2 rounded-lg bg-neutral-50 p-2 dark:bg-neutral-900"
       onSubmit={(e) => {
         e.preventDefault()
@@ -85,7 +85,7 @@ function EditSettings({
       }}
     >
       <p className="text-xs text-neutral-500">
-        How you set up the machine, e.g. Seat 4 or Pad L. Saved for next time.
+        How you like it set up, e.g. Seat 4 or Pad L. Saved for next time.
       </p>
       {rows.map((row, i) => (
         <div key={i} className="grid grid-cols-[1fr_1fr_2rem] items-center gap-1.5">

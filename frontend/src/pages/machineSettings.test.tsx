@@ -7,13 +7,13 @@ import { renderApp } from '../test/utils'
 
 const card = () => screen.getByRole('region', { name: 'Current set' })
 const chips = (within_: HTMLElement) =>
-  within(within(within_).getByRole('list', { name: 'Machine settings' }))
+  within(within(within_).getByRole('list', { name: 'Exercise preferences' }))
     .getAllByRole('listitem')
     .map((li) => li.textContent)
 
 async function addSettings(user: ReturnType<typeof userEvent.setup>, where: HTMLElement) {
   // The settings load a moment after the screen.
-  await user.click(await within(where).findByRole('button', { name: '+ Machine settings' }))
+  await user.click(await within(where).findByRole('button', { name: '+ Exercise preferences' }))
   await user.type(within(where).getByLabelText('Setting 1 name'), 'Seat')
   await user.type(within(where).getByLabelText('Setting 1 value'), '4')
   await user.click(within(where).getByRole('button', { name: '+ Add setting' }))
@@ -21,7 +21,7 @@ async function addSettings(user: ReturnType<typeof userEvent.setup>, where: HTML
   await user.click(within(where).getByRole('button', { name: 'Save' }))
 }
 
-describe('machine settings', () => {
+describe('exercise preferences', () => {
   it('shows them on the set card until the first set is done, then on ⚙', async () => {
     await seedDevice({ routine: DAY2_ROUTINE, workouts: [LAST_DAY2] })
     await db.machineSettings.put({
@@ -36,15 +36,15 @@ describe('machine settings', () => {
 
     // The card settles once last time's numbers are in (80 × 12).
     await screen.findByDisplayValue('80')
-    expect(await within(card()).findByRole('list', { name: 'Machine settings' })).toBeVisible()
+    expect(await within(card()).findByRole('list', { name: 'Exercise preferences' })).toBeVisible()
     expect(chips(card())).toEqual(['Seat 4', 'Pad L'])
 
     await user.click(within(card()).getByRole('button', { name: '✓ Done' }))
-    await screen.findByRole('button', { name: 'Show machine settings' }) // set 2's card
-    expect(within(card()).queryByRole('list', { name: 'Machine settings' })).toBeNull()
+    await screen.findByRole('button', { name: 'Show exercise preferences' }) // set 2's card
+    expect(within(card()).queryByRole('list', { name: 'Exercise preferences' })).toBeNull()
     // Set 2's card settles while the workout loads: tap ⚙ until the settings show.
     await waitFor(async () => {
-      const gear = within(card()).queryByRole('button', { name: 'Show machine settings' })
+      const gear = within(card()).queryByRole('button', { name: 'Show exercise preferences' })
       if (gear) await user.click(gear)
       expect(chips(card())).toEqual(['Seat 4', 'Pad L'])
     })
@@ -58,7 +58,7 @@ describe('machine settings', () => {
     // The card settles once last time's numbers are in (80 × 12).
     await screen.findByDisplayValue('80')
     await addSettings(user, card())
-    expect(await within(card()).findByRole('list', { name: 'Machine settings' })).toBeVisible()
+    expect(await within(card()).findByRole('list', { name: 'Exercise preferences' })).toBeVisible()
     expect(chips(card())).toEqual(['Seat 4', '13'])
     expect((await db.machineSettings.get(ROW.id))!.settings).toEqual([
       { name: 'Seat', value: '4' },
@@ -73,7 +73,7 @@ describe('machine settings', () => {
 
     const row = (await screen.findByText(ROW.name)).closest('li')!
     await addSettings(user, row)
-    expect(await within(row).findByRole('list', { name: 'Machine settings' })).toBeVisible()
+    expect(await within(row).findByRole('list', { name: 'Exercise preferences' })).toBeVisible()
     expect((await db.machineSettings.get(ROW.id))!.settings).toHaveLength(2)
   })
 
@@ -82,12 +82,12 @@ describe('machine settings', () => {
     const user = userEvent.setup()
     renderApp(`/exercises/${ROW.id}`)
 
-    const section = (await screen.findByRole('heading', { name: 'Machine settings' }))
+    const section = (await screen.findByRole('heading', { name: 'Exercise preferences' }))
       .parentElement!
     await addSettings(user, section)
-    expect(await within(section).findByRole('list', { name: 'Machine settings' })).toBeVisible()
+    expect(await within(section).findByRole('list', { name: 'Exercise preferences' })).toBeVisible()
 
-    await user.click(within(section).getByRole('button', { name: 'Change machine settings' }))
+    await user.click(within(section).getByRole('button', { name: 'Change exercise preferences' }))
     await user.click(within(section).getByRole('button', { name: 'Remove setting 2' }))
     await user.click(within(section).getByRole('button', { name: 'Save' }))
     expect(await within(section).findByText('Seat 4')).toBeVisible()

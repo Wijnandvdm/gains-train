@@ -102,7 +102,7 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
       {exercise.is_custom && <CustomControls exercise={exercise} />}
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-semibold">Machine settings</h2>
+        <h2 className="font-semibold">Exercise preferences</h2>
         <MachineSettings exerciseId={exercise.id} />
       </section>
 
