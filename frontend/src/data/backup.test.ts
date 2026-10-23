@@ -65,6 +65,7 @@ async function someData() {
     image_urls: [],
   })
   await db.restPrefs.add({ exercise_id: 'Hack_Squat', rest_seconds: 195 })
+  await db.dumbbellModes.add({ exercise_id: 'Hack_Squat', mode: 'total' })
   await db.machineSettings.add({
     exercise_id: 'Hack_Squat',
     settings: [
@@ -91,6 +92,7 @@ const everything = async () => ({
   customs: await db.customExercises.toArray(),
   rest: await db.restPrefs.toArray(),
   machine: await db.machineSettings.toArray(),
+  dumbbells: await db.dumbbellModes.toArray(),
   routine: await getStoredRoutine(),
   settings: { ...(await getSettings()), last_backup_at: null, backup_reminded_at: null },
 })
@@ -115,6 +117,7 @@ describe('backups', () => {
     const files = unzipSync(saved()[1] as Uint8Array)
     expect(Object.keys(files).sort()).toEqual([
       'custom-exercises.csv',
+      'dumbbells.csv',
       'machine-settings.csv',
       'rest-times.csv',
       'routine.csv',
@@ -145,6 +148,7 @@ describe('backups', () => {
     await exportBackup()
     const files = unzipSync(saved()[1] as Uint8Array)
     delete files['machine-settings.csv'] // a version 2 zip
+    delete files['dumbbells.csv']
     const json = { ...(await createBackup()), version: 1 } as Partial<Backup>
     delete json.machine_settings // an older .json
     await Promise.all(db.tables.map((t) => t.clear()))

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/format'
 import { fitFontSize } from '../../lib/fitText'
 import { type NextSet, weightStep } from '../../workout/plan'
+import { useDumbbellMode, weightUnit } from '../../data/dumbbells'
 import { ExerciseThumb } from '../ExerciseImage'
 import { MachineSettings } from '../MachineSettings'
 
@@ -22,6 +23,8 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
   const [weight, setWeight] = useState(toText(next.prefill.weight))
   const [reps, setReps] = useState(toText(next.prefill.reps))
   const step = weightStep(exercise)
+  // "kg each" or "kg total" for two-dumbbell exercises, so it's clear what to type.
+  const unit = weightUnit(useDumbbellMode(exercise) ?? null)
   // Machine settings show while you set up the machine, until the exercise's first set is
   // done; after that the ⚙ shows them again.
   const setUp = next.item.sets.some((s) => s.completed_at)
@@ -79,7 +82,7 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
       {/* Weight a little wider than reps (rarely more than 2 digits), so 100 kg fits too. */}
       <div className="grid grid-cols-[1.15fr_1fr] gap-2">
         <Stepper
-          label="kg"
+          label={unit}
           value={weight}
           inputMode="decimal"
           onChange={setWeight}

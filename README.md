@@ -50,8 +50,8 @@ Since the data only exists on the phone, losing the phone, uninstalling the app 
 its storage loses it. **Settings → Export backup** saves `gains-train-backup-YYYY-MM-DD.zip`
 via the share sheet (e.g. to Google Drive); **Import backup** restores it on the same or a new
 phone, replacing what's there. The zip holds CSV tables (workouts with one row per set,
-routine, custom exercises, rest times, machine settings, settings), so every part opens in a
-spreadsheet.
+routine, custom exercises, rest times, machine settings, dumbbells, settings), so every part
+opens in a spreadsheet.
 
 The app suggests a backup after a workout when the last one is half a year old (Settings →
 Backup: every month, 3 months, 6 months, a year, or never).
@@ -83,6 +83,5 @@ Backup: every month, 3 months, 6 months, a year, or never).
 # TODO:
 1. How does stick figures work for representing exercises? I have a feeling that I do miss a few. Perhaps also generate them with AI? Chatgpt?
 5. in progress tab, drop 1repmax to last and make volume default
-6. rename machine settings to exercises
-7. how to deal with exercises that use two dumbells? How is it clear if we use omthe weight of one dumbell or two?
+6. rename machine settings to exercise preferences
 8. old colors back, it used to be a different green

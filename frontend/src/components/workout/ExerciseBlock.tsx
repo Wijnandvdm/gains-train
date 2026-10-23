@@ -7,6 +7,7 @@ import { useLastTime, useWorkoutActions } from '../../workout/hooks'
 import { prsForSets } from '../../workout/prs'
 import { matchPrevious, setLabels } from '../../workout/sets'
 import { useExerciseStats } from '../../stats'
+import { useDumbbellMode, weightUnit } from '../../data/dumbbells'
 import { ExerciseThumb } from '../ExerciseImage'
 import { RestPicker } from './RestPicker'
 import { SetRow } from './SetRow'
@@ -33,6 +34,7 @@ export function ExerciseBlock({
   const actions = useWorkoutActions()
   const lastTime = useLastTime(exercise.id).data
   const labels = setLabels(sets)
+  const unit = weightUnit(useDumbbellMode(exercise) ?? null)
   const previous = matchPrevious(sets, lastTime?.sets ?? [])
   const prs = prsForSets(sets, useExerciseStats(exercise.id).data?.records ?? null)
 
@@ -82,7 +84,7 @@ export function ExerciseBlock({
           <div className="grid grid-cols-[2.25rem_1fr_4.5rem_3.5rem_2.5rem_1.75rem] gap-1.5 px-1 text-xs font-medium text-neutral-500 uppercase">
             <span className="text-center">Set</span>
             <span>Previous</span>
-            <span className="text-center">kg</span>
+            <span className="text-center">{unit}</span>
             <span className="text-center">Reps</span>
             <span />
             <span />

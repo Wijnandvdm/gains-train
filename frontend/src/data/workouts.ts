@@ -3,6 +3,7 @@
  * Each workout is one document with its exercises and sets nested inside.
  */
 import { uuid } from '../lib/uuid'
+import type { WeightCount } from './dumbbells'
 import { db } from './db'
 import type {
   ExerciseId,
@@ -115,8 +116,14 @@ export function hydrate(w: StoredWorkout, lookup: ExerciseLookup): WorkoutDetail
   }
 }
 
-export function summarize(w: StoredWorkout, lookup: ExerciseLookup): WorkoutSummary {
-  const done = w.exercises.flatMap((we) => we.sets).filter((s) => isPerformed(s, w))
+export function summarize(
+  w: StoredWorkout,
+  lookup: ExerciseLookup,
+  count: WeightCount = () => 1,
+): WorkoutSummary {
+  const done = w.exercises.flatMap((we) =>
+    we.sets.filter((s) => isPerformed(s, w)).map((s) => ({ ...s, count: count(we.exercise_id) })),
+  )
   return {
     id: w.id,
     name: w.name,
@@ -127,7 +134,7 @@ export function summarize(w: StoredWorkout, lookup: ExerciseLookup): WorkoutSumm
     ended_at: w.ended_at,
     exercise_names: w.exercises.map((we) => lookup(we.exercise_id).name),
     set_count: done.length,
-    volume_kg: done.reduce((sum, s) => sum + s.weight_kg! * s.reps!, 0),
+    volume_kg: done.reduce((sum, s) => sum + s.weight_kg! * s.reps! * s.count, 0),
   }
 }
 

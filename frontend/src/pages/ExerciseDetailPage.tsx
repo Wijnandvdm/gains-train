@@ -8,6 +8,7 @@ import {
 } from '../data/customExercises'
 import type { ExerciseDetail } from '../data/types'
 import { CustomExerciseForm } from '../components/CustomExerciseForm'
+import { DumbbellChoice } from '../components/DumbbellChoice'
 import { MachineSettings } from '../components/MachineSettings'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { useAction } from '../lib/useAction'
@@ -104,6 +105,8 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
         <h2 className="font-semibold">Machine settings</h2>
         <MachineSettings exerciseId={exercise.id} />
       </section>
+
+      <DumbbellChoice exercise={exercise} />
 
       <MusclesWorked primary={exercise.primary_muscles} secondary={exercise.secondary_muscles} />
 

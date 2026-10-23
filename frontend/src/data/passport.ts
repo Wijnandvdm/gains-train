@@ -4,6 +4,7 @@
  * workout, so finishing a workout can announce the stamps it earned.
  */
 import { detectPRs } from '../workout/prs'
+import type { WeightCount } from './dumbbells'
 import { gainsLine, nextMonday, weekOf } from './line'
 import { type PerformedSet, performedSets } from './stats'
 import type { StoredWorkout } from './types'
@@ -148,6 +149,7 @@ export function passport(
   workouts: StoredWorkout[],
   line: { target: number; depot: ReadonlySet<string>; today: string },
   library: ReadonlySet<string>,
+  count?: WeightCount,
 ): Passport {
   const done = chronological(workouts)
   const at = (w: StoredWorkout): Milestone => ({ day: w.performed_on, workoutId: w.id })
@@ -157,8 +159,11 @@ export function passport(
 
   // Weight hauled, in tonnes, workout by workout
   const perWorkout = new Map<string, number>()
-  for (const s of performedSets(done)) {
-    perWorkout.set(s.workout_id, (perWorkout.get(s.workout_id) ?? 0) + s.weight_kg * s.reps)
+  for (const s of performedSets(done, undefined, count)) {
+    perWorkout.set(
+      s.workout_id,
+      (perWorkout.get(s.workout_id) ?? 0) + s.weight_kg * s.reps * s.count,
+    )
   }
   let total = 0
   const hauled = done.map((w) => {

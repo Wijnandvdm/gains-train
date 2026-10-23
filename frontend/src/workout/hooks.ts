@@ -31,6 +31,7 @@ import {
   workoutsBetween,
   newSet,
 } from '../data/workouts'
+import { useWeightCount } from '../data/dumbbells'
 import { useExerciseLookup } from '../exercises'
 import { localDateString } from '../lib/format'
 
@@ -77,10 +78,11 @@ export function useWorkoutSummaries(
   to?: string,
 ): { data: WorkoutSummary[] | undefined; isPending: boolean } {
   const lookup = useExerciseLookup()
+  const count = useWeightCount()
   const stored = useLiveQuery(() => workoutsBetween(from, to), [from, to])
   const data = useMemo(
-    () => (stored && lookup ? stored.map((w) => summarize(w, lookup)) : undefined),
-    [stored, lookup],
+    () => (stored && lookup && count ? stored.map((w) => summarize(w, lookup, count)) : undefined),
+    [stored, lookup, count],
   )
   return { data, isPending: data === undefined }
 }

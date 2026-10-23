@@ -10,6 +10,7 @@
  * Only finished workouts count, and only performed sets (see isPerformed).
  */
 import { e1rm } from '../workout/prs'
+import type { WeightCount } from './dumbbells'
 import type {
   ExerciseId,
   ExerciseOverview,
@@ -28,13 +29,19 @@ export type PerformedSet = {
   performed_on: string
   weight_kg: number
   reps: number
+  /** How many times the weight counts in volume: 2 for two dumbbells logged as "each". */
+  count: number
 }
 
 /** 0.01 kg precision, like the numbers the old API sent. */
 const kg = (value: number) => Math.round(value * 100) / 100
 
 /** Performed sets of finished workouts, oldest first (the order records are dated by). */
-export function performedSets(workouts: StoredWorkout[], exerciseId?: ExerciseId): PerformedSet[] {
+export function performedSets(
+  workouts: StoredWorkout[],
+  exerciseId?: ExerciseId,
+  count: WeightCount = () => 1,
+): PerformedSet[] {
   const ordered = workouts
     .filter((w) => w.status === 'completed')
     .sort(
@@ -54,12 +61,14 @@ export function performedSets(workouts: StoredWorkout[], exerciseId?: ExerciseId
             performed_on: w.performed_on,
             weight_kg: s.weight_kg!,
             reps: s.reps!,
+            count: count(we.exercise_id),
           })),
       ),
   )
 }
 
-const volume = (sets: PerformedSet[]) => sets.reduce((sum, s) => sum + s.weight_kg * s.reps, 0)
+const volume = (sets: PerformedSet[]) =>
+  sets.reduce((sum, s) => sum + s.weight_kg * s.reps * s.count, 0)
 
 function groupBy<K>(sets: PerformedSet[], key: (s: PerformedSet) => K): Map<K, PerformedSet[]> {
   const groups = new Map<K, PerformedSet[]>()
@@ -138,8 +147,12 @@ export function records(sets: PerformedSet[]): Records | null {
   }
 }
 
-export function exerciseStats(workouts: StoredWorkout[], exerciseId: ExerciseId): ExerciseStats {
-  const sets = performedSets(workouts, exerciseId)
+export function exerciseStats(
+  workouts: StoredWorkout[],
+  exerciseId: ExerciseId,
+  count?: WeightCount,
+): ExerciseStats {
+  const sets = performedSets(workouts, exerciseId, count)
   return { records: records(sets), sessions: sessions(sets) }
 }
 
@@ -147,9 +160,13 @@ export function exerciseStats(workouts: StoredWorkout[], exerciseId: ExerciseId)
 export function overview(
   workouts: StoredWorkout[],
   lookup: (id: ExerciseId) => ExerciseSummary,
+  count?: WeightCount,
 ): ExerciseOverview[] {
   const rows: ExerciseOverview[] = []
-  for (const [exerciseId, group] of groupBy(performedSets(workouts), (s) => s.exercise_id)) {
+  for (const [exerciseId, group] of groupBy(
+    performedSets(workouts, undefined, count),
+    (s) => s.exercise_id,
+  )) {
     const points = sessions(group)
     if (points.length === 0) continue
     const last = points.at(-1)!

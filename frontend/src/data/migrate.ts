@@ -57,7 +57,14 @@ async function usedExerciseIds(): Promise<Set<string>> {
 /** Point everything at the new ids, and drop the old custom exercises. */
 async function renameExercises(renames: Map<string, string>): Promise<void> {
   const to = (id: string) => renames.get(id) ?? id
-  const tables = [db.workouts, db.customExercises, db.restPrefs, db.machineSettings, db.kv]
+  const tables = [
+    db.workouts,
+    db.customExercises,
+    db.restPrefs,
+    db.machineSettings,
+    db.dumbbellModes,
+    db.kv,
+  ]
   await db.transaction('rw', tables, async () => {
     const workouts = await db.workouts
       .where('exercise_ids')
@@ -95,6 +102,11 @@ async function renameExercises(renames: Map<string, string>): Promise<void> {
         await db.machineSettings.put({ ...machine, exercise_id: target })
       }
       await db.machineSettings.delete(from)
+      const mode = await db.dumbbellModes.get(from)
+      if (mode && !(await db.dumbbellModes.get(target))) {
+        await db.dumbbellModes.put({ ...mode, exercise_id: target })
+      }
+      await db.dumbbellModes.delete(from)
     }
     await db.customExercises.bulkDelete([...renames.keys()])
   })

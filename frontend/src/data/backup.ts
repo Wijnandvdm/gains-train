@@ -8,6 +8,7 @@
  *   custom-exercises.csv  your own exercises
  *   rest-times.csv        your rest time per exercise
  *   machine-settings.csv  your machine settings per exercise, one row per setting (since 3)
+ *   dumbbells.csv         one or two dumbbells per exercise, as you chose them (since 3)
  *   settings.csv          your settings, plus the file's format, version and date
  * Older backups (one .json file, version 1) can still be imported.
  */
@@ -22,6 +23,7 @@ import {
   type RestPref,
   updateSettings,
 } from './db'
+import type { DumbbellChoice, DumbbellMode } from './dumbbells'
 import { loadLibrary } from './library'
 import { syncWithLibrary } from './migrate'
 import type {
@@ -48,6 +50,8 @@ export type Backup = {
   rest_prefs: RestPref[]
   /** Since version 3; older backups have none. */
   machine_settings: MachineSettings[]
+  /** Since version 3; older backups have none. */
+  dumbbell_modes: DumbbellChoice[]
   routine: StoredRoutine | null
   settings: Settings
 }
@@ -63,6 +67,7 @@ export async function createBackup(now = new Date()): Promise<Backup> {
     custom_exercises: await db.customExercises.toArray(),
     rest_prefs: await db.restPrefs.toArray(),
     machine_settings: await db.machineSettings.toArray(),
+    dumbbell_modes: await db.dumbbellModes.toArray(),
     routine: await getStoredRoutine(),
     settings: await getSettings(),
   }
@@ -128,6 +133,7 @@ const CUSTOM_COLUMNS = [
 ]
 const REST_COLUMNS = ['exercise', 'rest_seconds', 'exercise_id']
 const MACHINE_COLUMNS = ['exercise', 'setting', 'value', 'exercise_id']
+const DUMBBELL_COLUMNS = ['exercise', 'dumbbells', 'exercise_id']
 const SETTINGS_COLUMNS = ['setting', 'value']
 
 const text = (v: string | number | null | undefined) =>
@@ -218,6 +224,12 @@ async function backupToZip(backup: Backup): Promise<Uint8Array> {
     })),
   )
 
+  const dumbbells = backup.dumbbell_modes.map((d) => ({
+    exercise: nameOf(d.exercise_id),
+    dumbbells: d.mode,
+    exercise_id: d.exercise_id,
+  }))
+
   const s = backup.settings
   const settings = Object.entries({
     format: backup.format,
@@ -237,6 +249,7 @@ async function backupToZip(backup: Backup): Promise<Uint8Array> {
     'custom-exercises.csv': strToU8(toCsv(CUSTOM_COLUMNS, custom)),
     'rest-times.csv': strToU8(toCsv(REST_COLUMNS, rest)),
     'machine-settings.csv': strToU8(toCsv(MACHINE_COLUMNS, machine)),
+    'dumbbells.csv': strToU8(toCsv(DUMBBELL_COLUMNS, dumbbells)),
     'settings.csv': strToU8(toCsv(SETTINGS_COLUMNS, settings)),
   })
 }
@@ -381,6 +394,15 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
     }
   }
 
+  const modes: DumbbellMode[] = ['one', 'each', 'total']
+  const dumbbell_modes: DumbbellChoice[] = files['dumbbells.csv']
+    ? table(files, 'dumbbells.csv', ['exercise_id', 'dumbbells'], strFromU8).flatMap((r) =>
+        modes.includes(r.dumbbells as DumbbellMode)
+          ? [{ exercise_id: r.exercise_id!, mode: r.dumbbells as DumbbellMode }]
+          : [],
+      )
+    : []
+
   return validateBackup({
     format: BACKUP_FORMAT,
     version: num(setting.version, 'version') ?? BACKUP_VERSION,
@@ -389,6 +411,7 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
     custom_exercises,
     rest_prefs,
     machine_settings: [...machine.values()],
+    dumbbell_modes,
     routine: days.size ? { days: [...days.values()] } : null,
     settings: {
       ...DEFAULT_SETTINGS,
@@ -441,6 +464,7 @@ function validateBackup(data: unknown): Backup {
   return {
     ...(data as unknown as Backup),
     machine_settings: (data.machine_settings as MachineSettings[] | undefined) ?? [],
+    dumbbell_modes: (data.dumbbell_modes as DumbbellChoice[] | undefined) ?? [],
     settings: { ...DEFAULT_SETTINGS, ...(isObject(data.settings) ? data.settings : {}) },
   }
 }
@@ -461,13 +485,21 @@ export async function readBackupFile(file: Blob): Promise<Backup> {
 
 /** Replace everything on the device with the backup's contents (all or nothing). */
 export async function restoreBackup(backup: Backup): Promise<Backup> {
-  const tables = [db.workouts, db.customExercises, db.restPrefs, db.machineSettings, db.kv]
+  const tables = [
+    db.workouts,
+    db.customExercises,
+    db.restPrefs,
+    db.machineSettings,
+    db.dumbbellModes,
+    db.kv,
+  ]
   await db.transaction('rw', tables, async () => {
     await Promise.all(tables.map((t) => t.clear()))
     await db.workouts.bulkAdd(backup.workouts)
     await db.customExercises.bulkAdd(backup.custom_exercises)
     await db.restPrefs.bulkAdd(backup.rest_prefs)
     await db.machineSettings.bulkAdd(backup.machine_settings)
+    await db.dumbbellModes.bulkAdd(backup.dumbbell_modes)
     if (backup.routine) await db.kv.put({ key: 'routine', value: backup.routine })
     // The backup you restore from counts as your last backup.
     await db.kv.put({

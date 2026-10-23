@@ -17,6 +17,7 @@ const s = (
   performed_on,
   weight_kg,
   reps,
+  count: 1,
 })
 
 describe('stats', () => {
