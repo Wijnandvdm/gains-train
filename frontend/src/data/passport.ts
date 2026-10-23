@@ -46,11 +46,11 @@ const HAULED: [number, string][] = [
 ]
 const PRS = [1, 10, 25, 50, 100]
 const STREAKS: [number, string][] = [
-  [4, 'stations in a row'],
-  [8, 'stations in a row'],
-  [12, 'stations in a row'],
-  [26, 'half a year of stations'],
-  [52, 'a whole year of stations'],
+  [4, 'weeks in a row'],
+  [8, 'weeks in a row'],
+  [12, 'weeks in a row'],
+  [26, 'half a year in a row'],
+  [52, 'a whole year in a row'],
 ]
 /** Full steam ahead: weeks in a row that one exercise got stronger. */
 const STEAM_WEEKS = [3, 4, 6, 8]
@@ -170,7 +170,7 @@ export function passport(
   const prMilestones = prWorkouts(done)
   const prs = prMilestones.map((m, i) => ({ value: i + 1, at: m }))
 
-  // Streaks on the Gains Line: the week's target ride reaches the station
+  // Streaks on the Gains Line: the ride that reaches the week's goal
   const weeks = gainsLine(
     done.map((w) => w.performed_on),
     line.target,

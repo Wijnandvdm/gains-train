@@ -253,7 +253,7 @@ function WeekColumn({ monday, line }: { monday: string; line: GainsLine | undefi
 
 /**
  * A day you trained: a ring in as many parts as your weekly target, filled with the week's
- * rides so far. The ride that reaches the station closes the circle.
+ * rides so far. The ride that reaches the week's goal closes the circle.
  */
 function RideRing({
   rides,
@@ -328,7 +328,7 @@ function DayWorkouts({
         {rides > 0 && target > 0 && (
           <p className="text-sm text-neutral-500">
             Ride {rides} of {target} this week
-            {rides === target ? ': station reached' : rides > target ? ': a bonus ride' : ''}
+            {rides === target ? ': week goal reached' : rides > target ? ': a bonus ride' : ''}
           </p>
         )}
       </div>

@@ -46,7 +46,7 @@ describe('calendar history', () => {
     expect(await screen.findByText('3 rides · 9 sets · 9 000 kg')).toBeVisible()
 
     // The rings come with the Gains Line, which may load a moment later.
-    await screen.findByRole('img', { name: 'Station reached' })
+    await screen.findByRole('img', { name: 'Week goal reached' })
     // Each day's button names its workouts and the ride of the week (the ring isn't the only cue).
     expect(day('2026-09-15')).toHaveAccessibleName(
       `${formatDay('2026-09-15')}: Day2 · Back, Cardio: ride 3 of 3 this week`,
@@ -60,15 +60,15 @@ describe('calendar history', () => {
     expect(rides('2026-09-13')).toBeUndefined()
     // Three rides in the week of the 14th reach a station (the default target is 3).
     const week = day('2026-09-14').closest('tr')!
-    expect(within(week).getByRole('img', { name: 'Station reached' })).toBeVisible()
-    expect(screen.getByText('1 station in a row')).toBeVisible()
+    expect(within(week).getByRole('img', { name: 'Week goal reached' })).toBeVisible()
+    expect(screen.getByText('1 week in a row')).toBeVisible()
 
     // No legends: things explain themselves when tapped.
     expect(screen.queryByRole('list', { name: 'Week legend' })).toBeNull()
 
     // The latest ride day is selected, with its workouts below (and its ride of the week).
     expect(day('2026-09-15')).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText('Ride 3 of 3 this week: station reached')).toBeVisible()
+    expect(screen.getByText('Ride 3 of 3 this week: week goal reached')).toBeVisible()
     expect(screen.getByRole('link', { name: /Cardio/ })).toHaveAttribute('href', '/history/extra')
   })
 
@@ -77,16 +77,16 @@ describe('calendar history', () => {
     const user = userEvent.setup()
     renderApp('/history?month=2026-09')
 
-    await user.click(await screen.findByRole('button', { name: 'Station reached' }))
+    await user.click(await screen.findByRole('button', { name: 'Week goal reached' }))
     expect(screen.getByRole('note')).toHaveTextContent(
-      'Station Vladimir: you rode 3 times this week, your target of 3.',
+      'Week goal reached: 3 workouts, your goal of 3.',
     )
     await user.click(screen.getByRole('heading', { name: 'History' })) // anywhere else
     expect(screen.queryByRole('note')).toBeNull()
 
     await user.click(screen.getByRole('button', { name: /^0 tickets/ }))
     expect(screen.getByRole('note')).toHaveTextContent(
-      /^Tickets save your streak in a week that falls short\. You earn one every 4 stations/,
+      /^Tickets save your streak in a week that falls short\. You earn one every 4 weeks in a row/,
     )
   })
 
@@ -95,13 +95,13 @@ describe('calendar history', () => {
     const user = userEvent.setup()
     const router = renderApp('/history?month=2026-09')
 
-    await user.click(await screen.findByRole('button', { name: 'Station reached' }))
-    expect(screen.getByRole('note')).toHaveTextContent('Want a different number of rides per week?')
+    await user.click(await screen.findByRole('button', { name: 'Week goal reached' }))
+    expect(screen.getByRole('note')).toHaveTextContent('Want a different weekly goal?')
     await user.click(screen.getByRole('link', { name: 'Change it →' }))
 
     // Settings loads on first use, then the router moves on.
     await waitFor(() => expect(router.state.location.pathname).toBe('/settings'))
-    const target = await screen.findByLabelText('Rides per week to reach a station')
+    const target = await screen.findByLabelText('Your weekly goal (workouts per week)')
     await waitFor(() => expect(target).toHaveFocus())
   })
 

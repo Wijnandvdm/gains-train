@@ -3,7 +3,7 @@ import { formatVolume } from './lib/format'
 /**
  * The gains train's voice: every pun in the app, by screen, so they're easy to see (and
  * change) together. Puns go where they add fun (greetings, milestones, celebrations), never
- * where clarity matters mid-set (numbers, errors). The Gains Line's own words (stations,
+ * where clarity matters mid-set (numbers, errors). The Gains Line's own words (weekly goal,
  * tickets, the depot) are game rules, not puns: they live with those rules in data/line.ts.
  */
 

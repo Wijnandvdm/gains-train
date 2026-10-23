@@ -24,7 +24,7 @@ import {
 import { type NextSet, nextSet, type PlannedExercise, plannedSetCount } from '../workout/plan'
 import { recentRoutines } from '../workout/recent'
 import { BackupReminder } from '../components/BackupReminder'
-import { NextStationCard } from '../components/GainsLine'
+import { WeekGoalBar } from '../components/GainsLine'
 import { StampBadge } from '../components/Passport'
 import { usePassport } from '../passport'
 import { useExerciseRestTimer } from '../preferences'
@@ -54,7 +54,7 @@ export function WorkoutPage() {
   return (
     <section className="flex flex-col gap-6">
       {finished && <FinishedBanner workoutId={finished.id} day={finished.day} />}
-      <NextStationCard />
+      <WeekGoalBar />
       {hasRoutine && !choosing ? (
         <UpNext routine={routine.data!} onOther={() => setChoosing(true)} />
       ) : (

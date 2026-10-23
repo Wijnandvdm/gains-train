@@ -111,7 +111,7 @@ export type Settings = {
   setup_completed_at: string | null
   rest_timer_enabled: boolean
   default_rest_seconds: number
-  /** Rides a week that reach a station on the Gains Line (the weekly streak). */
+  /** Your weekly goal: rides a week that count for the streak on the Gains Line. */
   weekly_target: number
   /** Weeks parked in the depot (their Mondays): holiday or injury, the streak waits. */
   depot_weeks: string[]

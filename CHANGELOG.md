@@ -32,16 +32,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - Easier to read: the main buttons (✓ Done, Save, …) are a shade darker green, and error
   messages and warm-up sets have readable colours in dark mode too.
-- The Gains Line drives the real Trans-Siberian Railway: each station in a row is the next
-  stop from Moscow to Vladivostok (and back), with the real kilometres driven.
-- The calendar's week column is a track, like a metro map: each station reached is a ring on
+- The Gains Line is about your weekly goal, in time: "Only 1 more workout to reach this
+  week's goal of 3!", weeks in a row, and milestones ("Two weeks in a row! Keep going for a
+  month."). On the Workout screen it's one slim line now (tap it for the details), so your
+  workout comes first.
+- The calendar's week column is a track, like a metro map: each week reached is a ring on
   the line, and a missed week breaks it.
 - History's calendar shows each week filling up instead of a colour per routine day: a
   day's ring fills with the week's rides so far (a third, two thirds, …) and the ride that
-  reaches the station closes it.
+  reaches the week's goal closes it.
 - No more legends in History: tap a week marker or the streak and ticket pills for what they
   mean that week, in a small bubble; a selected day says which ride of the week it was. The
-  week and streak bubbles link straight to your weekly target in Settings.
+  week and streak bubbles link straight to your weekly goal in Settings.
 
 ### Fixed
 

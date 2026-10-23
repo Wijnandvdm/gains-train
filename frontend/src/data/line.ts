@@ -1,7 +1,7 @@
 /**
  * The Gains Line: a weekly streak, train style. Each week (Monday to Sunday) with at least
- * your target number of rides (finished workouts) reaches a station; stations in a row are
- * your streak. Tickets save a streak: one for every 4 stations in a row and one for every
+ * your weekly goal of rides (finished workouts) is a week reached; weeks reached in a row are
+ * your streak. Tickets save a streak: one for every 4 weeks in a row and one for every
  * bonus ride above the target, holding at most 2. A week that falls short uses a ticket
  * automatically; without one, the streak starts over. Weeks parked in the depot (holiday,
  * injury) that fall short are skipped: no ticket spent, the streak just waits.
@@ -13,73 +13,46 @@ import { localDateString, parseLocalDate } from '../lib/format'
 
 export const DEFAULT_WEEKLY_TARGET = 3
 export const MAX_TICKETS = 2
-export const STATIONS_PER_TICKET = 4
+export const WEEKS_PER_TICKET = 4
 export const WEEKLY_TARGETS = [1, 2, 3, 4, 5, 6, 7]
 
-/**
- * The line the train drives: the Trans-Siberian Railway, Moscow to Vladivostok, with the km
- * from Moscow (train 002M's timetable, via en.wikipedia.org/wiki/Trans-Siberian_Railway).
- * Each station in a row is the next stop; at the end of the line the train heads back.
- */
-const ROUTE: [string, number][] = [
-  ['Moscow', 0],
-  ['Vladimir', 210],
-  ['Nizhny Novgorod', 461],
-  ['Kirov', 917],
-  ['Perm', 1397],
-  ['Yekaterinburg', 1816],
-  ['Tyumen', 2104],
-  ['Omsk', 2676],
-  ['Novosibirsk', 3303],
-  ['Krasnoyarsk', 4065],
-  ['Taishet', 4483],
-  ['Irkutsk', 5153],
-  ['Ulan-Ude', 5609],
-  ['Chita', 6166],
-  ['Birobidzhan', 8312],
-  ['Khabarovsk', 8493],
-  ['Ussuriysk', 9147],
-  ['Vladivostok', 9289],
+/** Weeks in a row worth celebrating: close together at first, then every half year. */
+const MILESTONES: [number, string][] = [
+  [2, 'two weeks'],
+  [4, 'a month'],
+  [8, 'two months'],
+  [13, 'three months'],
+  [26, 'half a year'],
+  [39, 'nine months'],
+  [52, 'a year'],
 ]
-const LEGS = ROUTE.length - 1
-const LENGTH = ROUTE[LEGS]![1]
+const HALF_YEAR = 26
 
-export type Station = {
-  name: string
-  /** The km the train has driven to get here, all trips together. */
-  driven: number
-  /** The leg that ends here: where it came from, and how far that is. */
-  from: string
-  leg: number
-  /** Where the train heads next (the end of the line it's driving towards), and how far. */
-  towards: string
-  left: number
+/** The name of a milestone (a number of weeks in a row), e.g. "half a year", "two years". */
+export function milestoneName(weeks: number): string {
+  const named = MILESTONES.find(([w]) => w === weeks)
+  if (named) return named[1]
+  const years = weeks / 52
+  const whole = Math.floor(years)
+  const count = ['', 'one', 'two', 'three', 'four', 'five'][whole] ?? String(whole)
+  if (years === whole) return `${count} years`
+  return whole === 1 ? 'a year and a half' : `${count} and a half years`
 }
 
-/** The n-th station in a row (0: the start, in Moscow). */
-export function station(n: number): Station {
-  const at = (i: number) => {
-    const trip = Math.floor(i / LEGS) // even: towards Vladivostok; odd: back to Moscow
-    const stop = i % LEGS
-    const index = trip % 2 === 0 ? stop : LEGS - stop
-    return { trip, index, km: ROUTE[index]![1] }
-  }
-  const here = at(n)
-  const previous = at(Math.max(0, n - 1))
-  const outbound = here.trip % 2 === 0 // the trip it's on now, or starts here
-  return {
-    name: ROUTE[here.index]![0],
-    driven: here.trip * LENGTH + (outbound ? here.km : LENGTH - here.km),
-    from: ROUTE[previous.index]![0],
-    leg: Math.abs(here.km - previous.km),
-    towards: outbound ? ROUTE[LEGS]![0] : ROUTE[0]![0],
-    left: outbound ? LENGTH - here.km : here.km,
-  }
+/** Whether this many weeks in a row is a milestone. */
+export const isMilestone = (weeks: number) =>
+  MILESTONES.some(([w]) => w === weeks) || (weeks > 52 && weeks % HALF_YEAR === 0)
+
+/** The next milestone after this many weeks in a row. */
+export function nextMilestone(weeks: number): number {
+  const named = MILESTONES.find(([w]) => w > weeks)
+  if (named) return named[0]
+  return (Math.floor(weeks / HALF_YEAR) + 1) * HALF_YEAR
 }
 
-/** reached: a station · ticket: saved by a ticket · missed: fell short, streak over ·
+/** reached: the week's goal reached · ticket: saved by a ticket · missed: fell short, streak over ·
  *  open: this week, not there yet · depot: parked, doesn't count ·
- *  before: before your first station ever */
+ *  before: before your first week reached ever */
 type WeekState = 'reached' | 'ticket' | 'missed' | 'open' | 'depot' | 'before'
 
 export type LineWeek = {
@@ -123,7 +96,7 @@ const addWeeks = (monday: string, weeks: number) => {
 export const nextMonday = (monday: string) => addWeeks(monday, 1)
 export const previousMonday = (monday: string) => addWeeks(monday, -1)
 
-/** Whether the week is part of a line: a station, saved by a ticket, or parked mid-streak. */
+/** Whether the week is part of the streak: reached, saved by a ticket, or parked mid-streak. */
 export const onTheLine = (week: LineWeek | undefined) =>
   week?.state === 'reached' ||
   week?.state === 'ticket' ||
@@ -158,7 +131,7 @@ export function gainsLine(
       state = 'reached'
       started = true
       streak += 1
-      const earned = (streak % STATIONS_PER_TICKET === 0 ? 1 : 0) + (rides.length - target)
+      const earned = (streak % WEEKS_PER_TICKET === 0 ? 1 : 0) + (rides.length - target)
       tickets = Math.min(MAX_TICKETS, tickets + earned)
     } else if (depot.has(monday)) {
       state = 'depot' // parked: skipped, the streak waits
@@ -190,7 +163,7 @@ export function gainsLine(
     lastWeek: all.at(-2) ?? null,
     streak,
     tickets,
-    nextTicketAt: (Math.floor(streak / STATIONS_PER_TICKET) + 1) * STATIONS_PER_TICKET,
+    nextTicketAt: (Math.floor(streak / WEEKS_PER_TICKET) + 1) * WEEKS_PER_TICKET,
     parkedUntil,
     today,
   }

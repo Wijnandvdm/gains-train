@@ -5,7 +5,7 @@ import { gainsLine, type GainsLine } from './data/line'
 import { localDateString } from './lib/format'
 import { useSettings } from './settings'
 
-/** Your weekly streak (stations, tickets), live from your finished workouts. */
+/** Your weekly streak (weeks reached, tickets), live from your finished workouts. */
 export function useGainsLine(): GainsLine | undefined {
   const settings = useSettings()
   const days = useLiveQuery(

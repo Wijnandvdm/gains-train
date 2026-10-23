@@ -62,7 +62,7 @@ export function SettingsPage() {
 
       <Card title="The Gains Line">
         <label className="flex items-center justify-between gap-3 text-sm">
-          Rides per week to reach a station
+          Your weekly goal (workouts per week)
           <select
             id="weekly-target"
             ref={weeklyTarget}
@@ -78,9 +78,9 @@ export function SettingsPage() {
           </select>
         </label>
         <p className="text-sm text-neutral-500">
-          Every week with this many rides is a station; stations in a row are your streak. You earn
-          a ticket for every 4 stations in a row and for every extra ride, and a ticket saves your
-          streak when a week falls short. Changing the number recalculates your whole line.
+          Every week you reach your goal adds to your streak. You earn a ticket for every 4 weeks in
+          a row and for every extra workout, and a ticket saves your streak when a week falls short.
+          Changing the number recalculates your whole streak.
         </p>
         {line && (
           <div className="flex flex-col gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
