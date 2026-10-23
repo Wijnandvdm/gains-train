@@ -46,14 +46,14 @@ function Progress({ stats }: { stats: ExerciseStats }) {
           detail={`× ${records.heaviest.reps} · ${formatShortDay(records.heaviest.performed_on)}`}
         />
         <StatTile
-          label="Best e1RM"
-          value={formatE1rm(records.best_e1rm_kg)}
-          detail={formatSet(records.best_e1rm.weight_kg, records.best_e1rm.reps)}
-        />
-        <StatTile
           label="Best session"
           value={formatVolume(records.best_session_volume_kg)}
           detail={formatShortDay(records.best_session_volume_on)}
+        />
+        <StatTile
+          label="Best e1RM"
+          value={formatE1rm(records.best_e1rm_kg)}
+          detail={formatSet(records.best_e1rm.weight_kg, records.best_e1rm.reps)}
         />
       </dl>
 

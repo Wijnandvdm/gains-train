@@ -56,9 +56,19 @@ describe('progress', () => {
 
     // The chart's numbers are also available as a table; it follows the chosen metric.
     await userEvent.click(await within(progress).findByText('Show as table')) // chart loads lazily
+    // It opens on volume: 7 Sep's sets add up to 2 780 kg.
+    expect(within(progress).getByRole('columnheader', { name: 'Volume' })).toBeVisible()
+    expect(within(progress).getByRole('cell', { name: /^2\D?780 kg$/ })).toBeVisible()
+    await userEvent.click(within(progress).getByRole('button', { name: 'Estimated 1RM' }))
     expect(within(progress).getByRole('cell', { name: '126 kg' })).toBeVisible()
     await userEvent.click(within(progress).getByRole('button', { name: 'Top weight' }))
     expect(within(progress).getByRole('columnheader', { name: 'Top weight' })).toBeVisible()
+    // Estimated 1RM comes last among the metrics.
+    expect(
+      within(within(progress).getByRole('group', { name: 'Chart metric' }))
+        .getAllByRole('button')
+        .map((b) => b.textContent),
+    ).toEqual(['Volume', 'Top weight', 'Estimated 1RM'])
   })
 
   it('invites you to log it when there is no data yet', async () => {

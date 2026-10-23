@@ -23,12 +23,13 @@ import {
   parseLocalDate,
 } from '../lib/format'
 
+/** In the order of the buttons; the chart opens on the first (volume). */
 const METRICS = {
-  e1rm: {
-    label: 'Estimated 1RM',
-    title: 'Estimated 1RM per session',
-    value: (p: SessionPoint) => p.best_e1rm_kg,
-    format: formatE1rm,
+  volume: {
+    label: 'Volume',
+    title: 'Volume per session (weight × reps)',
+    value: (p: SessionPoint) => p.volume_kg,
+    format: formatVolume,
   },
   top: {
     label: 'Top weight',
@@ -36,17 +37,17 @@ const METRICS = {
     value: (p: SessionPoint) => p.top_weight_kg,
     format: formatWeight,
   },
-  volume: {
-    label: 'Volume',
-    title: 'Volume per session (weight × reps)',
-    value: (p: SessionPoint) => p.volume_kg,
-    format: formatVolume,
+  e1rm: {
+    label: 'Estimated 1RM',
+    title: 'Estimated 1RM per session',
+    value: (p: SessionPoint) => p.best_e1rm_kg,
+    format: formatE1rm,
   },
 } as const
 type Metric = keyof typeof METRICS
 
 export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }) {
-  const [metric, setMetric] = useState<Metric>('e1rm')
+  const [metric, setMetric] = useState<Metric>('volume')
   const { title, value, format } = METRICS[metric]
   const points = sessions.map((p) => ({ ...p, time: parseLocalDate(p.performed_on).getTime() }))
 
