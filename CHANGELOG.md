@@ -25,6 +25,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Change a workout on the go: drag an exercise up or down by its ≡ (what's next follows the
   new order). In a routine workout, reordering, adding or removing an exercise asks whether
   to make it your routine from now on; ignore it and it goes away, nothing changed.
+- Before you start a routine day, drag its exercises into today's order, or add one to start
+  with; the set card follows, and it asks whether to make it your routine.
 
 ### Changed
 

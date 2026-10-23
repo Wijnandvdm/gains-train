@@ -82,3 +82,10 @@ Backup: every month, 3 months, 6 months, a year, or never).
 
 # TODO:
 1. How does stick figures work for representing exercises? I have a feeling that I do miss a few. Perhaps also generate them with AI? Chatgpt?
+2. before starting a workout, you need to be able to swap exercises (preview with draggable exercises?)
+3. streak card less prominently visible (like a certain owl we know?)
+4. the real life station names and distances dont really tell me anything
+5. in progress tab, drop 1repmax to last and make volume default
+6. rename machine settings to exercises
+7. how to deal with exercises that use two dumbells? How is it clear if we use omthe weight of one dumbell or two?
+8. old colors back, it used to be a different green

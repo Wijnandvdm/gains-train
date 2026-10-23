@@ -119,12 +119,80 @@ function UpNext({ routine, onOther }: { routine: Routine; onOther: () => void })
   const actions = useWorkoutActions()
   const restTimer = useExerciseRestTimer()
   const [dayId, setDayId] = useState(routine.next_day_id ?? routine.days[0]!.id)
-  const day: RoutineDay = routine.days.find((d) => d.id === dayId) ?? routine.days[0]!
+  const routineDay: RoutineDay = routine.days.find((d) => d.id === dayId) ?? routine.days[0]!
+
+  // Today's order, if you dragged the list (only until you start; per day). Keyed by
+  // exercise and how many times it came before, so the keys survive reordering.
+  const [reordered, setReordered] = useState<{ dayId: string; keys: string[] } | null>(null)
+  // Exercises added for today (before starting); they go first unless you drag them.
+  const [extra, setExtra] = useState<{ dayId: string; exercises: RoutineDay['exercises'] } | null>(
+    null,
+  )
+  const [asked, setAsked] = useState<Suggestion | null>(null)
+  const [picking, setPicking] = useState(false)
+  const seen = new Map<string, number>()
+  const keyed = [
+    ...routineDay.exercises,
+    ...(extra?.dayId === routineDay.id ? extra.exercises : []),
+  ].map((re) => {
+    const n = seen.get(re.exercise.id) ?? 0
+    seen.set(re.exercise.id, n + 1)
+    return { key: `${re.exercise.id}#${n}`, re }
+  })
+  const order = reordered?.dayId === routineDay.id ? reordered.keys : null
+  const today = order
+    ? [
+        ...order.flatMap((k) => keyed.find((e) => e.key === k) ?? []),
+        ...keyed.filter((e) => !order.includes(e.key)),
+      ]
+    : keyed
+  const day: RoutineDay = { ...routineDay, exercises: today.map((e) => e.re) }
   const lastTimes = useLastTimes(day.exercises.map((re) => re.exercise.id))
 
+  function move(key: string, toIndex: number) {
+    const from = today.findIndex((e) => e.key === key)
+    const keys = moved(today, from, toIndex).map((e) => e.key)
+    setReordered({ dayId: routineDay.id, keys })
+    const ids = keys.map((k) => keyed.find((e) => e.key === k)!.re.exercise.id)
+    const dayIds = routineDay.exercises.map((re) => re.exercise.id)
+    setAsked(
+      orderDiffers(dayIds, ids)
+        ? {
+            dayId: routineDay.id,
+            question: 'Do the exercises in this order from now on?',
+            change: { kind: 'order', exerciseIds: ids },
+          }
+        : null,
+    )
+  }
+
+  /** Start with another exercise: it goes to the top (or moves there, when it's in already). */
+  function add(exercise: ExerciseSummary) {
+    const there = today.find((e) => e.re.exercise.id === exercise.id)
+    const key = there?.key ?? `${exercise.id}#0`
+    if (!there) {
+      const added = extra?.dayId === routineDay.id ? extra.exercises : []
+      setExtra({ dayId: routineDay.id, exercises: [...added, { exercise, sets: 3 }] })
+    }
+    setReordered({
+      dayId: routineDay.id,
+      keys: [key, ...today.map((e) => e.key).filter((k) => k !== key)],
+    })
+    const inRoutine = routineDay.exercises.some((re) => re.exercise.id === exercise.id)
+    setAsked(
+      inRoutine
+        ? null
+        : {
+            dayId: routineDay.id,
+            question: `Add ${exercise.name} to ${routineDay.name} from now on?`,
+            change: { kind: 'add', exerciseId: exercise.id, after: null, sets: 3 },
+          },
+    )
+  }
+
   // The day as it would be, before anything is saved: nothing is created until the first ✓.
-  const plan: PlannedExercise[] = day.exercises.map((re, i) => ({
-    key: `${re.exercise.id}-${i}`,
+  const plan: PlannedExercise[] = today.map(({ key, re }) => ({
+    key,
     exercise: re.exercise,
     workoutExerciseId: null,
     routineSets: re.sets,
@@ -147,7 +215,11 @@ function UpNext({ routine, onOther }: { routine: Routine; onOther: () => void })
                 key={d.id}
                 type="button"
                 aria-pressed={d.id === day.id}
-                onClick={() => setDayId(d.id)}
+                onClick={() => {
+                  setDayId(d.id)
+                  setAsked(null)
+                  setExtra(null)
+                }}
                 className={`chip normal-case ${d.id === day.id ? 'chip-active' : ''}`}
               >
                 {d.name}
@@ -177,13 +249,45 @@ function UpNext({ routine, onOther }: { routine: Routine; onOther: () => void })
       )}
 
       {day.exercises.length > 1 && (
-        <ol className="flex flex-col gap-1 text-sm text-neutral-500">
-          {day.exercises.map((re, i) => (
-            <li key={i}>
-              {re.sets} × {re.exercise.name}
-            </li>
-          ))}
-        </ol>
+        // Drag to change today's order: the set card follows the first one.
+        <div
+          aria-label="Today's exercises"
+          className="flex flex-col gap-0.5 text-sm text-neutral-500"
+        >
+          <SortableExercises
+            items={today.map(({ key, re }) => ({ id: key, name: re.exercise.name, re }))}
+            onMove={(item, toIndex) => move(item.id, toIndex)}
+          >
+            {({ re }, dragHandle) => (
+              <div className="flex items-center gap-2">
+                {dragHandle}
+                <span>
+                  {re.sets} × {re.exercise.name}
+                </span>
+              </div>
+            )}
+          </SortableExercises>
+        </div>
+      )}
+      {asked && (
+        <RoutineSuggestion
+          key={JSON.stringify(asked.change)} // a new order asks afresh
+          suggestion={asked}
+          onDone={() => setAsked(null)}
+        />
+      )}
+
+      <button type="button" className="btn self-start" onClick={() => setPicking(true)}>
+        + Add exercise
+      </button>
+      {picking && (
+        <ExercisePicker
+          onClose={() => setPicking(false)}
+          onPick={(exercise) => {
+            add(exercise)
+            setPicking(false)
+          }}
+        />
       )}
 
       <p className="flex gap-4 text-sm">
