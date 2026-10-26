@@ -73,7 +73,7 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
         type="button"
         onClick={() => onSave({ ...set, is_warmup: !set.is_warmup })}
         className={`rounded-md py-1.5 text-sm font-semibold ${
-          set.is_warmup ? 'text-ticket-700 dark:text-ticket-400' : 'text-neutral-500'
+          set.is_warmup ? 'text-ticket-900 dark:text-ticket-400' : 'text-neutral-500'
         }`}
         aria-label={`Set ${label}${set.is_warmup ? ' (warm-up)' : ''}: toggle warm-up`}
       >

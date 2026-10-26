@@ -300,7 +300,7 @@ function RideRing({
           fill="none"
           strokeWidth={stroke}
           strokeDasharray={dashes.flat().join(' ')}
-          className="stroke-done-600 dark:stroke-done-500"
+          className="stroke-done-700 dark:stroke-done-600"
         />
       )}
     </svg>

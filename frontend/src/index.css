@@ -8,29 +8,29 @@
  * shades (backgrounds, hover, text in dark mode) are mixed from it automatically, below.
  * Keep train, done and error fairly dark: white text sits on them.
  *
- * The app icon and splash screen are images: after changing --train, recolour them with
- * python3 scripts/recolor-icons.py
+ * The app icon and splash screen come from the logo (frontend/assets/logo.png), not from these
+ * colours: after changing the logo, run python3 scripts/make-icons.py
  * ========================================================================================== */
 :root {
-  /* The app itself: logo, header, links, focus outlines, the next-station card, the Gains
-     Line track, the train on the move. */
-  --train: #009342;
-  /* Done and good: ✓ Done and the other main buttons, ticked sets, stations reached, filled
-     ride rings, "workout saved". */
-  --done: #009342;
-  /* Tickets (they save your streak) and warm-up sets. */
-  --ticket: #d97706;
+  /* The app itself: logo, header, links, focus outlines, the Gains Line track, the train on
+     the move. */
+  --train: #ea1614; /* the logo's red */
+  /* Done and good: ✓ Done and the other main buttons, ticked sets, weeks reached, filled ride
+     rings, "workout saved". */
+  --done: #c8130f; /* a shade deeper than the logo's red */
+  /* Tickets (they save your streak), the 🏆 PR badge and warm-up sets. */
+  --ticket: #facc15;
   /* Something's wrong: error messages, Delete, a field that needs fixing. */
   --error: #dc2626;
   /* The muscle map: the muscles an exercise works. */
-  --muscle: #15803d;
+  --muscle: #ea1614;
 
   /* Passport stamps, one ink per kind. */
-  --stamp-rides: #15803d;
+  --stamp-rides: #8e0f0d; /* the logo's shadow red */
   --stamp-weight: #1d64c4;
   --stamp-prs: #b45309;
   --stamp-streak: #7c3aed;
-  --stamp-steam: #b91c1c;
+  --stamp-steam: #475569; /* Full steam ahead: coal */
   --stamp-explorer: #be185d;
 }
 
@@ -176,7 +176,9 @@
     @apply bg-done-50 text-done-700 dark:bg-done-900/40 dark:text-done-100;
   }
   .tone-ticket {
-    @apply bg-ticket-100 text-ticket-800 dark:bg-ticket-900/40 dark:text-ticket-300;
+    /* Yellow is light: a yellow background with dark text reads best (in dark mode, the other
+       way round). */
+    @apply bg-ticket-600 text-neutral-900 dark:bg-ticket-900/40 dark:text-ticket-300;
   }
   .input {
     @apply w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 outline-none focus:border-train-500 focus:ring-2 focus:ring-train-500/30 dark:border-neutral-700 dark:bg-neutral-900;

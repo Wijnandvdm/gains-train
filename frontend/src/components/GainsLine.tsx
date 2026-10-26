@@ -51,7 +51,14 @@ export function LinePills({ line }: { line: GainsLine }) {
         }
         more={changeTarget}
       >
-        <span className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 tone-done">
+        {/* Grey without a streak, red with one: red means a streak to keep going. */}
+        <span
+          className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 ${
+            streak === 0
+              ? 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
+              : 'bg-done-700 text-white'
+          }`}
+        >
           <span aria-hidden="true" className="h-3 w-3 rounded-full border-[3px] border-current" />
           {streak === 0 ? 'No streak yet' : `${plural(streak, 'week')} in a row`}
         </span>
@@ -109,7 +116,7 @@ export function WeekMarker({
   onBelow: boolean
 }) {
   // The track reaches past the cell, over the gap between the calendar's rows.
-  const track = 'absolute left-1/2 w-1 -translate-x-1/2 bg-train-600 dark:bg-train-500'
+  const track = 'absolute left-1/2 w-1 -translate-x-1/2 bg-train-700 dark:bg-train-600'
   return (
     <div className="relative grid h-11 place-items-center">
       {fromAbove && (
@@ -137,7 +144,7 @@ function Marker({ week, target }: { week: LineWeek | undefined; target: number }
         <span
           role="img"
           aria-label="Week goal reached"
-          className="block h-5 w-5 rounded-full border-4 border-done-600 bg-white dark:border-done-500 dark:bg-neutral-900"
+          className="block h-5 w-5 rounded-full border-4 border-done-700 bg-white dark:border-done-600 dark:bg-neutral-900"
         />
       )
     case 'ticket':
@@ -169,7 +176,7 @@ function Marker({ week, target }: { week: LineWeek | undefined; target: number }
         <span
           role="img"
           aria-label={`${week.rides.length} of ${target} rides so far`}
-          className={`${base} border-2 border-dashed border-train-600 bg-white text-train-700 dark:border-train-500 dark:bg-neutral-900 dark:text-train-500`}
+          className={`${base} border-2 border-dashed border-train-700 bg-white text-train-700 dark:border-train-600 dark:bg-neutral-900 dark:text-train-500`}
         >
           {week.rides.length}/{target}
         </span>

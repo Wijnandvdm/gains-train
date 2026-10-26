@@ -82,3 +82,4 @@ Backup: every month, 3 months, 6 months, a year, or never).
 
 # TODO:
 1. How does stick figures work for representing exercises? I have a feeling that I do miss a few. Perhaps also generate them with AI? Chatgpt?
+2. in the progress page, volume needs to be the average of the total number of sets

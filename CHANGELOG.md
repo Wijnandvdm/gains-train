@@ -33,8 +33,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
-- Easier to read: the main buttons (✓ Done, Save, …) are a shade darker green, and error
-  messages and warm-up sets have readable colours in dark mode too.
+- A new look: the muscle-train logo as the app icon and splash screen, and the app in its
+  reds, from the header to ✓ Done. The main buttons are a shade darker, so their text reads
+  well, and error messages and warm-up sets have readable colours in dark mode too.
 - The Gains Line is about your weekly goal, in time: "Only 1 more workout to reach this
   week's goal of 3!", weeks in a row, and milestones ("Two weeks in a row! Keep going for a
   month."). On the Workout screen it's one slim line now (tap it for the details), so your

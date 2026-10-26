@@ -102,7 +102,7 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
                   {we.sets.map((set, i) => (
                     <li key={set.id} className="flex items-baseline gap-3 text-sm">
                       <span
-                        className={`w-6 text-center font-semibold ${set.is_warmup ? 'text-ticket-700 dark:text-ticket-400' : 'text-neutral-500'}`}
+                        className={`w-6 text-center font-semibold ${set.is_warmup ? 'text-ticket-900 dark:text-ticket-400' : 'text-neutral-500'}`}
                       >
                         {labels[i]}
                       </span>
@@ -199,7 +199,7 @@ function EditSets({ workout, onDone }: { workout: WorkoutDetail; onDone: () => v
                     className="grid grid-cols-[1.5rem_1fr_auto_1fr_auto_2rem] items-center gap-1.5 text-sm"
                   >
                     <span
-                      className={`text-center font-semibold ${d.set.is_warmup ? 'text-ticket-700 dark:text-ticket-400' : 'text-neutral-500'}`}
+                      className={`text-center font-semibold ${d.set.is_warmup ? 'text-ticket-900 dark:text-ticket-400' : 'text-neutral-500'}`}
                     >
                       {labels[i]}
                     </span>
