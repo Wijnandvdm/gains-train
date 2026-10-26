@@ -48,8 +48,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - No more legends in History: tap a week marker or the streak and ticket pills for what they
   mean that week, in a small bubble; a selected day says which ride of the week it was. The
   week and streak bubbles link straight to your weekly goal in Settings.
-- An exercise's progress chart opens on volume; estimated 1RM comes last, in the chart and
-  in the records.
+- Volume per set instead of total volume: an exercise's progress chart opens on it, the Best
+  session record is the best volume per set, and the Progress tab shows your average per set.
+  So more sets alone don't count as progress. Estimated 1RM comes last, in the chart and in
+  the records.
 
 ### Fixed
 

@@ -70,7 +70,8 @@ describe('your own exercises', () => {
         .map((li) => li.textContent),
     ).toEqual(['Lean into the handles.', 'Drive with your legs.'])
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    // Delete shows once the app has checked you haven't used it anywhere.
+    await user.click(await screen.findByRole('button', { name: 'Delete' }))
     expect(await screen.findByRole('heading', { name: 'Exercises' })).toBeVisible()
     expect(await db.customExercises.count()).toBe(0)
   })

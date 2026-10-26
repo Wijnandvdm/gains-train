@@ -40,7 +40,8 @@ describe('progress', () => {
     expect(within(card).getByText('85 kg')).toBeVisible() // last session
     expect(within(card).getByText('90 kg')).toBeVisible() // max
     expect(within(card).getByText('126 kg')).toBeVisible() // e1RM
-    expect(within(card).getByText(/9 sets/)).toBeVisible()
+    // 8 050 kg over 9 sets.
+    expect(within(card).getByText(/^9 sets · 894 kg per set$/)).toBeVisible()
   })
 
   it('shows records, rep records and the chart data on an exercise page', async () => {
@@ -51,14 +52,16 @@ describe('progress', () => {
     expect(await within(progress).findByText('Heaviest')).toBeVisible()
     expect(within(progress).getByText(`× 12 · ${formatShortDay('2026-09-07')}`)).toBeVisible()
     expect(within(progress).getByText('Rep records')).toBeVisible()
+    // Best session: the best volume per set (7 Sep), not the biggest total.
+    expect(within(progress).getByText(`per set · ${formatShortDay('2026-09-07')}`)).toBeVisible()
     expect(within(progress).getByRole('cell', { name: '80 kg' })).toBeVisible()
     expect(within(progress).getByRole('cell', { name: '14' })).toBeVisible()
 
     // The chart's numbers are also available as a table; it follows the chosen metric.
     await userEvent.click(await within(progress).findByText('Show as table')) // chart loads lazily
-    // It opens on volume: 7 Sep's sets add up to 2 780 kg.
-    expect(within(progress).getByRole('columnheader', { name: 'Volume' })).toBeVisible()
-    expect(within(progress).getByRole('cell', { name: /^2\D?780 kg$/ })).toBeVisible()
+    // It opens on volume per set: 7 Sep's 2 780 kg over 3 sets.
+    expect(within(progress).getByRole('columnheader', { name: 'Volume per set' })).toBeVisible()
+    expect(within(progress).getByRole('cell', { name: '927 kg' })).toBeVisible()
     await userEvent.click(within(progress).getByRole('button', { name: 'Estimated 1RM' }))
     expect(within(progress).getByRole('cell', { name: '126 kg' })).toBeVisible()
     await userEvent.click(within(progress).getByRole('button', { name: 'Top weight' }))
@@ -68,7 +71,7 @@ describe('progress', () => {
       within(within(progress).getByRole('group', { name: 'Chart metric' }))
         .getAllByRole('button')
         .map((b) => b.textContent),
-    ).toEqual(['Volume', 'Top weight', 'Estimated 1RM'])
+    ).toEqual(['Volume per set', 'Top weight', 'Estimated 1RM'])
   })
 
   it('invites you to log it when there is no data yet', async () => {

@@ -23,12 +23,12 @@ import {
   parseLocalDate,
 } from '../lib/format'
 
-/** In the order of the buttons; the chart opens on the first (volume). */
+/** In the order of the buttons; the chart opens on the first (volume per set). */
 const METRICS = {
   volume: {
-    label: 'Volume',
-    title: 'Volume per session (weight × reps)',
-    value: (p: SessionPoint) => p.volume_kg,
+    label: 'Volume per set',
+    title: 'Volume per set (weight × reps, averaged over the session’s sets)',
+    value: (p: SessionPoint) => p.volume_per_set_kg,
     format: formatVolume,
   },
   top: {

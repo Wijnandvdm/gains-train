@@ -47,8 +47,8 @@ function Progress({ stats }: { stats: ExerciseStats }) {
         />
         <StatTile
           label="Best session"
-          value={formatVolume(records.best_session_volume_kg)}
-          detail={formatShortDay(records.best_session_volume_on)}
+          value={formatVolume(records.best_session_per_set_kg)}
+          detail={`per set · ${formatShortDay(records.best_session_on)}`}
         />
         <StatTile
           label="Best e1RM"

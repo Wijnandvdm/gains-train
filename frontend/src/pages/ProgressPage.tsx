@@ -146,7 +146,7 @@ function OverviewCard({ row }: { row: ExerciseOverview }) {
           <Figure label="e1RM" value={formatE1rm(row.best_e1rm_kg)} />
         </dl>
         <p className="text-xs text-neutral-500">
-          {row.sets_logged} sets · {formatVolume(row.total_volume_kg)} total
+          {row.sets_logged} sets · {formatVolume(row.volume_per_set_kg)} per set
         </p>
       </div>
     </Link>

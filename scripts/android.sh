@@ -38,7 +38,7 @@
 #
 # Where things live:
 #   frontend/capacitor.config.ts   the app id (permanent once on Google Play) and name
-#   frontend/assets/logo.png       the logo: the app icon and splash screen are made from it;
+#   frontend/assets/logo.png       the logo: every icon (app, splash, browser tab) is made from it;
 #                                  after changing it: python3 scripts/make-icons.py
 #   frontend/android/app/src/main/AndroidManifest.xml
 #                                  no permissions, so no internet (nothing can leave the phone;

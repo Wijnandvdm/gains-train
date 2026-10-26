@@ -131,8 +131,9 @@ export type Records = {
   heaviest: SetRecord
   best_e1rm: SetRecord
   best_e1rm_kg: number
-  best_session_volume_kg: number
-  best_session_volume_on: string
+  /** The best session's volume per set (its volume ÷ its sets). */
+  best_session_per_set_kg: number
+  best_session_on: string
   rep_records: SetRecord[]
 }
 
@@ -143,6 +144,8 @@ export type SessionPoint = {
   top_weight_reps: number
   best_e1rm_kg: number
   volume_kg: number
+  /** The session's volume divided by its sets: fair between a 3-set and a 5-set day. */
+  volume_per_set_kg: number
   set_count: number
 }
 
@@ -156,4 +159,6 @@ export type ExerciseOverview = {
   max_weight_kg: number
   best_e1rm_kg: number
   total_volume_kg: number
+  /** All its volume divided by all its sets. */
+  volume_per_set_kg: number
 }

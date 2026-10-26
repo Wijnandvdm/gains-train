@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Make the app icon and splash screen from the logo (frontend/assets/logo.png), then the
-Android icons and splash screens in every size from those.
+"""Make every icon from the logo (frontend/assets/logo.png): the app icon and splash screen,
+then the Android icons and splash screens in every size from those, and the browser tab icon
+(frontend/public/favicon.png, for the dev server).
 
     python3 scripts/make-icons.py
 
@@ -18,6 +19,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "frontend/assets"
+FAVICON = ROOT / "frontend/public/favicon.png"
 LAUNCHER_COLOR = ROOT / "frontend/android/app/src/main/res/values/ic_launcher_background.xml"
 
 
@@ -40,6 +42,7 @@ def main() -> None:
     placed(logo, 1024, 0.62, (0, 0, 0, 0)).save(ASSETS / "icon-foreground.png")  # adaptive: front
     for name in ("splash.png", "splash-dark.png"):
         placed(logo, 2732, 0.3, bg).save(ASSETS / name)
+    placed(logo, 64, 0.98, bg).save(FAVICON)  # the browser tab
     text = LAUNCHER_COLOR.read_text()
     start = text.index(">#") + 1
     LAUNCHER_COLOR.write_text(text[:start] + hex_bg + text[start + 7 :])

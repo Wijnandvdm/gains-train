@@ -7,8 +7,8 @@ const RECORDS: Records = {
   heaviest: { weight_kg: 90, reps: 12, performed_on: '2026-09-07' },
   best_e1rm: { weight_kg: 90, reps: 12, performed_on: '2026-09-07' },
   best_e1rm_kg: 126,
-  best_session_volume_kg: 2890,
-  best_session_volume_on: '2026-09-07',
+  best_session_per_set_kg: 2890,
+  best_session_on: '2026-09-07',
   rep_records: [
     { weight_kg: 90, reps: 12, performed_on: '2026-09-07' },
     { weight_kg: 80, reps: 14, performed_on: '2026-07-22' },

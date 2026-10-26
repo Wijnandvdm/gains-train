@@ -8,8 +8,8 @@
  * shades (backgrounds, hover, text in dark mode) are mixed from it automatically, below.
  * Keep train, done and error fairly dark: white text sits on them.
  *
- * The app icon and splash screen come from the logo (frontend/assets/logo.png), not from these
- * colours: after changing the logo, run python3 scripts/make-icons.py
+ * The icons (app icon, splash screen, browser tab) come from the logo (frontend/assets/logo.png),
+ * not from these colours: after changing the logo, run python3 scripts/make-icons.py
  * ========================================================================================== */
 :root {
   /* The app itself: logo, header, links, focus outlines, the Gains Line track, the train on

@@ -38,6 +38,17 @@ describe('stats', () => {
     expect(result[0]!.best_e1rm_kg).toBeCloseTo(e1rm(85, 10)!, 2)
   })
 
+  it('picks the best session by volume per set, not by how many sets', () => {
+    const r = records([
+      s(W1, D1, 50, 10),
+      s(W1, D1, 50, 10),
+      s(W1, D1, 50, 10), // 1500 in total, 500 per set
+      s(W2, D2, 60, 10), // 600 in total, 600 per set
+    ])!
+    expect([r.best_session_on, r.best_session_per_set_kg]).toEqual([D2, 600])
+    expect(sessions([s(W1, D1, 50, 10), s(W1, D1, 70, 10)])[0]!.volume_per_set_kg).toBe(600)
+  })
+
   it('finds records (ties dated at the first time)', () => {
     const r = records([
       s(W1, D1, 80, 12),
@@ -50,7 +61,9 @@ describe('stats', () => {
     expect(r.heaviest).toEqual({ weight_kg: 90, reps: 6, performed_on: D2 })
     expect([r.best_e1rm.weight_kg, r.best_e1rm.reps]).toEqual([85, 12])
     expect(r.best_e1rm_kg).toBeCloseTo(e1rm(85, 12)!, 2)
-    expect(r.best_session_volume_on).toBe(D1) // 80×12 + 85×10 = 1810 beats 1560 and 1590
+    // Per set: (80×12 + 85×10) / 2 = 905 beats 780 and 795.
+    expect(r.best_session_on).toBe(D1)
+    expect(r.best_session_per_set_kg).toBe(905)
     expect(r.rep_records.map((x) => [x.weight_kg, x.reps])).toEqual([
       [90, 6],
       [85, 12],
