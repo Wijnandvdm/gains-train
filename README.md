@@ -82,7 +82,6 @@ Backup: every month, 3 months, 6 months, a year, or never).
 
 # TODO:
 1. How does stick figures work for representing exercises? I have a feeling that I do miss a few. Perhaps also generate them with AI? Chatgpt?
-2. In the progress tab, when clicking an exercise and looking at the "show as table" progress, it'd be nice if you could click on it and be guided to the the workout in history from which that row came
 3. During testing, I encountered this boi in the dev setup:
 You can provide a way better UX than this when your app throws errors by providing your own ErrorBoundary or errorElement prop on your route.
 Should we do something with this?

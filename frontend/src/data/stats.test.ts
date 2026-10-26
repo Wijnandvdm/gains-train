@@ -58,7 +58,8 @@ describe('stats', () => {
       s(W3, D3, 90, 6), // ties the heaviest: stays dated D2
       s(W3, D3, 70, 15),
     ])!
-    expect(r.heaviest).toEqual({ weight_kg: 90, reps: 6, performed_on: D2 })
+    // Dated, and linked to the workout, at the first time.
+    expect(r.heaviest).toEqual({ weight_kg: 90, reps: 6, performed_on: D2, workout_id: W2 })
     expect([r.best_e1rm.weight_kg, r.best_e1rm.reps]).toEqual([85, 12])
     expect(r.best_e1rm_kg).toBeCloseTo(e1rm(85, 12)!, 2)
     // Per set: (80×12 + 85×10) / 2 = 905 beats 780 and 795.

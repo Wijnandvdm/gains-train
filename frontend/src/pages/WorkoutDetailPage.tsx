@@ -37,7 +37,8 @@ export function WorkoutDetailPage() {
         className="back-link"
       >
         <BackIcon />
-        History
+        {/* Back to where you came from (History, or an exercise's progress); else History. */}
+        {cameFromApp ? 'Back' : 'History'}
       </Link>
       {isPending ? (
         <Spinner />

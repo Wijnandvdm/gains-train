@@ -111,6 +111,7 @@ const record = (s: PerformedSet): SetRecord => ({
   weight_kg: kg(s.weight_kg),
   reps: s.reps,
   performed_on: s.performed_on,
+  workout_id: s.workout_id,
 })
 
 export function records(sets: PerformedSet[]): Records | null {

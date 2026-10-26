@@ -125,7 +125,13 @@ export type Settings = {
 
 // --- Stats --------------------------------------------------------------------------------
 
-export type SetRecord = { weight_kg: number; reps: number; performed_on: string }
+/** A record set, and the workout it was done in (to open it). */
+export type SetRecord = {
+  weight_kg: number
+  reps: number
+  performed_on: string
+  workout_id: string
+}
 
 export type Records = {
   heaviest: SetRecord

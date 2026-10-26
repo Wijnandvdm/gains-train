@@ -1,6 +1,7 @@
 // Loaded on demand (see ExerciseProgress): Recharts is most of the app's JavaScript,
 // and only this chart needs it.
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   CartesianGrid,
   Line,
@@ -47,6 +48,7 @@ const METRICS = {
 type Metric = keyof typeof METRICS
 
 export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }) {
+  const navigate = useNavigate()
   const [metric, setMetric] = useState<Metric>('volume')
   const { title, value, format } = METRICS[metric]
   const points = sessions.map((p) => ({ ...p, time: parseLocalDate(p.performed_on).getTime() }))
@@ -141,11 +143,21 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
           </thead>
           <tbody>
             {[...sessions].reverse().map((p) => (
+              // Tap a row for its workout (the date is the link, for keyboards and screen readers).
               <tr
                 key={p.workout_id}
-                className="border-t border-neutral-200 dark:border-neutral-800"
+                onClick={() => navigate(`/history/${p.workout_id}`)}
+                className="cursor-pointer border-t border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
               >
-                <td className="py-1">{formatDay(p.performed_on)}</td>
+                <td className="py-1">
+                  <Link
+                    to={`/history/${p.workout_id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="underline decoration-neutral-300 underline-offset-2 dark:decoration-neutral-600"
+                  >
+                    {formatDay(p.performed_on)}
+                  </Link>
+                </td>
                 <td className="py-1">{formatSet(p.top_weight_kg, p.top_weight_reps)}</td>
                 <td className="py-1 text-right">{format(value(p))}</td>
               </tr>

@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { formatShortDay } from '../lib/format'
@@ -72,6 +72,34 @@ describe('progress', () => {
         .getAllByRole('button')
         .map((b) => b.textContent),
     ).toEqual(['Volume per set', 'Top weight', 'Estimated 1RM'])
+  })
+
+  it('takes you from a row in the table to that workout', async () => {
+    await seedDevice({ workouts: WORKOUTS })
+    const user = userEvent.setup()
+    const router = renderApp(`/exercises/${PULLDOWN.id}`)
+
+    const progress = await screen.findByRole('region', { name: 'Your progress' })
+    await user.click(await within(progress).findByText('Show as table'))
+    // Tap anywhere on 7 Sep's row.
+    await user.click(within(progress).getByRole('cell', { name: '927 kg' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/history/b'))
+    expect(await screen.findByText('90 × 12')).toBeVisible()
+    await user.click(screen.getByRole('link', { name: 'Back' }))
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/exercises/${PULLDOWN.id}`))
+  })
+
+  it('takes you from a rep record to the workout it was set in', async () => {
+    await seedDevice({ workouts: WORKOUTS })
+    const user = userEvent.setup()
+    const router = renderApp(`/exercises/${PULLDOWN.id}`)
+
+    const progress = await screen.findByRole('region', { name: 'Your progress' })
+    // 80 kg × 14 was set on 22 Jul (workout a).
+    await user.click(await within(progress).findByRole('cell', { name: '14' }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/history/a'))
+    expect(await screen.findByText('80 × 14')).toBeVisible()
   })
 
   it('invites you to log it when there is no data yet', async () => {

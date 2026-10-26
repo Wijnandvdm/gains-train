@@ -4,14 +4,14 @@ import { detectPRs, e1rm, prsForSets } from './prs'
 
 // Records like your Lat Pulldown: 90 × 12 heaviest, then 85 × 12 and 80 × 14.
 const RECORDS: Records = {
-  heaviest: { weight_kg: 90, reps: 12, performed_on: '2026-09-07' },
-  best_e1rm: { weight_kg: 90, reps: 12, performed_on: '2026-09-07' },
+  heaviest: { weight_kg: 90, reps: 12, performed_on: '2026-09-07', workout_id: 'w' },
+  best_e1rm: { weight_kg: 90, reps: 12, performed_on: '2026-09-07', workout_id: 'w' },
   best_e1rm_kg: 126,
   best_session_per_set_kg: 2890,
   best_session_on: '2026-09-07',
   rep_records: [
-    { weight_kg: 90, reps: 12, performed_on: '2026-09-07' },
-    { weight_kg: 80, reps: 14, performed_on: '2026-07-22' },
+    { weight_kg: 90, reps: 12, performed_on: '2026-09-07', workout_id: 'w' },
+    { weight_kg: 80, reps: 14, performed_on: '2026-07-22', workout_id: 'w' },
   ],
 }
 

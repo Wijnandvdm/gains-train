@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import type { ExerciseStats } from '../data/types'
 import {
   formatDay,
@@ -36,6 +37,7 @@ export function ExerciseProgress({ exerciseId }: { exerciseId: string }) {
 }
 
 function Progress({ stats }: { stats: ExerciseStats }) {
+  const navigate = useNavigate()
   const records = stats.records!
   return (
     <>
@@ -80,11 +82,23 @@ function Progress({ stats }: { stats: ExerciseStats }) {
           </thead>
           <tbody className="tabular-nums">
             {records.rep_records.map((r) => (
-              <tr key={r.weight_kg} className="border-t border-neutral-200 dark:border-neutral-800">
+              // Tap a row for the workout of the record (the date is the link, for keyboards
+              // and screen readers).
+              <tr
+                key={r.weight_kg}
+                onClick={() => navigate(`/history/${r.workout_id}`)}
+                className="cursor-pointer border-t border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+              >
                 <td className="px-3 py-1.5">{formatWeight(r.weight_kg)}</td>
                 <td className="px-3 py-1.5">{r.reps}</td>
                 <td className="px-3 py-1.5 text-right text-neutral-500">
-                  {formatDay(r.performed_on)}
+                  <Link
+                    to={`/history/${r.workout_id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="underline decoration-neutral-300 underline-offset-2 dark:decoration-neutral-600"
+                  >
+                    {formatDay(r.performed_on)}
+                  </Link>
                 </td>
               </tr>
             ))}
