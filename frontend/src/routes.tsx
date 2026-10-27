@@ -1,6 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom'
 import { AppLayout } from './components/AppLayout'
 import { Spinner } from './components/Spinner'
+import { ErrorPage } from './pages/ErrorPage'
 import { ExerciseDetailPage } from './pages/ExerciseDetailPage'
 import { ExercisesPage } from './pages/ExercisesPage'
 import { HistoryPage } from './pages/HistoryPage'
@@ -17,22 +18,35 @@ const lazyPage = {
   settings: async () => ({ Component: (await import('./pages/SettingsPage')).SettingsPage }),
 }
 
+// When something crashes: ErrorPage instead of React Router's developer message. A screen's
+// error shows inside the app (header and tabs stay, to tap away); the outer one catches the rest.
 export const routes: RouteObject[] = [
-  { path: '/setup', lazy: lazyPage.setup, hydrateFallbackElement: <Spinner /> },
+  {
+    path: '/setup',
+    lazy: lazyPage.setup,
+    hydrateFallbackElement: <Spinner />,
+    errorElement: <ErrorPage />,
+  },
   {
     element: <AppLayout />,
     hydrateFallbackElement: <Spinner />,
+    errorElement: <ErrorPage />,
     children: [
-      { index: true, element: <Navigate to="/workout" replace /> },
-      { path: 'workout', element: <WorkoutPage /> },
-      { path: 'history', element: <HistoryPage /> },
-      { path: 'history/:workoutId', element: <WorkoutDetailPage /> },
-      { path: 'exercises', element: <ExercisesPage /> },
-      { path: 'exercises/:exerciseId', element: <ExerciseDetailPage /> },
-      { path: 'progress', element: <ProgressPage /> },
-      { path: 'routine', lazy: lazyPage.routine },
-      { path: 'settings', lazy: lazyPage.settings },
-      { path: '*', element: <NotFoundPage /> },
+      {
+        errorElement: <ErrorPage />,
+        children: [
+          { index: true, element: <Navigate to="/workout" replace /> },
+          { path: 'workout', element: <WorkoutPage /> },
+          { path: 'history', element: <HistoryPage /> },
+          { path: 'history/:workoutId', element: <WorkoutDetailPage /> },
+          { path: 'exercises', element: <ExercisesPage /> },
+          { path: 'exercises/:exerciseId', element: <ExerciseDetailPage /> },
+          { path: 'progress', element: <ProgressPage /> },
+          { path: 'routine', lazy: lazyPage.routine },
+          { path: 'settings', lazy: lazyPage.settings },
+          { path: '*', element: <NotFoundPage /> },
+        ],
+      },
     ],
   },
 ]

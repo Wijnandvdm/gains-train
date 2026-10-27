@@ -66,6 +66,12 @@ export const REST = {
   done: 'All aboard! 🚂',
 }
 
+// --- When something breaks ----------------------------------------------------------------
+
+export const ERRORS = {
+  title: 'Something went off the rails',
+}
+
 // --- History --------------------------------------------------------------------------------
 
 export const HISTORY = {

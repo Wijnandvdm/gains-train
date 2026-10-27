@@ -60,6 +60,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 
+- When a screen crashes, a friendly screen says so (your data is safe), with Try again and
+  Go to Workout, instead of a developer message; the tabs stay, so you can tap away.
 - The phone's back button goes back to the previous screen; before, it closed the app on any
   screen. On the first screen it puts the app in the background, keeping a rest timer or a
   workout in progress.
