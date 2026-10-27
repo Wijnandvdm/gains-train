@@ -85,4 +85,3 @@ Backup: every month, 3 months, 6 months, a year, or never).
 3. During testing, I encountered this boi in the dev setup:
 You can provide a way better UX than this when your app throws errors by providing your own ErrorBoundary or errorElement prop on your route.
 Should we do something with this?
-4. Do we need time filters for the progress page? 1 year, 2 years, 10 years, all or something? Dependent on how much data is in?

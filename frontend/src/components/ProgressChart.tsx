@@ -12,6 +12,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { SessionPoint } from '../data/types'
+import { defaultRange, inRange, rangeChoices, type TimeRange } from '../lib/timeRange'
 import {
   formatDay,
   formatE1rm,
@@ -51,7 +52,13 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
   const navigate = useNavigate()
   const [metric, setMetric] = useState<Metric>('volume')
   const { title, value, format } = METRICS[metric]
-  const points = sessions.map((p) => ({ ...p, time: parseLocalDate(p.performed_on).getTime() }))
+  // Time filters only once there's more than 3 months to filter; the table follows them.
+  const today = localDateString()
+  const choices = rangeChoices(sessions[0]?.performed_on ?? today, today)
+  const [picked, setPicked] = useState<TimeRange | null>(null)
+  const range = picked ?? defaultRange(choices)
+  const shown = sessions.filter((p) => inRange(p.performed_on, range, today))
+  const points = shown.map((p) => ({ ...p, time: parseLocalDate(p.performed_on).getTime() }))
 
   return (
     <figure className="card flex flex-col gap-2 p-3">
@@ -68,6 +75,21 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
           </button>
         ))}
       </div>
+      {choices.length > 0 && (
+        <div role="group" aria-label="Time range" className="flex flex-wrap gap-1.5">
+          {choices.map((r) => (
+            <button
+              key={r.label}
+              type="button"
+              aria-pressed={range.label === r.label}
+              onClick={() => setPicked(r)}
+              className={`chip text-xs ${range.label === r.label ? 'chip-active' : ''}`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      )}
       <figcaption className="text-sm font-medium">{title}</figcaption>
 
       <div className="h-56" aria-hidden="true">
@@ -142,7 +164,7 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
             </tr>
           </thead>
           <tbody>
-            {[...sessions].reverse().map((p) => (
+            {[...shown].reverse().map((p) => (
               // Tap a row for its workout (the date is the link, for keyboards and screen readers).
               <tr
                 key={p.workout_id}

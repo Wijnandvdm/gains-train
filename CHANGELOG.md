@@ -18,6 +18,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   you forgot. Records, charts, the Gains Line and stamps follow.
 - On an exercise's page, tap a row of the progress table or of the rep records to open that
   workout.
+- Time filters for an exercise's progress chart (3 months, 1 year, … All) that grow with your
+  data: only the ones shorter than your history, none until there are 3 months to filter. It
+  opens on the last year once you have more than a year; records stay all-time.
 - Your own exercises, for what the library doesn't have: make one right from the exercise
   picker (or Exercises → New exercise) with a name and main muscle, and add how-to steps
   any time later. Rename it, or delete it while you haven't used it.
