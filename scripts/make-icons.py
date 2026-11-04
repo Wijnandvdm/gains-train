@@ -23,6 +23,19 @@ FAVICON = ROOT / "frontend/public/favicon.png"
 LAUNCHER_COLOR = ROOT / "frontend/android/app/src/main/res/values/ic_launcher_background.xml"
 
 
+def trimmed(logo: Image.Image, background) -> Image.Image:
+    """The logo without the empty margin around it (pixels close to its background colour)."""
+    diff = Image.eval(
+        Image.merge("RGB", [
+            band.point(lambda v, b=b: 255 if abs(v - b) > 24 else 0)
+            for band, b in zip(logo.convert("RGB").split(), background[:3])
+        ]).convert("L"),
+        lambda v: 255 if v else 0,
+    )
+    box = diff.getbbox()
+    return logo.crop(box) if box else logo
+
+
 def placed(logo: Image.Image, size: int, share: float, background) -> Image.Image:
     """The logo scaled to `share` of a square canvas of `size`, in the middle."""
     canvas = Image.new("RGBA", (size, size), background)
@@ -35,6 +48,7 @@ def placed(logo: Image.Image, size: int, share: float, background) -> Image.Imag
 def main() -> None:
     logo = Image.open(ASSETS / "logo.png").convert("RGBA")
     bg = logo.getpixel((0, 0))[:3] + (255,)
+    logo = trimmed(logo, bg)  # so the drawing itself fills the icon, whatever its margin
     hex_bg = "#%02x%02x%02x" % bg[:3]
 
     placed(logo, 1024, 0.9, bg).save(ASSETS / "icon-only.png")  # the launcher icon

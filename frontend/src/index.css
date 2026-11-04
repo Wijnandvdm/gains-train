@@ -14,19 +14,19 @@
 :root {
   /* The app itself: logo, header, links, focus outlines, the Gains Line track, the train on
      the move. */
-  --train: #ea1614; /* the logo's red */
+  --train: #e30201; /* the logo's red */
   /* Done and good: ✓ Done and the other main buttons, ticked sets, weeks reached, filled ride
      rings, "workout saved". */
-  --done: #c8130f; /* a shade deeper than the logo's red */
+  --done: #c80201; /* a shade deeper than the logo's red */
   /* Tickets (they save your streak), the 🏆 PR badge and warm-up sets. */
   --ticket: #facc15;
   /* Something's wrong: error messages, Delete, a field that needs fixing. */
   --error: #dc2626;
   /* The muscle map: the muscles an exercise works. */
-  --muscle: #ea1614;
+  --muscle: #e30201;
 
   /* Passport stamps, one ink per kind. */
-  --stamp-rides: #8e0f0d; /* the logo's shadow red */
+  --stamp-rides: #890101; /* the logo's shadow red */
   --stamp-weight: #1d64c4;
   --stamp-prs: #b45309;
   --stamp-streak: #7c3aed;
