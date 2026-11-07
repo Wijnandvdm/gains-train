@@ -38,6 +38,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- If you moved the weight up during an exercise last time, the next time starts at the weight
+  you ended on, and the card shows how it went ("last time 10 × 12 → 15 × 8").
 - A new look: the muscle-train logo as the app icon and splash screen, and the app in its
   reds, from the header to ✓ Done. The main buttons are a shade darker, so their text reads
   well, and error messages and warm-up sets have readable colours in dark mode too.
@@ -60,6 +62,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 
+- Your last weight and reps are filled in again after you skipped an exercise: a skipped
+  session no longer counts as "last time", however long ago you last did it.
 - When a screen crashes, a friendly screen says so (your data is safe), with Try again and
   Go to Workout, instead of a developer message; the tabs stay, so you can tap away.
 - The phone's back button goes back to the previous screen; before, it closed the app on any

@@ -45,7 +45,11 @@ export async function workoutsBetween(from?: string, to?: string): Promise<Store
   return rows.sort(newestFirst)
 }
 
-/** Your previous finished sessions of an exercise, newest first (for "last time"). */
+/**
+ * Your previous finished sessions of an exercise, newest first (for "last time"), however long
+ * ago. Only sessions where you did it: a routine workout also holds the exercises you skipped.
+ * Their sets are the ones really done, warm-ups included (not rows you never ticked off).
+ */
 export async function exerciseSessions(
   exerciseId: ExerciseId,
   limit = 1,
@@ -58,10 +62,11 @@ export async function exerciseSessions(
     // Normally once per workout; if an exercise was done twice, the later entry first.
     for (const we of [...w.exercises].reverse()) {
       if (we.exercise_id !== exerciseId) continue
+      if (!we.sets.some((s) => isPerformed(s, w))) continue
       sessions.push({
         workout_id: w.id,
         performed_on: w.performed_on,
-        sets: we.sets,
+        sets: we.sets.filter((s) => isPerformed({ ...s, is_warmup: false }, w)),
       })
       if (sessions.length === limit) return sessions
     }

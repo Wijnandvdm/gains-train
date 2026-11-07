@@ -11,6 +11,8 @@ import {
   PULLDOWN,
   ROW,
   seedDevice,
+  set,
+  workout,
 } from '../test/device'
 import { renderApp } from '../test/utils'
 
@@ -79,6 +81,30 @@ describe('minimal clicks (routine)', () => {
     )
     const [done] = await db.workouts.where('status').equals('completed').toArray()
     expect(done).toMatchObject({ name: 'Day2 · Back & Triceps', routine_day_id: 'day2' })
+  })
+
+  it('still fills in your numbers after you skipped the exercise', async () => {
+    await seedDevice({
+      routine: DAY2_ROUTINE,
+      workouts: [
+        LAST_DAY2, // 80 × 12 on 15 Sep
+        workout({ id: 'skipped', performed_on: '2026-09-29' }, [[ROW.id, []]]),
+      ],
+    })
+    renderApp('/workout')
+    await expectCard('Seated Cable Rows', '1 of 3', '80', '12')
+  })
+
+  it('starts at the weight you ended on when you moved up last time', async () => {
+    await seedDevice({
+      routine: DAY2_ROUTINE,
+      workouts: [
+        workout({ id: 'up' }, [[ROW.id, [set('a', 'we', 1, 10, 12), set('b', 'we', 2, 15, 8)]]]),
+      ],
+    })
+    renderApp('/workout')
+    await expectCard('Seated Cable Rows', '1 of 3', '15', '8')
+    expect(within(card()).getByText('last time 10 × 12 → 15 × 8')).toBeVisible()
   })
 
   it('can skip an exercise', async () => {

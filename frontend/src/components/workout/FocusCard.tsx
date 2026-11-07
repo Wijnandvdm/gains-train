@@ -48,10 +48,17 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
         <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
         <div className="min-w-0 flex-1">
           <p className="line-clamp-2 text-lg leading-snug font-semibold">{exercise.name}</p>
-          {next.previous && (
+          {next.movedUp ? (
             <p className="text-sm text-neutral-500">
-              last time {formatSet(next.previous.weight_kg, next.previous.reps)}
+              last time {formatSet(next.movedUp.first.weight_kg, next.movedUp.first.reps)} →{' '}
+              {formatSet(next.movedUp.final.weight_kg, next.movedUp.final.reps)}
             </p>
+          ) : (
+            next.previous && (
+              <p className="text-sm text-neutral-500">
+                last time {formatSet(next.previous.weight_kg, next.previous.reps)}
+              </p>
+            )
           )}
         </div>
         {setUp && !showSettings && (

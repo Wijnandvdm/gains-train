@@ -31,6 +31,8 @@ export type NextSet = {
   prefill: { weight: number | null; reps: number | null }
   /** Last time's matching set, for the "last time" hint. */
   previous: WorkoutSet | undefined
+  /** When the weight went up during the exercise last time: its first and final set. */
+  movedUp: { first: WorkoutSet; final: WorkoutSet } | undefined
   /** An existing, not yet ticked row to fill in (instead of adding a new one). */
   openSet: WorkoutSet | undefined
 }
@@ -52,19 +54,30 @@ export function nextSet(plan: PlannedExercise[], skipped: ReadonlySet<string>): 
     if (done.length >= plannedSets) continue
 
     const openSet = work.find((s) => !s.completed_at)
-    const previous = workSets(item.lastTime)[done.length]
-    const fallback = done.at(-1) ?? workSets(item.lastTime).at(-1)
+    const last = workSets(item.lastTime)
+    const previous = last[done.length]
+    const fallback = done.at(-1) ?? last.at(-1)
+    // You ended heavier than you started, so start there: don't repeat the lighter sets. After
+    // that, follow today's sets (you may have gone back down a little).
+    const first = last[0]
+    const final = last.at(-1)
+    const movedUp =
+      first && final && (final.weight_kg ?? 0) > (first.weight_kg ?? 0)
+        ? { first, final }
+        : undefined
+    const start = movedUp && (done.at(-1) ?? movedUp.final)
     return {
       item,
       setNumber: done.length + 1,
       plannedSets,
       previous,
+      movedUp,
       openSet,
       prefill: {
         // Anything typed into the open row wins; then last time's same set; then the
         // set before it today; then last time's final set.
-        weight: openSet?.weight_kg ?? previous?.weight_kg ?? fallback?.weight_kg ?? null,
-        reps: openSet?.reps ?? previous?.reps ?? fallback?.reps ?? null,
+        weight: openSet?.weight_kg ?? (start ?? previous ?? fallback)?.weight_kg ?? null,
+        reps: openSet?.reps ?? (start ?? previous ?? fallback)?.reps ?? null,
       },
     }
   }

@@ -83,6 +83,39 @@ describe('nextSet', () => {
     expect(nextSet(plan, new Set(['rows', 'pulldown']))).toBeNull()
   })
 
+  describe('when the weight went up during the exercise last time', () => {
+    const lastTime = [s(10, 12), s(15, 8)]
+
+    it('starts at the weight you ended on, and tells how it went', () => {
+      const next = nextSet([item({ lastTime })], new Set())!
+      expect(next.prefill).toEqual({ weight: 15, reps: 8 })
+      expect(next.movedUp?.first.weight_kg).toBe(10)
+      expect(next.movedUp?.final.weight_kg).toBe(15)
+    })
+
+    it('then follows what you do today', () => {
+      const today = item({ lastTime, sets: [s(12.5, 10)], routineSets: 3 })
+      expect(nextSet([today], new Set())!.prefill).toEqual({ weight: 12.5, reps: 10 })
+    })
+
+    it('keeps what you typed into an open row', () => {
+      const open = item({ lastTime, sets: [s(11, 9, { done: false })] })
+      expect(nextSet([open], new Set())!.prefill).toEqual({ weight: 11, reps: 9 })
+    })
+  })
+
+  it('repeats last time set by set when the weight stayed or came back down', () => {
+    for (const lastTime of [
+      [s(15, 8), s(12, 10), s(10, 12)], // a drop set
+      [s(10, 12), s(15, 8), s(10, 12)], // up and back down
+      [s(80, 12), s(80, 10)], // the same weight
+    ]) {
+      const next = nextSet([item({ lastTime })], new Set())!
+      expect(next.prefill).toEqual({ weight: lastTime[0]!.weight_kg, reps: lastTime[0]!.reps })
+      expect(next.movedUp).toBeUndefined()
+    }
+  })
+
   it('has nothing to prefill the first time ever', () => {
     expect(nextSet([item()], new Set())!.prefill).toEqual({ weight: null, reps: null })
     expect(plannedSetCount(item())).toBe(3)
