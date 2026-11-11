@@ -6,14 +6,21 @@
  *    the same id, so your history, records and routine keep it.
  * 2. A custom exercise with the same name as a library exercise is merged into the library
  *    one (it gains the drawings); your data moves over to it.
+ * 3. New library exercises (added by an update) that look like one of your custom exercises
+ *    are noted as suggestions: the Workout screen asks, and only "yes" merges them (as in 2).
  *
  * Safe to run any time: when everything is in step, it changes nothing.
  */
 import { db, getStoredRoutine } from './db'
 import { loadLibrary, loadRetired } from './library'
+import { type MatchSuggestion, suggestMatches } from './libraryMatches'
 import type { ExerciseSummary, StoredWorkout } from './types'
 
-export async function syncWithLibrary(): Promise<{ kept: number; merged: number }> {
+export async function syncWithLibrary(): Promise<{
+  kept: number
+  merged: number
+  suggested: number
+}> {
   const library = await loadLibrary()
 
   // 1. Logged exercises that left the library → custom exercises (same id).
@@ -40,7 +47,49 @@ export async function syncWithLibrary(): Promise<{ kept: number; merged: number 
   }
   if (merges.size > 0) await renameExercises(merges)
 
-  return { kept: kept.length, merged: merges.size }
+  // 3. New library exercises that may be one of yours (not the same name): suggest them.
+  const suggested = await noteNewExercises(library)
+
+  return { kept: kept.length, merged: merges.size, suggested }
+}
+
+/**
+ * Remembers the library's exercises, and suggests the new ones that look like one of yours.
+ * The first time, there's nothing to compare with: it only remembers. Returns how many new
+ * suggestions it made.
+ */
+async function noteNewExercises(library: Map<string, ExerciseSummary>): Promise<number> {
+  const seenRow = await db.kv.get('librarySeen')
+  const ids = [...library.keys()]
+  await db.kv.put({ key: 'librarySeen', value: ids })
+  if (seenRow?.key !== 'librarySeen') return 0
+  const seen = new Set(seenRow.value)
+  const added = [...library.values()].filter((e) => !seen.has(e.id))
+  if (added.length === 0) return 0
+
+  const pending = await librarySuggestions()
+  const asked = new Set(pending.map((s) => s.custom_id))
+  const fresh = suggestMatches(
+    (await db.customExercises.toArray()).filter((c) => !asked.has(c.id)),
+    added,
+  )
+  if (fresh.length > 0) {
+    await db.kv.put({ key: 'librarySuggestions', value: [...pending, ...fresh] })
+  }
+  return fresh.length
+}
+
+/** The suggestions still to answer (those whose exercises still exist). */
+export async function librarySuggestions(): Promise<MatchSuggestion[]> {
+  const row = await db.kv.get('librarySuggestions')
+  return row?.key === 'librarySuggestions' ? row.value : []
+}
+
+/** Your answer: yes moves everything of yours to the library exercise; no keeps yours. */
+export async function answerSuggestion(suggestion: MatchSuggestion, useIt: boolean): Promise<void> {
+  if (useIt) await renameExercises(new Map([[suggestion.custom_id, suggestion.library_id]]))
+  const rest = (await librarySuggestions()).filter((s) => s.custom_id !== suggestion.custom_id)
+  await db.kv.put({ key: 'librarySuggestions', value: rest })
 }
 
 async function usedExerciseIds(): Promise<Set<string>> {

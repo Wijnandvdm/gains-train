@@ -6,6 +6,7 @@ import { DEFAULT_REST_SECONDS } from '../lib/rest'
 import { DEFAULT_WEEKLY_TARGET } from './line'
 import Dexie, { type EntityTable } from 'dexie'
 import type { DumbbellChoice } from './dumbbells'
+import type { MatchSuggestion } from './libraryMatches'
 import type { ExerciseSummary, Settings, StoredRoutine, StoredWorkout } from './types'
 
 export type RestPref = { exercise_id: string; rest_seconds: number } // 0 = no rest timer
@@ -15,7 +16,13 @@ export type MachineSetting = { name: string; value: string }
 export type MachineSettings = { exercise_id: string; settings: MachineSetting[] }
 
 /** Small singleton documents (the routine, settings), stored by key. */
-type KeyValue = { key: 'routine'; value: StoredRoutine } | { key: 'settings'; value: Settings }
+type KeyValue =
+  | { key: 'routine'; value: StoredRoutine }
+  | { key: 'settings'; value: Settings }
+  /** The library exercises the app has seen, to tell which ones an update added. */
+  | { key: 'librarySeen'; value: string[] }
+  /** Your exercises that may be one of those new ones: asked on the Workout screen. */
+  | { key: 'librarySuggestions'; value: MatchSuggestion[] }
 
 class GainsDb extends Dexie {
   workouts!: EntityTable<StoredWorkout, 'id'>

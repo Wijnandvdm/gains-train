@@ -24,6 +24,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Your own exercises, for what the library doesn't have: make one right from the exercise
   picker (or Exercises → New exercise) with a name and main muscle. Rename it, or delete it
   while you haven't used it.
+- When an update adds an exercise that looks like one of your own, the Workout screen asks
+  whether to use the new one from now on; yes moves your workouts, records and preferences
+  over to it.
 - Exercise preferences per exercise (Seat 4, Pad L, −1): on the set card until the first set
   is done (⚙ shows them again), and changeable there, in the routine editor or on the
   exercise's page. Backups include them (backup format 3).
