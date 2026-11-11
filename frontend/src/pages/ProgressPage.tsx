@@ -129,7 +129,8 @@ function OverviewCard({ row }: { row: ExerciseOverview }) {
   const { exercise } = row
   return (
     <Link
-      to={`/exercises/${exercise.id}`}
+      // Straight to its progress (records and chart), not the top of the exercise page.
+      to={`/exercises/${exercise.id}#progress`}
       className="card flex items-center gap-3 p-2 transition hover:border-train-500"
     >
       <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />

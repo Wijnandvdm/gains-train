@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useRef } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { ExerciseStats } from '../data/types'
 import {
   formatDay,
@@ -17,9 +17,23 @@ const ProgressChart = lazy(() => import('./ProgressChart'))
 /** "Your progress" on an exercise page: records, a chart, and rep records. */
 export function ExerciseProgress({ exerciseId }: { exerciseId: string }) {
   const { data } = useExerciseStats(exerciseId)
+  // From the Progress tab (".../exercises/<id>#progress"): straight here, once it has loaded, so
+  // the page doesn't jump around after.
+  const { hash } = useLocation()
+  const section = useRef<HTMLElement>(null)
+  const loaded = data !== undefined
+  useEffect(() => {
+    if (hash === '#progress' && loaded) section.current?.scrollIntoView({ block: 'start' })
+  }, [hash, loaded])
 
   return (
-    <section aria-labelledby="progress-heading" className="flex flex-col gap-3">
+    <section
+      ref={section}
+      id="progress"
+      aria-labelledby="progress-heading"
+      // Clear of the sticky header when scrolled to.
+      className="flex scroll-mt-16 flex-col gap-3"
+    >
       <h2 id="progress-heading" className="font-semibold">
         Your progress
       </h2>

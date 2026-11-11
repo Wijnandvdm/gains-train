@@ -44,7 +44,7 @@ describe('progress', () => {
     renderApp('/progress')
 
     const card = (await screen.findByText('Wide-Grip Lat Pulldown')).closest('a')!
-    expect(card).toHaveAttribute('href', `/exercises/${PULLDOWN.id}`)
+    expect(card).toHaveAttribute('href', `/exercises/${PULLDOWN.id}#progress`) // to its progress
     expect(within(card).getByText('85 kg')).toBeVisible() // last session
     expect(within(card).getByText('90 kg')).toBeVisible() // max
     expect(within(card).getByText('126 kg')).toBeVisible() // e1RM
@@ -156,6 +156,25 @@ describe('progress', () => {
     const progress = await screen.findByRole('region', { name: 'Your progress' })
     await user.click(await within(progress).findByText('Show as table'))
     expect(within(progress).queryByRole('group', { name: 'Time range' })).toBeNull()
+  })
+
+  it('scrolls to Your progress when you come from the Progress tab', async () => {
+    await seedDevice({ workouts: WORKOUTS })
+    const scrolled: Element[] = []
+    vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function (this: Element) {
+      scrolled.push(this)
+    })
+    renderApp(`/exercises/${PULLDOWN.id}#progress`)
+    const progress = await screen.findByRole('region', { name: 'Your progress' })
+    await waitFor(() => expect(scrolled).toContain(progress))
+  })
+
+  it('opens at the top from anywhere else', async () => {
+    await seedDevice({ workouts: WORKOUTS })
+    const scrollIntoView = vi.spyOn(Element.prototype, 'scrollIntoView')
+    renderApp(`/exercises/${PULLDOWN.id}`)
+    await screen.findByText('Heaviest')
+    expect(scrollIntoView).not.toHaveBeenCalled()
   })
 
   it('invites you to log it when there is no data yet', async () => {
