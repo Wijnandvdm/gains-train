@@ -7,7 +7,7 @@ import { set, workout } from '../test/device'
 
 const SQUAT = libraryExercise('bulgarian-split-squat', 'Bulgarian Split Squat')
 const ROWS = libraryExercise('Seated_Cable_Rows', 'Seated Row')
-const GONE = libraryExercise('Zottman_Curl', 'Zottman Curl', { instructions: ['Curl, turn.'] })
+const GONE = libraryExercise('Zottman_Curl', 'Zottman Curl')
 
 const logged = (id: string, exerciseId: string) =>
   workout({ id }, [[exerciseId, [set(`${id}-s`, `${id}-we`, 1, 20, 10)]]])
@@ -22,7 +22,6 @@ describe('keeping your data in step with the library', () => {
       name: 'Zottman Curl',
       is_custom: true,
       image_urls: [],
-      instructions: ['Curl, turn.'],
     })
     expect(await syncWithLibrary()).toEqual({ kept: 0, merged: 0 }) // nothing left to do
   })

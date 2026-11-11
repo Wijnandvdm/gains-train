@@ -27,7 +27,7 @@ import type { DumbbellChoice, DumbbellMode } from './dumbbells'
 import { loadLibrary } from './library'
 import { syncWithLibrary } from './migrate'
 import type {
-  ExerciseDetail,
+  ExerciseSummary,
   Settings,
   StoredRoutine,
   StoredWorkout,
@@ -46,7 +46,7 @@ export type Backup = {
   version: number
   exported_at: string
   workouts: StoredWorkout[]
-  custom_exercises: ExerciseDetail[]
+  custom_exercises: ExerciseSummary[]
   rest_prefs: RestPref[]
   /** Since version 3; older backups have none. */
   machine_settings: MachineSettings[]
@@ -128,7 +128,6 @@ const CUSTOM_COLUMNS = [
   'force',
   'primary_muscles',
   'secondary_muscles',
-  'instructions',
   'id',
 ]
 const REST_COLUMNS = ['exercise', 'rest_seconds', 'exercise_id']
@@ -144,7 +143,7 @@ const LIST = '; '
 
 async function backupToZip(backup: Backup): Promise<Uint8Array> {
   const { strToU8, zipSync } = await zipLibrary()
-  const library = await loadLibrary().catch(() => new Map<string, ExerciseDetail>())
+  const library = await loadLibrary().catch(() => new Map<string, ExerciseSummary>())
   const customs = new Map(backup.custom_exercises.map((c) => [c.id, c]))
   const nameOf = (id: string) => library.get(id)?.name ?? customs.get(id)?.name ?? id
 
@@ -205,7 +204,6 @@ async function backupToZip(backup: Backup): Promise<Uint8Array> {
     force: text(c.force),
     primary_muscles: c.primary_muscles.join(LIST),
     secondary_muscles: c.secondary_muscles.join(LIST),
-    instructions: c.instructions.join('\n'),
     id: c.id,
   }))
 
@@ -361,7 +359,7 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
   }
 
   const custom_exercises = table(files, 'custom-exercises.csv', ['id', 'name'], strFromU8).map(
-    (r): ExerciseDetail => ({
+    (r): ExerciseSummary => ({
       id: r.id!,
       name: r.name!,
       equipment: orNull(r.equipment),
@@ -373,7 +371,6 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
       primary_muscles: list(r.primary_muscles),
       secondary_muscles: list(r.secondary_muscles),
       image_urls: [],
-      instructions: r.instructions ? r.instructions.split('\n') : [],
     }),
   )
 

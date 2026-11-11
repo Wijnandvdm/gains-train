@@ -2,11 +2,11 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { db } from '../data/db'
-import type { ExerciseDetail } from '../data/types'
+import type { ExerciseSummary } from '../data/types'
 import { seedDevice, set, workout } from '../test/device'
 import { renderApp } from '../test/utils'
 
-const SLED: ExerciseDetail = {
+const SLED: ExerciseSummary = {
   id: 'custom-sled',
   name: 'Sled push',
   equipment: null,
@@ -18,7 +18,6 @@ const SLED: ExerciseDetail = {
   primary_muscles: [],
   secondary_muscles: [],
   image_urls: [],
-  instructions: [],
 }
 
 describe('your own exercises', () => {
@@ -46,7 +45,7 @@ describe('your own exercises', () => {
     ])
   })
 
-  it('makes one on the Exercises tab, adds how-to steps later, and deletes it', async () => {
+  it('makes one on the Exercises tab, renames it, and deletes it', async () => {
     await seedDevice()
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
@@ -57,18 +56,13 @@ describe('your own exercises', () => {
     await user.click(screen.getByRole('button', { name: 'Create' }))
     expect(await screen.findByRole('heading', { name: 'Sled push' })).toBeVisible()
 
-    await user.click(screen.getByRole('button', { name: 'Edit · add how-to steps' }))
-    await user.type(
-      screen.getByLabelText('How to (one step per line)'),
-      'Lean into the handles.{Enter}Drive with your legs.',
-    )
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.queryByLabelText(/How to/)).toBeNull() // no steps to write any more
+    const name = screen.getByLabelText('Name')
+    await user.clear(name)
+    await user.type(name, 'Sled drive')
     await user.click(screen.getByRole('button', { name: 'Save' }))
-    const howTo = await screen.findByRole('heading', { name: 'How to' })
-    expect(
-      within(howTo.parentElement!)
-        .getAllByRole('listitem')
-        .map((li) => li.textContent),
-    ).toEqual(['Lean into the handles.', 'Drive with your legs.'])
+    expect(await screen.findByRole('heading', { name: 'Sled drive' })).toBeVisible()
 
     // Delete shows once the app has checked you haven't used it anywhere.
     await user.click(await screen.findByRole('button', { name: 'Delete' }))

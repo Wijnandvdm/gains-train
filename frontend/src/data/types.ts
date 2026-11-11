@@ -25,8 +25,6 @@ export type ExerciseSummary = {
   image_urls: string[]
 }
 
-export type ExerciseDetail = ExerciseSummary & { instructions: string[] }
-
 export type ExerciseFilters = { muscles: string[]; equipment: string[] }
 
 // --- Workouts -----------------------------------------------------------------------------

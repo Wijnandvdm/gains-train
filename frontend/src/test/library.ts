@@ -1,11 +1,11 @@
 // A small exercise library for tests, shaped like the real one (ids are dataset slugs).
-import type { ExerciseDetail } from '../data/types'
+import type { ExerciseSummary } from '../data/types'
 
 export function libraryExercise(
   id: string,
   name: string,
-  overrides: Partial<ExerciseDetail> = {},
-): ExerciseDetail {
+  overrides: Partial<ExerciseSummary> = {},
+): ExerciseSummary {
   return {
     id,
     name,
@@ -18,12 +18,11 @@ export function libraryExercise(
     primary_muscles: ['hamstrings'],
     secondary_muscles: [],
     image_urls: [`/exercises/${id}/0.jpg`, `/exercises/${id}/1.jpg`],
-    instructions: ['Sit down.', 'Curl.'],
     ...overrides,
   }
 }
 
-export const LIBRARY: ExerciseDetail[] = [
+export const LIBRARY: ExerciseSummary[] = [
   libraryExercise('Seated_Leg_Curl', 'Seated Leg Curl'),
   libraryExercise('Lying_Leg_Curls', 'Lying Leg Curls'),
   libraryExercise('Incline_Dumbbell_Curl', 'Incline Dumbbell Curl', {

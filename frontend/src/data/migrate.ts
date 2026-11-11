@@ -5,13 +5,13 @@
  * 1. An exercise you logged that is no longer in the library becomes a custom exercise with
  *    the same id, so your history, records and routine keep it.
  * 2. A custom exercise with the same name as a library exercise is merged into the library
- *    one (it gains the drawing and instructions); your data moves over to it.
+ *    one (it gains the drawings); your data moves over to it.
  *
  * Safe to run any time: when everything is in step, it changes nothing.
  */
 import { db, getStoredRoutine } from './db'
 import { loadLibrary, loadRetired } from './library'
-import type { ExerciseDetail, StoredWorkout } from './types'
+import type { ExerciseSummary, StoredWorkout } from './types'
 
 export async function syncWithLibrary(): Promise<{ kept: number; merged: number }> {
   const library = await loadLibrary()
@@ -21,7 +21,7 @@ export async function syncWithLibrary(): Promise<{ kept: number; merged: number 
   const missing = [...(await usedExerciseIds())].filter(
     (id) => !library.has(id) && !customs.has(id),
   )
-  let kept: ExerciseDetail[] = []
+  let kept: ExerciseSummary[] = []
   if (missing.length > 0) {
     const retired = await loadRetired()
     kept = missing.flatMap((id) => {

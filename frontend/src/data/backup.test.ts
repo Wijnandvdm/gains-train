@@ -59,7 +59,6 @@ async function someData() {
   await db.customExercises.add({
     ...libraryExercise('custom-1', 'Bulgarian Split Squat', {
       primary_muscles: ['glutes', 'quadriceps'],
-      instructions: ['Stand in front of a bench.', 'Lower the back knee.'],
     }),
     is_custom: true,
     image_urls: [],

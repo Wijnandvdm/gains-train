@@ -6,7 +6,7 @@ import { DEFAULT_REST_SECONDS } from '../lib/rest'
 import { DEFAULT_WEEKLY_TARGET } from './line'
 import Dexie, { type EntityTable } from 'dexie'
 import type { DumbbellChoice } from './dumbbells'
-import type { ExerciseDetail, Settings, StoredRoutine, StoredWorkout } from './types'
+import type { ExerciseSummary, Settings, StoredRoutine, StoredWorkout } from './types'
 
 export type RestPref = { exercise_id: string; rest_seconds: number } // 0 = no rest timer
 
@@ -19,7 +19,7 @@ type KeyValue = { key: 'routine'; value: StoredRoutine } | { key: 'settings'; va
 
 class GainsDb extends Dexie {
   workouts!: EntityTable<StoredWorkout, 'id'>
-  customExercises!: EntityTable<ExerciseDetail, 'id'>
+  customExercises!: EntityTable<ExerciseSummary, 'id'>
   restPrefs!: EntityTable<RestPref, 'exercise_id'>
   machineSettings!: EntityTable<MachineSettings, 'exercise_id'>
   dumbbellModes!: EntityTable<DumbbellChoice, 'exercise_id'>

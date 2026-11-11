@@ -46,7 +46,7 @@ phones, you keep the upload key.
 > explored.
 >
 > 302 EXERCISES
-> Each with a drawing, the muscles it works and how to do it. Add your own too.
+> Each with a drawing and the muscles it works. Add your own too.
 >
 > PRIVATE BY DESIGN
 > No account, no ads, no tracking. The app doesn't even have internet access: your workouts

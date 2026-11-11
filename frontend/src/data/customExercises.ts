@@ -1,7 +1,6 @@
 /**
  * Your own exercises, for what the library doesn't have: a name and, optionally, the main
- * muscle (from the library's muscles, so filters and progress know it) and how-to steps,
- * which you can add any time later. Their ids are
+ * muscle (from the library's muscles, so filters and progress know it). Their ids are
  * "custom-<uuid>", so they never clash with the library's.
  *
  * A name the library already has is refused: on the next start the app would merge the two
@@ -11,19 +10,11 @@
 import { uuid } from '../lib/uuid'
 import { db, getStoredRoutine } from './db'
 import { loadLibrary } from './library'
-import type { ExerciseDetail } from './types'
+import type { ExerciseSummary } from './types'
 
 class CustomExerciseError extends Error {}
 
-export type CustomExerciseInput = {
-  name: string
-  muscle: string | null
-  /** How to do it, step by step; left as it is when not given. */
-  instructions?: string[]
-}
-
-/** Steps as typed: one per line, without empty ones. */
-const tidySteps = (steps: string[]) => steps.map((s) => s.trim()).filter(Boolean)
+export type CustomExerciseInput = { name: string; muscle: string | null }
 
 const MAX_NAME = 80
 
@@ -34,7 +25,7 @@ async function checkedName(name: string, ownId?: string): Promise<string> {
   if (tidy.length > MAX_NAME) {
     throw new CustomExerciseError(`Keep the name under ${MAX_NAME} characters.`)
   }
-  const same = (e: ExerciseDetail) => e.id !== ownId && e.name.toLowerCase() === tidy.toLowerCase()
+  const same = (e: ExerciseSummary) => e.id !== ownId && e.name.toLowerCase() === tidy.toLowerCase()
   if ([...(await loadLibrary()).values()].some(same)) {
     throw new CustomExerciseError(`“${tidy}” is in the library already: pick that one.`)
   }
@@ -44,8 +35,8 @@ async function checkedName(name: string, ownId?: string): Promise<string> {
   return tidy
 }
 
-export async function createCustomExercise(input: CustomExerciseInput): Promise<ExerciseDetail> {
-  const exercise: ExerciseDetail = {
+export async function createCustomExercise(input: CustomExerciseInput): Promise<ExerciseSummary> {
+  const exercise: ExerciseSummary = {
     id: `custom-${uuid()}`,
     name: await checkedName(input.name),
     equipment: null,
@@ -57,19 +48,17 @@ export async function createCustomExercise(input: CustomExerciseInput): Promise<
     primary_muscles: input.muscle ? [input.muscle] : [],
     secondary_muscles: [],
     image_urls: [],
-    instructions: tidySteps(input.instructions ?? []),
   }
   await db.customExercises.add(exercise)
   return exercise
 }
 
-/** Rename it, or change its muscle or steps; past workouts show the new name straight away. */
+/** Rename it, or change its muscle; past workouts show the new name straight away. */
 export async function updateCustomExercise(id: string, input: CustomExerciseInput): Promise<void> {
   const name = await checkedName(input.name, id)
   const changed = await db.customExercises.update(id, {
     name,
     primary_muscles: input.muscle ? [input.muscle] : [],
-    ...(input.instructions && { instructions: tidySteps(input.instructions) }),
   })
   if (!changed && !(await db.customExercises.get(id))) {
     throw new CustomExerciseError('This exercise doesn’t exist (anymore).')

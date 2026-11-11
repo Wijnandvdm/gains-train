@@ -6,7 +6,7 @@ import {
   deleteCustomExercise,
   updateCustomExercise,
 } from '../data/customExercises'
-import type { ExerciseDetail } from '../data/types'
+import type { ExerciseSummary } from '../data/types'
 import { CustomExerciseForm } from '../components/CustomExerciseForm'
 import { DumbbellChoice } from '../components/DumbbellChoice'
 import { MachineSettings } from '../components/MachineSettings'
@@ -18,6 +18,10 @@ import { BackIcon } from '../components/icons'
 import { MuscleMap } from '../components/MuscleMap'
 import { Spinner } from '../components/Spinner'
 import { useExercise } from '../exercises'
+
+/** Who to watch for good form (instead of written steps): change the list here. */
+const FORM_COACHES = ['Jeff Nippard', 'Mike Israetel', 'Dom Mazzetti', 'Eric Janicki']
+const formTip = `For good form, watch ${new Intl.ListFormat('en', { type: 'disjunction' }).format(FORM_COACHES)} on YouTube.`
 
 export function ExerciseDetailPage() {
   const { data: exercise, isPending, isError, retry } = useExercise(useParams().exerciseId ?? '')
@@ -71,7 +75,7 @@ function NotFound() {
   )
 }
 
-function Exercise({ exercise }: { exercise: ExerciseDetail }) {
+function Exercise({ exercise }: { exercise: ExerciseSummary }) {
   const details = [exercise.level, exercise.equipment, exercise.mechanic, exercise.force].filter(
     (d): d is string => Boolean(d),
   )
@@ -112,22 +116,16 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
 
       <ExerciseProgress exerciseId={exercise.id} />
 
-      {exercise.instructions.length > 0 && (
-        <section>
-          <h2 className="mb-2 font-semibold">How to</h2>
-          <ol className="flex list-decimal flex-col gap-2 pl-5 text-neutral-700 marker:text-neutral-400 dark:text-neutral-300">
-            {exercise.instructions.map((step, i) => (
-              <li key={i}>{step}</li>
-            ))}
-          </ol>
-        </section>
-      )}
+      <section>
+        <h2 className="mb-1 font-semibold">Good form</h2>
+        <p className="text-neutral-700 dark:text-neutral-300">{formTip}</p>
+      </section>
     </article>
   )
 }
 
-/** Your own exercise: change it (name, muscle, how-to steps), or delete it while unused. */
-function CustomControls({ exercise }: { exercise: ExerciseDetail }) {
+/** Your own exercise: change it (name, muscle), or delete it while unused. */
+function CustomControls({ exercise }: { exercise: ExerciseSummary }) {
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const use = useLiveQuery(() => customExerciseUse(exercise.id), [exercise.id])
@@ -140,9 +138,7 @@ function CustomControls({ exercise }: { exercise: ExerciseDetail }) {
         initial={{
           name: exercise.name,
           muscle: exercise.primary_muscles[0] ?? null,
-          instructions: exercise.instructions,
         }}
-        withSteps
         submitLabel="Save"
         onSave={(input) => updateCustomExercise(exercise.id, input)}
         onSaved={() => setEditing(false)}
@@ -154,7 +150,7 @@ function CustomControls({ exercise }: { exercise: ExerciseDetail }) {
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn" onClick={() => setEditing(true)}>
-          {exercise.instructions.length > 0 ? 'Edit' : 'Edit · add how-to steps'}
+          Edit
         </button>
         {use === null && (
           <button

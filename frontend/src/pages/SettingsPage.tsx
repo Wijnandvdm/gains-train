@@ -244,9 +244,8 @@ function AboutCard() {
         Exercise drawings: {link('https://github.com/bryllim/workout-guide', 'Workout Guide')} by
         Bryl Lim, based on {link('https://github.com/everkinetic/data', 'Everkinetic')}, under{' '}
         {link('https://creativecommons.org/licenses/by-sa/4.0/', 'CC BY-SA 4.0')}; recoloured to fit
-        the app's theme. Exercise instructions:{' '}
-        {link('https://github.com/yuhonas/free-exercise-db', 'free-exercise-db')} (public domain)
-        and our own.
+        the app's theme. Exercise details (muscles, equipment):{' '}
+        {link('https://github.com/yuhonas/free-exercise-db', 'free-exercise-db')} (public domain).
       </p>
     </Card>
   )

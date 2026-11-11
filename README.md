@@ -62,8 +62,8 @@ Backup: every month, 3 months, 6 months, a year, or never).
   based on [Everkinetic](https://github.com/everkinetic/data), licensed
   [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The app recolours them to
   its theme; they stay under that licence.
-- Exercise instructions and muscles: [free-exercise-db](https://github.com/yuhonas/free-exercise-db)
-  (public domain), plus our own for the exercises it doesn't have.
+- Exercise details (muscles, equipment): [free-exercise-db](https://github.com/yuhonas/free-exercise-db)
+  (public domain). For how to do an exercise, the app points to coaches on YouTube.
 
 ## TODO
 

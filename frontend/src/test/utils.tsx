@@ -1,6 +1,5 @@
 import { render } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
-import { toSummary } from '../data/library'
 import type { ExerciseSummary } from '../data/types'
 import { routes } from '../routes'
 import { libraryExercise } from './library'
@@ -12,11 +11,11 @@ export function renderApp(path: string) {
   return router
 }
 
-/** An exercise as the screens get it (a library exercise without instructions). */
+/** An exercise as the screens get it. */
 export function exercise(
   id: string,
   name: string,
   overrides: Partial<ExerciseSummary> = {},
 ): ExerciseSummary {
-  return toSummary(libraryExercise(id, name, overrides))
+  return libraryExercise(id, name, overrides)
 }

@@ -18,7 +18,6 @@ describe('custom exercises', () => {
       name: 'Hip thrust machine',
       is_custom: true,
       primary_muscles: ['glutes'],
-      instructions: [],
     })
     const plain = await createCustomExercise({ name: 'Sled push', muscle: null })
     expect(plain.primary_muscles).toEqual([])
@@ -37,22 +36,16 @@ describe('custom exercises', () => {
     )
   })
 
-  it('renames it, changes its muscle and adds how-to steps later', async () => {
+  it('renames it and changes its muscle', async () => {
     const { id } = await createCustomExercise({ name: 'Sled push', muscle: null })
     await updateCustomExercise(id, {
       name: 'Sled Push', // only the capitals: still its own name
       muscle: 'quadriceps',
-      instructions: ['  Lean into the handles.', '', 'Drive with your legs. '],
     })
     expect(await db.customExercises.get(id)).toMatchObject({
       name: 'Sled Push',
       primary_muscles: ['quadriceps'],
-      instructions: ['Lean into the handles.', 'Drive with your legs.'],
     })
-
-    // Without steps given, they stay as they are.
-    await updateCustomExercise(id, { name: 'Sled drive', muscle: null })
-    expect((await db.customExercises.get(id))!.instructions).toHaveLength(2)
     await expect(updateCustomExercise(id, { name: ROW.name, muscle: null })).rejects.toThrow(
       'is in the library already',
     )

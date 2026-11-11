@@ -22,8 +22,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   data: only the ones shorter than your history, none until there are 3 months to filter. It
   opens on the last year once you have more than a year; records stay all-time.
 - Your own exercises, for what the library doesn't have: make one right from the exercise
-  picker (or Exercises → New exercise) with a name and main muscle, and add how-to steps
-  any time later. Rename it, or delete it while you haven't used it.
+  picker (or Exercises → New exercise) with a name and main muscle. Rename it, or delete it
+  while you haven't used it.
 - Exercise preferences per exercise (Seat 4, Pad L, −1): on the set card until the first set
   is done (⚙ shows them again), and changeable there, in the routine editor or on the
   exercise's page. Backups include them (backup format 3).
@@ -38,6 +38,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- No more written how-to steps on an exercise's page: it points you to Jeff Nippard, Mike
+  Israetel, Dom Mazzetti and Eric Janicki on YouTube for good form instead.
 - If you moved the weight up during an exercise last time, the next time starts at the weight
   you ended on, and the card shows how it went ("last time 10 × 12 → 15 × 8").
 - A new look: the muscle-train logo as the app icon and splash screen, and the app in its
