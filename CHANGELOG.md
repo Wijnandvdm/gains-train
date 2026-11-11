@@ -19,6 +19,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - On an exercise's page, tap a row of the progress table or of the rep records to open that
   workout.
 - From the Progress tab, an exercise opens straight at its progress (records and chart).
+- Tap a passport stamp for what it's for, and when you earned it or how far you are.
 - Time filters for an exercise's progress chart (3 months, 1 year, … All) that grow with your
   data: only the ones shorter than your history, none until there are 3 months to filter. It
   opens on the last year once you have more than a year; records stay all-time.
