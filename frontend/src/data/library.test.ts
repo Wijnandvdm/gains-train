@@ -24,6 +24,27 @@ describe('exercise library search', () => {
     expect(names({ q: 'curl' })[0]).toBe('Curl 50% Test')
   })
 
+  it('finds exercises by the muscle they train, in plain or gym words', () => {
+    const legCurls = ['Lying Leg Curls', 'Romanian Deadlift', 'Seated Leg Curl'] // all hamstrings
+    expect(names({ q: 'hamstrings' })).toEqual(legCurls)
+    expect(names({ q: 'hams' })).toEqual(legCurls)
+    expect(names({ q: 'hamstr' })).toEqual(legCurls) // part of the muscle's name
+    expect(names({ q: 'glutes' })).toEqual([]) // only a secondary muscle anywhere
+    expect(names({ q: 'ha' })).toEqual([]) // too short to mean a muscle
+    // Slang works too: "hammies", "legs" (everything for the legs).
+    expect(names({ q: 'hammies' })).toEqual(legCurls)
+    expect(names({ q: 'legs' })).toEqual(legCurls)
+    // Words combine: a name word and a muscle.
+    expect(names({ q: 'seated hams' })).toEqual(['Seated Leg Curl'])
+  })
+
+  it('lists name matches before exercises found by their muscle', () => {
+    const found = names({ q: 'biceps' })
+    expect(found.length).toBeGreaterThan(0)
+    const byName = found.filter((n) => n.toLowerCase().includes('biceps'))
+    expect(found.slice(0, byName.length)).toEqual(byName)
+  })
+
   it('treats special characters literally', () => {
     expect(names({ q: '50%' })).toEqual(['Curl 50% Test'])
     expect(names({ q: '_' })).toEqual([])

@@ -81,9 +81,74 @@ export function setLibraryForTests(
 export type ExerciseSearch = { q?: string; muscle?: string; equipment?: string }
 
 /**
- * Search like the old API did: every word must appear in the name ("incline curl" finds
- * "Incline Dumbbell Curl"); names starting with the query come first, then A–Z.
- * `muscle` matches primary muscles only.
+ * Other words for the library's muscles, gym slang included: "abs" or "booty" find the
+ * exercises for those muscles. Add a word here; a muscle's own name (or its first letters,
+ * from 3) works anyway.
+ */
+const MUSCLE_WORDS: Record<string, string[]> = {
+  // abdominals
+  abs: ['abdominals'],
+  core: ['abdominals'],
+  sixpack: ['abdominals'],
+  'six-pack': ['abdominals'],
+  stomach: ['abdominals'],
+  obliques: ['abdominals'],
+  // glutes
+  glute: ['glutes'],
+  gluteus: ['glutes'],
+  booty: ['glutes'],
+  butt: ['glutes'],
+  // legs
+  quad: ['quadriceps'],
+  quads: ['quadriceps'],
+  thighs: ['quadriceps', 'hamstrings'],
+  ham: ['hamstrings'],
+  hams: ['hamstrings'],
+  hammies: ['hamstrings'],
+  hamstring: ['hamstrings'],
+  calf: ['calves'],
+  legs: ['quadriceps', 'hamstrings', 'glutes', 'calves'],
+  // upper body
+  pec: ['chest'],
+  pecs: ['chest'],
+  pectorals: ['chest'],
+  delt: ['shoulders'],
+  delts: ['shoulders'],
+  deltoids: ['shoulders'],
+  shoulder: ['shoulders'],
+  lat: ['lats'],
+  back: ['middle back', 'lower back', 'lats'],
+  trap: ['traps'],
+  trapezius: ['traps'],
+  neck: ['traps'],
+  // arms
+  bi: ['biceps'],
+  bis: ['biceps'],
+  bicep: ['biceps'],
+  guns: ['biceps'],
+  tri: ['triceps'],
+  tris: ['triceps'],
+  tricep: ['triceps'],
+  arms: ['biceps', 'triceps', 'forearms'],
+  forearm: ['forearms'],
+  grip: ['forearms'],
+}
+
+/** Whether a search word names one of the exercise's primary muscles ("abs", "abdom", "quads"). */
+function trains(exercise: ExerciseSummary, word: string): boolean {
+  const muscles = exercise.primary_muscles
+  return (
+    (MUSCLE_WORDS[word] ?? []).some((m) => muscles.includes(m)) ||
+    // Part of the muscle's own name, from 3 letters ("ab" would be abs and abductors too).
+    (word.length >= 3 && muscles.some((m) => m.startsWith(word)))
+  )
+}
+
+/**
+ * Search: every word must appear in the name ("incline curl" finds "Incline Dumbbell Curl"), or
+ * name one of its primary muscles ("abs", "chest", "quads"). Names starting with the query come
+ * first, then other name matches, then exercises found by their muscle; A–Z within each.
+ * `muscle` (the filter) matches primary muscles only.
  */
 export function searchExercises(
   exercises: Iterable<ExerciseSummary>,
@@ -91,15 +156,21 @@ export function searchExercises(
 ): ExerciseSummary[] {
   const query = q?.trim().toLowerCase() ?? ''
   const words = query.split(/\s+/).filter(Boolean)
-  const matches = [...exercises].filter((e) => {
-    const name = e.name.toLowerCase()
-    return (
-      words.every((w) => name.includes(w)) &&
+  const inName = (e: ExerciseSummary, w: string) => e.name.toLowerCase().includes(w)
+  const matches = [...exercises].filter(
+    (e) =>
+      words.every((w) => inName(e, w) || trains(e, w)) &&
       (!muscle || e.primary_muscles.includes(muscle)) &&
-      (!equipment || e.equipment === equipment)
-    )
-  })
-  const rank = (e: ExerciseSummary) => (query && e.name.toLowerCase().startsWith(query) ? 0 : 1)
+      (!equipment || e.equipment === equipment),
+  )
+  const rank = (e: ExerciseSummary) =>
+    !query
+      ? 0
+      : e.name.toLowerCase().startsWith(query)
+        ? 0
+        : words.every((w) => inName(e, w))
+          ? 1
+          : 2
   return matches.sort(
     (a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id),
   )
