@@ -67,18 +67,17 @@ Backup: every month, 3 months, 6 months, a year, or never).
 
 ## TODO
 
-1. Create the upload key and point Gradle at it (top of `scripts/android.sh`), and back up
-   the key file and its password somewhere safe.
-2. Get a Google Play developer account (personal, one-time $25, ID check).
-3. Make the store graphics: 512 × 512 icon, 1024 × 500 feature graphic, at least 2 phone
+1. Finish the developer account: wait for the identity check, then verify the Android
+   device in the Play Console app (Google shows the task there once it's ready).
+2. Make the store graphics: 512 × 512 icon, 1024 × 500 feature graphic, at least 2 phone
    screenshots (see [docs/google-play.md](docs/google-play.md)).
-4. Pick the contact email for the store listing (it's public).
-5. Create the app in the Play Console and fill in the store listing and the App content
-   forms from [docs/google-play.md](docs/google-play.md). Push `PRIVACY.md` to main first:
-   the privacy policy link points there.
-6. Upload `scripts/android.sh --release`'s bundle to a closed test track and get 12 testers to
-   opt in and install; keep all of them in for 14 days in a row.
-7. Apply for production access, and publish after Google's review.
+3. Merge to main, so `PRIVACY.md` is online (the privacy policy link points there) and the
+   current version is released; build the bundle with `scripts/android.sh --release` on main.
+4. Create the app in the Play Console and fill in the store listing and the App content
+   forms from [docs/google-play.md](docs/google-play.md).
+5. Upload the bundle to a closed test track and get 12 testers to opt in and install; keep
+   all of them in for 14 days in a row.
+6. Apply for production access, and publish after Google's review.
 
 # TODO:
 1. How does stick figures work for representing exercises? I have a feeling that I do miss a few. Perhaps also generate them with AI? Chatgpt?
