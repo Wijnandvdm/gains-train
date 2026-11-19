@@ -8,6 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-19
+
 ### Added
 
 - Full steam ahead stamps in the passport: one exercise stronger every week, 3, 4, 6 or 8
