@@ -14,7 +14,7 @@ app's own storage on your phone. There is no account, no server and no sync.
 
 Nothing. The app doesn't have internet access: it asks Android for no permissions at all, so
 it can't send anything over the internet. There are no ads, no analytics, no crash reports
-and no tracking. The exercise drawings and instructions are built into the app.
+and no tracking. The exercise drawings and details are built into the app.
 
 Android's cloud backup is turned off for the app, so your data isn't copied to Google's
 backup either.
