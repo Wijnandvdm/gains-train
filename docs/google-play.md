@@ -54,14 +54,15 @@ phones, you keep the upload key.
 > you can open anywhere, and restore them on a new phone. The app reminds you now and then.
 >
 > Exercise drawings: Workout Guide by Bryl Lim, based on Everkinetic, CC BY-SA 4.0.
-> Instructions: free-exercise-db (public domain).
+> Exercise details: free-exercise-db (public domain).
 
-**Graphics** (still to make):
+**Graphics:**
 
-- App icon: 512 × 512 PNG, from `frontend/assets/icon-only.png`.
-- Feature graphic: 1024 × 500 PNG or JPG.
-- Phone screenshots: at least 2 (up to 8), for example the workout screen, a set being
-  logged, History, Progress and the passport.
+- App icon: [store/icon-512.png](store/icon-512.png) (512 × 512).
+- Feature graphic: [store/feature-1024x500.png](store/feature-1024x500.png) (1024 × 500).
+- Both are made from the logo by `scripts/make-icons.py`, along with all the app's icons.
+- Phone screenshots: at least 2 (up to 8), taken on the phone and not kept in the repo; for
+  example the workout screen, a set being logged, History, Progress and the passport.
 
 **Contact details:** an email address is required and shown publicly on the listing.
 
