@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo } from 'react'
 import { db } from './data/db'
 import { type Passport, passport } from './data/passport'
+import { useWeightCount } from './data/dumbbells'
 import { useLibrary } from './exercises'
 import { localDateString } from './lib/format'
 import { useSettings } from './settings'
@@ -10,10 +11,11 @@ import { useSettings } from './settings'
 export function usePassport(): Passport | undefined {
   const settings = useSettings()
   const { library } = useLibrary()
+  const count = useWeightCount()
   const workouts = useLiveQuery(() => db.workouts.where('status').equals('completed').toArray(), [])
   return useMemo(
     () =>
-      workouts && settings && library
+      workouts && settings && library && count
         ? passport(
             workouts,
             {
@@ -22,8 +24,9 @@ export function usePassport(): Passport | undefined {
               today: localDateString(),
             },
             new Set(library.keys()),
+            count,
           )
         : undefined,
-    [workouts, settings, library],
+    [workouts, settings, library, count],
   )
 }

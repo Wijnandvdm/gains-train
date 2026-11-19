@@ -27,7 +27,7 @@ flowchart TB
     UI["Screens<br/>pages/ + components/"]
     HOOKS["Hooks<br/>workout/hooks.ts, stats.ts, line.ts, …"]
     DATA["Data layer<br/>data/*.ts: workouts, stats, routine,<br/>streak, passport, backup"]
-    DB[("IndexedDB, via Dexie<br/>workouts · routine · settings<br/>rest times · custom exercises")]
+    DB[("IndexedDB, via Dexie<br/>workouts · routine · settings<br/>rest times · exercise preferences<br/>custom exercises")]
     LIBC["Exercise library<br/>data/library.ts"]
     UI -- "reads (live)" --> HOOKS
     HOOKS --> DATA
@@ -55,12 +55,12 @@ flowchart TD
   OPEN([Open the app]) --> FIRST{First time?}
   FIRST -- yes --> SETUP["Setup<br/>restore a backup, or:<br/>how you train · rest between sets"]
   FIRST -- no --> WORKOUT
-  SETUP --> WORKOUT["Workout tab<br/>next station card · next routine day"]
+  SETUP --> WORKOUT["Workout tab<br/>weekly goal bar · next routine day"]
   WORKOUT -- "✓ Done on set 1" --> ACTIVE["Workout in progress<br/>focus card: set 2/3, prefilled from last time"]
   ACTIVE -- "✓ Done" --> REST["Rest timer · 🏆 PR badge"]
   REST --> ACTIVE
   ACTIVE -- Finish --> DONE["End of the line!<br/>workout saved · new passport stamps"]
-  DONE --> HISTORY["History<br/>calendar with stations · week results"]
+  DONE --> HISTORY["History<br/>calendar with ride rings · week results"]
   DONE --> PROGRESS["Progress<br/>passport · exercises by routine day"]
   PROGRESS --> EXERCISE["Exercise page<br/>drawing · muscles · records · chart"]
   WORKOUT --> SETTINGS["Settings<br/>rest timer · weekly target · depot<br/>routine · backup"]

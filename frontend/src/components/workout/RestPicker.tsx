@@ -29,7 +29,7 @@ export function RestPicker({ exercise }: { exercise: ExerciseSummary }) {
         onChange={(e) =>
           void setRest(exercise.id, e.target.value === AUTO ? null : Number(e.target.value))
         }
-        className="rounded-md bg-transparent py-1 text-base text-neutral-700 outline-none focus:ring-2 focus:ring-brand-500 dark:text-neutral-300"
+        className="rounded-md bg-transparent py-1 text-base text-neutral-700 outline-none focus:ring-2 focus:ring-train-500 dark:text-neutral-300"
       >
         <option value={AUTO}>Auto ({formatClock(smart)})</option>
         {choices.map((seconds) => (

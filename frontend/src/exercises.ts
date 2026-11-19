@@ -1,24 +1,18 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useMemo, useState } from 'react'
 import { db } from './data/db'
-import {
-  type ExerciseSearch,
-  filterValues,
-  loadLibrary,
-  searchExercises,
-  toSummary,
-} from './data/library'
-import type { ExerciseDetail, ExerciseFilters, ExerciseId, ExerciseSummary } from './data/types'
+import { type ExerciseSearch, filterValues, loadLibrary, searchExercises } from './data/library'
+import type { ExerciseSummary, ExerciseFilters, ExerciseId } from './data/types'
 
 export type { ExerciseSearch }
 
 /** The exercise library (loaded once), or an error if it couldn't be loaded. */
 export function useLibrary(): {
-  library?: Map<string, ExerciseDetail>
+  library?: Map<string, ExerciseSummary>
   error?: Error
   retry: () => void
 } {
-  const [state, setState] = useState<{ library?: Map<string, ExerciseDetail>; error?: Error }>({})
+  const [state, setState] = useState<{ library?: Map<string, ExerciseSummary>; error?: Error }>({})
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
     let cancelled = false
@@ -70,7 +64,7 @@ export function useExerciseLookup(): ExerciseLookup | undefined {
       exercises &&
       ((id: ExerciseId) => {
         const e = exercises.get(id)
-        return e ? toSummary(e) : { ...UNKNOWN, id }
+        return e ?? { ...UNKNOWN, id }
       }),
     [exercises],
   )

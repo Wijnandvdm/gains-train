@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">gains-train</string>
-    <string name="title_activity_main">gains-train</string>
+    <string name="app_name">Gains Train</string>
+    <string name="title_activity_main">Gains Train</string>
     <string name="package_name">io.github.wijnandvdm.gainstrain</string>
     <string name="custom_url_scheme">io.github.wijnandvdm.gainstrain</string>
 </resources>

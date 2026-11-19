@@ -24,6 +24,27 @@ describe('exercise library search', () => {
     expect(names({ q: 'curl' })[0]).toBe('Curl 50% Test')
   })
 
+  it('finds exercises by the muscle they train, in plain or gym words', () => {
+    const legCurls = ['Lying Leg Curls', 'Romanian Deadlift', 'Seated Leg Curl'] // all hamstrings
+    expect(names({ q: 'hamstrings' })).toEqual(legCurls)
+    expect(names({ q: 'hams' })).toEqual(legCurls)
+    expect(names({ q: 'hamstr' })).toEqual(legCurls) // part of the muscle's name
+    expect(names({ q: 'glutes' })).toEqual([]) // only a secondary muscle anywhere
+    expect(names({ q: 'ha' })).toEqual([]) // too short to mean a muscle
+    // Slang works too: "hammies", "legs" (everything for the legs).
+    expect(names({ q: 'hammies' })).toEqual(legCurls)
+    expect(names({ q: 'legs' })).toEqual(legCurls)
+    // Words combine: a name word and a muscle.
+    expect(names({ q: 'seated hams' })).toEqual(['Seated Leg Curl'])
+  })
+
+  it('lists name matches before exercises found by their muscle', () => {
+    const found = names({ q: 'biceps' })
+    expect(found.length).toBeGreaterThan(0)
+    const byName = found.filter((n) => n.toLowerCase().includes('biceps'))
+    expect(found.slice(0, byName.length)).toEqual(byName)
+  })
+
   it('treats special characters literally', () => {
     expect(names({ q: '50%' })).toEqual(['Curl 50% Test'])
     expect(names({ q: '_' })).toEqual([])
@@ -55,7 +76,6 @@ describe('exercise library search', () => {
       category: null,
       primaryMuscles: ['biceps'],
       secondaryMuscles: ['biceps', 'forearms'],
-      instructions: [],
       images: ['X/0.jpg'],
     })
     expect(e.secondary_muscles).toEqual(['forearms'])
@@ -66,14 +86,13 @@ describe('exercise library search', () => {
 // The real dataset, if downloaded (scripts/fetch-exercises.sh).
 const REAL = resolve(process.cwd(), 'public/exercises/exercises.json') // tests run in frontend/
 describe.skipIf(!existsSync(REAL))('the downloaded dataset', () => {
-  it('parses completely: unique ids, a drawing per pose and a how-to for every exercise', () => {
+  it('parses completely: unique ids and a drawing per pose', () => {
     const exercises = (
       JSON.parse(readFileSync(REAL, 'utf8')) as Parameters<typeof fromRaw>[0][]
     ).map(fromRaw)
     expect(exercises.length).toBe(302)
     expect(new Set(exercises.map((e) => e.id)).size).toBe(302)
     expect(exercises.every((e) => e.image_urls.length === 2)).toBe(true)
-    expect(exercises.filter((e) => e.instructions.length === 0).map((e) => e.name)).toEqual([])
     const ids = new Set(exercises.map((e) => e.id))
     const yours = [
       'Hack_Squat',

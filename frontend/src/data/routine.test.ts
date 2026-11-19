@@ -1,7 +1,14 @@
 // Same rules as the former backend's tests/test_routines.py.
 import { describe, expect, it } from 'vitest'
 import { db, getStoredRoutine } from './db'
-import { deleteRoutine, nextDayId, RoutineError, saveRoutine } from './routine'
+import {
+  applyDayChange,
+  changeRoutineDay,
+  deleteRoutine,
+  nextDayId,
+  RoutineError,
+  saveRoutine,
+} from './routine'
 import type { StoredWorkout } from './types'
 
 function workout(
@@ -105,5 +112,57 @@ describe('routine', () => {
     await deleteRoutine()
     expect(await getStoredRoutine()).toBeNull()
     expect((await db.workouts.get('1'))!.routine_day_id).toBeNull()
+  })
+})
+
+describe('making a workout change your routine', () => {
+  const day = [
+    { exercise_id: 'A', sets: 3 },
+    { exercise_id: 'B', sets: 2 },
+    { exercise_id: 'C', sets: 4 },
+  ]
+  const ids = (es: { exercise_id: string }[]) => es.map((e) => e.exercise_id).join('')
+
+  it('follows the workout’s order; ones it didn’t have go last, as they were', () => {
+    expect(ids(applyDayChange(day, { kind: 'order', exerciseIds: ['C', 'A', 'B'] }))).toBe('CAB')
+    expect(ids(applyDayChange(day, { kind: 'order', exerciseIds: ['B', 'X'] }))).toBe('BAC')
+    // Sets stay with their exercise.
+    expect(applyDayChange(day, { kind: 'order', exerciseIds: ['C'] })[0]).toEqual({
+      exercise_id: 'C',
+      sets: 4,
+    })
+  })
+
+  it('adds an exercise where it was in the workout, once', () => {
+    expect(ids(applyDayChange(day, { kind: 'add', exerciseId: 'X', after: 'A', sets: 3 }))).toBe(
+      'AXBC',
+    )
+    expect(ids(applyDayChange(day, { kind: 'add', exerciseId: 'X', after: null, sets: 3 }))).toBe(
+      'XABC',
+    )
+    expect(applyDayChange(day, { kind: 'add', exerciseId: 'B', after: 'C', sets: 3 })).toBe(day)
+  })
+
+  it('takes an exercise out', () => {
+    expect(ids(applyDayChange(day, { kind: 'remove', exerciseId: 'B' }))).toBe('AC')
+  })
+
+  it('changes only that day, and keeps its id', async () => {
+    const routine = await saveRoutine({
+      days: [
+        { name: 'Push', exercises: day },
+        { name: 'Pull', exercises: [{ exercise_id: 'D', sets: 3 }] },
+      ],
+    })
+    const push = routine.days[0]!.id
+    await changeRoutineDay(push, { kind: 'remove', exerciseId: 'A' })
+    const stored = (await getStoredRoutine())!
+    expect(stored.days.map((d) => [d.id, ids(d.exercises)])).toEqual([
+      [push, 'BC'],
+      [routine.days[1]!.id, 'D'],
+    ])
+    await expect(changeRoutineDay('gone', { kind: 'remove', exerciseId: 'A' })).rejects.toThrow(
+      RoutineError,
+    )
   })
 })

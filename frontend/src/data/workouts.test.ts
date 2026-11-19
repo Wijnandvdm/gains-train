@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { WorkoutSet, StoredWorkout } from './types'
 import { db } from './db'
+import { set as doneSet, workout } from '../test/device'
 import {
+  moveExercise,
   activeWorkout,
   addExercise,
   deleteSet,
@@ -179,5 +181,75 @@ describe('workouts on the device', () => {
     const id = await start()
     expect(await db.workouts.count()).toBe(1)
     expect((await db.workouts.get(id))?.name).toBe('Legs')
+  })
+})
+
+describe('reordering a workout', () => {
+  it('moves an exercise, and numbers them again', async () => {
+    const id = await startWorkout({
+      name: null,
+      performed_on: '2026-10-16',
+      started_at: '2026-10-16T18:00:00Z',
+      routine_day_id: null,
+    })
+    const a = await addExercise(id, 'A')
+    await addExercise(id, 'B')
+    await addExercise(id, 'C')
+    await moveExercise(id, a, 2)
+    const w = (await db.workouts.get(id))!
+    expect(w.exercises.map((we) => [we.exercise_id, we.position])).toEqual([
+      ['B', 1],
+      ['C', 2],
+      ['A', 3],
+    ])
+  })
+})
+
+describe('last time', () => {
+  const session = (id: string, day: string, sets: WorkoutSet[]): StoredWorkout =>
+    workout({ id, performed_on: day }, [['A', sets]])
+
+  it('skips sessions where you did not do the exercise, however long ago you did', async () => {
+    await db.workouts.bulkPut([
+      session('done', '2026-08-01', [doneSet('s1', 'we', 1, 80, 12)]),
+      // Later routine days with the exercise in them, but skipped.
+      workout({ id: 'skipped', performed_on: '2026-09-01' }, [['A', []]]),
+      session('unticked', '2026-09-08', [doneSet('s2', 'we2', 1, 80, 8, { completed_at: null })]),
+    ])
+    const [last] = await exerciseSessions('A')
+    expect(last!.workout_id).toBe('done')
+    expect(last!.sets.map((x) => x.reps)).toEqual([12])
+  })
+
+  it('leaves out the sets you never ticked off', async () => {
+    await db.workouts.put(
+      session('w', '2026-09-08', [
+        doneSet('a', 'we', 1, 80, 12),
+        doneSet('b', 'we', 2, 80, 8, { completed_at: null }), // planned, not done
+      ]),
+    )
+    expect((await exerciseSessions('A'))[0]!.sets.map((x) => x.id)).toEqual(['a'])
+  })
+
+  it('keeps warm-ups, and everything in imported workouts', async () => {
+    await db.workouts.bulkPut([
+      session('warm', '2026-09-08', [
+        doneSet('w', 'we', 1, 40, 10, { is_warmup: true }),
+        doneSet('a', 'we', 2, 80, 12),
+      ]),
+    ])
+    expect((await exerciseSessions('A'))[0]!.sets.map((x) => x.id)).toEqual(['w', 'a'])
+
+    await db.workouts.clear()
+    await db.workouts.put({
+      ...session('old', '2026-01-01', [doneSet('i', 'we', 1, 70, 10, { completed_at: null })]),
+      import_key: 'sheet-1',
+    })
+    expect((await exerciseSessions('A'))[0]!.sets.map((x) => x.id)).toEqual(['i'])
+  })
+
+  it('has no last time when you never did it', async () => {
+    await db.workouts.put(workout({ id: 'skipped' }, [['A', []]]))
+    expect(await exerciseSessions('A')).toEqual([])
   })
 })

@@ -2,7 +2,7 @@
 import { db, getSettings, getStoredRoutine, updateSettings } from '../data/db'
 import { setLibraryForTests } from '../data/library'
 import type {
-  ExerciseDetail,
+  ExerciseSummary,
   WorkoutSet,
   Settings,
   StoredRoutine,
@@ -94,12 +94,12 @@ export async function seedDevice({
   customExercises = [],
   restPrefs = {},
 }: {
-  library?: ExerciseDetail[]
+  library?: ExerciseSummary[]
   setupDone?: boolean
   settings?: Partial<Settings>
   routine?: StoredRoutine | null
   workouts?: StoredWorkout[]
-  customExercises?: ExerciseDetail[]
+  customExercises?: ExerciseSummary[]
   /** exercise id → rest seconds */
   restPrefs?: Record<string, number>
 } = {}) {

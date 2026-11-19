@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gainsLine, stationName, weekOf } from './line'
+import { gainsLine, isMilestone, milestoneName, nextMilestone, weekOf } from './line'
 
 // The imported log's workouts (performed_on), July–September 2026.
 const LOG = [
@@ -94,10 +94,22 @@ describe('the Gains Line', () => {
     expect(line.parkedUntil).toBe('2026-09-27')
   })
 
-  it('names stations along the line, looping with a lap number', () => {
-    expect(stationName(1)).toBe('Warm-Up Halt')
-    expect(stationName(7)).toBe('PR Central')
-    expect(stationName(21)).toBe('Warm-Up Halt 2')
+  it('counts towards milestones: close together at first, then every half year', () => {
+    expect([0, 1, 2, 3, 5, 8, 12, 20, 30, 40, 52, 60, 79].map(nextMilestone)).toEqual([
+      2, 2, 4, 4, 8, 13, 13, 26, 39, 52, 78, 78, 104,
+    ])
+    expect([2, 4, 13, 26, 52, 78, 104, 130].map(milestoneName)).toEqual([
+      'two weeks',
+      'a month',
+      'three months',
+      'half a year',
+      'a year',
+      'a year and a half',
+      'two years',
+      'two and a half years',
+    ])
+    expect([2, 4, 8, 78].every(isMilestone)).toBe(true)
+    expect([1, 3, 5, 53, 60].some(isMilestone)).toBe(false)
   })
 
   it('weeks start on Monday', () => {

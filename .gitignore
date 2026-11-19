@@ -8,3 +8,6 @@ frontend/public/exercises/
 
 # Written by scripts/release.py apply (the GitHub release notes)
 release-notes.md
+
+# Python bytecode, written when the scripts are imported
+__pycache__/

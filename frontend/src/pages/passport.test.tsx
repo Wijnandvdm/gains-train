@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { formatShortDay } from '../lib/format'
+import { formatDay, formatShortDay } from '../lib/format'
 import { ROW, seedDevice, set, workout } from '../test/device'
 import { renderApp } from '../test/utils'
 
@@ -17,7 +17,7 @@ describe('the passport', () => {
     renderApp('/progress')
 
     const passport = await screen.findByRole('region', { name: 'Passport' })
-    expect(within(passport).getByText('2 of 27 stamps')).toBeVisible()
+    expect(within(passport).getByText('2 of 31 stamps')).toBeVisible()
     expect(
       within(passport).getByRole('img', {
         name: `10 rides (finished workouts), earned ${formatShortDay('2026-08-19')}`,
@@ -29,7 +29,38 @@ describe('the passport', () => {
 
     await user.click(within(passport).getByRole('button', { name: 'Show all stamps' }))
     expect(within(passport).getByRole('heading', { name: 'Weight hauled' })).toBeVisible()
-    expect(within(passport).getAllByRole('img')).toHaveLength(27)
+    expect(within(passport).getByRole('heading', { name: 'Full steam ahead' })).toBeVisible()
+    expect(
+      within(passport).getByRole('img', {
+        name: '3 weeks (one exercise stronger every week): 0 of 3',
+      }),
+    ).toBeVisible()
+    expect(within(passport).getAllByRole('img')).toHaveLength(31)
+  })
+
+  it('explains a stamp when you tap it', async () => {
+    const rides = Array.from({ length: 10 }, (_, i) =>
+      workout({ id: `r${i}`, performed_on: `2026-08-${String(10 + i).padStart(2, '0')}` }, [
+        [ROW.id, [set(`s${i}`, `we${i}`, 1, 100, 10)]],
+      ]),
+    )
+    await seedDevice({ workouts: rides })
+    const user = userEvent.setup()
+    renderApp('/progress')
+    const passport = await screen.findByRole('region', { name: 'Passport' })
+
+    await user.click(within(passport).getByRole('button', { name: /^10 rides/ }))
+    expect(within(passport).getByRole('note')).toHaveTextContent(
+      `10 rides: 10 finished workouts. Earned ${formatDay('2026-08-19')}.`,
+    )
+    // One still to earn: how far you are.
+    await user.click(within(passport).getByRole('button', { name: /^40 t/ }))
+    expect(within(passport).getByRole('note')).toHaveTextContent(
+      /^40 t: 40 tonnes lifted in total .* as much as a passenger carriage\. So far: 10 of 40\.$/,
+    )
+    // Tap it again to close.
+    await user.click(within(passport).getByRole('button', { name: /^40 t/ }))
+    expect(within(passport).queryByRole('note')).toBeNull()
   })
 
   it('announces a new stamp when you finish a workout', async () => {

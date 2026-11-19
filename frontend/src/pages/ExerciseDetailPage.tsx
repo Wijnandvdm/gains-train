@@ -1,12 +1,27 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import type { ExerciseDetail } from '../data/types'
+import {
+  customExerciseUse,
+  deleteCustomExercise,
+  updateCustomExercise,
+} from '../data/customExercises'
+import type { ExerciseSummary } from '../data/types'
+import { CustomExerciseForm } from '../components/CustomExerciseForm'
+import { DumbbellChoice } from '../components/DumbbellChoice'
+import { MachineSettings } from '../components/MachineSettings'
+import { ErrorMessage } from '../components/ErrorMessage'
+import { useAction } from '../lib/useAction'
 import { Drawing } from '../components/ExerciseImage'
 import { ExerciseProgress } from '../components/ExerciseProgress'
 import { BackIcon } from '../components/icons'
 import { MuscleMap } from '../components/MuscleMap'
 import { Spinner } from '../components/Spinner'
 import { useExercise } from '../exercises'
+
+/** Who to watch for good form (instead of written steps): change the list here. */
+const FORM_COACHES = ['Jeff Nippard', 'Mike Israetel', 'Dom Mazzetti', 'Eric Janicki']
+const formTip = `For good form, watch ${new Intl.ListFormat('en', { type: 'disjunction' }).format(FORM_COACHES)} on YouTube.`
 
 export function ExerciseDetailPage() {
   const { data: exercise, isPending, isError, retry } = useExercise(useParams().exerciseId ?? '')
@@ -60,7 +75,7 @@ function NotFound() {
   )
 }
 
-function Exercise({ exercise }: { exercise: ExerciseDetail }) {
+function Exercise({ exercise }: { exercise: ExerciseSummary }) {
   const details = [exercise.level, exercise.equipment, exercise.mechanic, exercise.force].filter(
     (d): d is string => Boolean(d),
   )
@@ -73,7 +88,7 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
         <h1 className="text-2xl font-bold">{exercise.name}</h1>
         <ul className="flex flex-wrap gap-1.5" aria-label="Details">
           {exercise.is_custom && (
-            <li className="rounded bg-brand-100 px-2 py-0.5 text-sm font-medium text-brand-700 dark:bg-brand-900 dark:text-brand-100">
+            <li className="rounded bg-train-100 px-2 py-0.5 text-sm font-medium text-train-700 dark:bg-train-900 dark:text-train-100">
               Custom
             </li>
           )}
@@ -88,21 +103,81 @@ function Exercise({ exercise }: { exercise: ExerciseDetail }) {
         </ul>
       </header>
 
+      {exercise.is_custom && <CustomControls exercise={exercise} />}
+
+      <section className="flex flex-col gap-2">
+        <h2 className="font-semibold">Exercise preferences</h2>
+        <MachineSettings exerciseId={exercise.id} />
+      </section>
+
+      <DumbbellChoice exercise={exercise} />
+
       <MusclesWorked primary={exercise.primary_muscles} secondary={exercise.secondary_muscles} />
 
       <ExerciseProgress exerciseId={exercise.id} />
 
-      {exercise.instructions.length > 0 && (
-        <section>
-          <h2 className="mb-2 font-semibold">How to</h2>
-          <ol className="flex list-decimal flex-col gap-2 pl-5 text-neutral-700 marker:text-neutral-400 dark:text-neutral-300">
-            {exercise.instructions.map((step, i) => (
-              <li key={i}>{step}</li>
-            ))}
-          </ol>
-        </section>
-      )}
+      <section>
+        <h2 className="mb-1 font-semibold">Good form</h2>
+        <p className="text-neutral-700 dark:text-neutral-300">{formTip}</p>
+      </section>
     </article>
+  )
+}
+
+/** Your own exercise: change it (name, muscle), or delete it while unused. */
+function CustomControls({ exercise }: { exercise: ExerciseSummary }) {
+  const navigate = useNavigate()
+  const [editing, setEditing] = useState(false)
+  const use = useLiveQuery(() => customExerciseUse(exercise.id), [exercise.id])
+  const remove = useAction(deleteCustomExercise)
+
+  if (editing) {
+    return (
+      <CustomExerciseForm
+        title="Change exercise"
+        initial={{
+          name: exercise.name,
+          muscle: exercise.primary_muscles[0] ?? null,
+        }}
+        submitLabel="Save"
+        onSave={(input) => updateCustomExercise(exercise.id, input)}
+        onSaved={() => setEditing(false)}
+        onCancel={() => setEditing(false)}
+      />
+    )
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className="btn" onClick={() => setEditing(true)}>
+          Edit
+        </button>
+        {use === null && (
+          <button
+            type="button"
+            className="btn text-error-600 dark:text-error-400"
+            disabled={remove.isPending}
+            onClick={() => {
+              if (!window.confirm(`Delete “${exercise.name}”?`)) return
+              remove.run(exercise.id).then(
+                () => navigate('/exercises', { replace: true }),
+                () => {},
+              )
+            }}
+          >
+            Delete
+          </button>
+        )}
+      </div>
+      {use && (
+        <p className="text-sm text-neutral-500">
+          {use === 'workouts'
+            ? 'You’ve logged this exercise, so it can’t be deleted: your history needs it.'
+            : 'It’s in your routine, so it can’t be deleted; take it out there first.'}
+        </p>
+      )}
+      <ErrorMessage error={remove.error} prefix="Couldn't delete:" />
+    </div>
   )
 }
 

@@ -9,6 +9,9 @@ import { setLibraryForTests } from '../data/library'
 // for elements to appear is occasionally too short and makes tests flaky.
 configure({ asyncUtilTimeout: 5_000 })
 
+// jsdom doesn't lay out pages, so it has no scrollIntoView (every real browser does).
+Element.prototype.scrollIntoView ??= () => {}
+
 // The app never talks to a server: any network request in a test is a bug.
 beforeEach(() => {
   vi.stubGlobal('fetch', (input: RequestInfo | URL) => {

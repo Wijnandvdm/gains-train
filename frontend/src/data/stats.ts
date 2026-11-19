@@ -10,6 +10,7 @@
  * Only finished workouts count, and only performed sets (see isPerformed).
  */
 import { e1rm } from '../workout/prs'
+import type { WeightCount } from './dumbbells'
 import type {
   ExerciseId,
   ExerciseOverview,
@@ -28,13 +29,19 @@ export type PerformedSet = {
   performed_on: string
   weight_kg: number
   reps: number
+  /** How many times the weight counts in volume: 2 for two dumbbells logged as "each". */
+  count: number
 }
 
 /** 0.01 kg precision, like the numbers the old API sent. */
 const kg = (value: number) => Math.round(value * 100) / 100
 
 /** Performed sets of finished workouts, oldest first (the order records are dated by). */
-export function performedSets(workouts: StoredWorkout[], exerciseId?: ExerciseId): PerformedSet[] {
+export function performedSets(
+  workouts: StoredWorkout[],
+  exerciseId?: ExerciseId,
+  count: WeightCount = () => 1,
+): PerformedSet[] {
   const ordered = workouts
     .filter((w) => w.status === 'completed')
     .sort(
@@ -54,12 +61,14 @@ export function performedSets(workouts: StoredWorkout[], exerciseId?: ExerciseId
             performed_on: w.performed_on,
             weight_kg: s.weight_kg!,
             reps: s.reps!,
+            count: count(we.exercise_id),
           })),
       ),
   )
 }
 
-const volume = (sets: PerformedSet[]) => sets.reduce((sum, s) => sum + s.weight_kg * s.reps, 0)
+const volume = (sets: PerformedSet[]) =>
+  sets.reduce((sum, s) => sum + s.weight_kg * s.reps * s.count, 0)
 
 function groupBy<K>(sets: PerformedSet[], key: (s: PerformedSet) => K): Map<K, PerformedSet[]> {
   const groups = new Map<K, PerformedSet[]>()
@@ -90,6 +99,7 @@ export function sessions(sets: PerformedSet[]): SessionPoint[] {
       top_weight_reps: top.reps,
       best_e1rm_kg: kg(Math.max(...withReps.map((s) => e1rm(s.weight_kg, s.reps) ?? 0))),
       volume_kg: kg(volume(group)),
+      volume_per_set_kg: kg(volume(group) / group.length),
       set_count: group.length,
     })
   }
@@ -101,6 +111,7 @@ const record = (s: PerformedSet): SetRecord => ({
   weight_kg: kg(s.weight_kg),
   reps: s.reps,
   performed_on: s.performed_on,
+  workout_id: s.workout_id,
 })
 
 export function records(sets: PerformedSet[]): Records | null {
@@ -109,7 +120,8 @@ export function records(sets: PerformedSet[]): Records | null {
 
   const heaviest = firstBest(withReps, (s) => [s.weight_kg, s.reps])
   const strongest = firstBest(withReps, (s) => [e1rm(s.weight_kg, s.reps) ?? 0])
-  const bestSession = firstBest(sessions(withReps), (s) => [s.volume_kg])
+  // The best session by volume per set, so more sets alone don't make a record.
+  const bestSession = firstBest(sessions(withReps), (s) => [s.volume_per_set_kg])
 
   // Most reps at each weight (first time achieved)…
   const bestAtWeight = new Map<number, PerformedSet>()
@@ -132,14 +144,18 @@ export function records(sets: PerformedSet[]): Records | null {
     heaviest: record(heaviest),
     best_e1rm: record(strongest),
     best_e1rm_kg: kg(e1rm(strongest.weight_kg, strongest.reps) ?? 0),
-    best_session_volume_kg: bestSession.volume_kg,
-    best_session_volume_on: bestSession.performed_on,
+    best_session_per_set_kg: bestSession.volume_per_set_kg,
+    best_session_on: bestSession.performed_on,
     rep_records: repRecords,
   }
 }
 
-export function exerciseStats(workouts: StoredWorkout[], exerciseId: ExerciseId): ExerciseStats {
-  const sets = performedSets(workouts, exerciseId)
+export function exerciseStats(
+  workouts: StoredWorkout[],
+  exerciseId: ExerciseId,
+  count?: WeightCount,
+): ExerciseStats {
+  const sets = performedSets(workouts, exerciseId, count)
   return { records: records(sets), sessions: sessions(sets) }
 }
 
@@ -147,9 +163,13 @@ export function exerciseStats(workouts: StoredWorkout[], exerciseId: ExerciseId)
 export function overview(
   workouts: StoredWorkout[],
   lookup: (id: ExerciseId) => ExerciseSummary,
+  count?: WeightCount,
 ): ExerciseOverview[] {
   const rows: ExerciseOverview[] = []
-  for (const [exerciseId, group] of groupBy(performedSets(workouts), (s) => s.exercise_id)) {
+  for (const [exerciseId, group] of groupBy(
+    performedSets(workouts, undefined, count),
+    (s) => s.exercise_id,
+  )) {
     const points = sessions(group)
     if (points.length === 0) continue
     const last = points.at(-1)!
@@ -161,6 +181,7 @@ export function overview(
       max_weight_kg: Math.max(...points.map((p) => p.top_weight_kg)),
       best_e1rm_kg: Math.max(...points.map((p) => p.best_e1rm_kg)),
       total_volume_kg: kg(volume(group)),
+      volume_per_set_kg: kg(volume(group) / group.length),
     })
   }
   return rows.sort((a, b) => b.last_performed_on.localeCompare(a.last_performed_on))

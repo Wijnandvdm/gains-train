@@ -129,8 +129,9 @@ function OverviewCard({ row }: { row: ExerciseOverview }) {
   const { exercise } = row
   return (
     <Link
-      to={`/exercises/${exercise.id}`}
-      className="card flex items-center gap-3 p-2 transition hover:border-brand-500"
+      // Straight to its progress (records and chart), not the top of the exercise page.
+      to={`/exercises/${exercise.id}#progress`}
+      className="card flex items-center gap-3 p-2 transition hover:border-train-500"
     >
       <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
       <div className="min-w-0 flex-1">
@@ -146,7 +147,7 @@ function OverviewCard({ row }: { row: ExerciseOverview }) {
           <Figure label="e1RM" value={formatE1rm(row.best_e1rm_kg)} />
         </dl>
         <p className="text-xs text-neutral-500">
-          {row.sets_logged} sets · {formatVolume(row.total_volume_kg)} total
+          {row.sets_logged} sets · {formatVolume(row.volume_per_set_kg)} per set
         </p>
       </div>
     </Link>

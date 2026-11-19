@@ -17,7 +17,7 @@ export function BackupReminder() {
   const backingUp = useAction(async () => setSaved((await exportBackup()) !== null))
   if (saved) {
     return (
-      <p role="status" className="mt-3 border-t border-brand-100 pt-3 dark:border-brand-900">
+      <p role="status" className="mt-3 border-t border-done-100 pt-3 dark:border-done-900">
         Backup saved. See you again in a while!
       </p>
     )
@@ -25,7 +25,7 @@ export function BackupReminder() {
   if (!due && !backingUp.isPending) return null
 
   return (
-    <div className="mt-3 flex flex-col gap-2 border-t border-brand-100 pt-3 dark:border-brand-900">
+    <div className="mt-3 flex flex-col gap-2 border-t border-done-100 pt-3 dark:border-done-900">
       <p>
         <strong>Time for a backup?</strong>{' '}
         {settings?.last_backup_at

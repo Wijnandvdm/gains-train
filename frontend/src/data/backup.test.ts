@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { libraryExercise } from '../test/library'
 import { saveFile } from '../lib/saveFile'
 import {
+  type Backup,
   backupDue,
   BackupError,
   backupFileName,
@@ -58,12 +59,20 @@ async function someData() {
   await db.customExercises.add({
     ...libraryExercise('custom-1', 'Bulgarian Split Squat', {
       primary_muscles: ['glutes', 'quadriceps'],
-      instructions: ['Stand in front of a bench.', 'Lower the back knee.'],
     }),
     is_custom: true,
     image_urls: [],
   })
   await db.restPrefs.add({ exercise_id: 'Hack_Squat', rest_seconds: 195 })
+  await db.dumbbellModes.add({ exercise_id: 'Hack_Squat', mode: 'total' })
+  await db.machineSettings.add({
+    exercise_id: 'Hack_Squat',
+    settings: [
+      { name: 'Seat', value: '4' },
+      { name: '', value: '13' }, // just a value
+      { name: 'Pad', value: 'L, high' }, // a comma, quoted in the CSV
+    ],
+  })
   await saveRoutine({
     days: [
       { name: 'Day1', exercises: [{ exercise_id: 'Hack_Squat', sets: 3 }] },
@@ -81,6 +90,8 @@ const everything = async () => ({
   workouts: await db.workouts.toArray(),
   customs: await db.customExercises.toArray(),
   rest: await db.restPrefs.toArray(),
+  machine: await db.machineSettings.toArray(),
+  dumbbells: await db.dumbbellModes.toArray(),
   routine: await getStoredRoutine(),
   settings: { ...(await getSettings()), last_backup_at: null, backup_reminded_at: null },
 })
@@ -105,6 +116,8 @@ describe('backups', () => {
     const files = unzipSync(saved()[1] as Uint8Array)
     expect(Object.keys(files).sort()).toEqual([
       'custom-exercises.csv',
+      'dumbbells.csv',
+      'machine-settings.csv',
       'rest-times.csv',
       'routine.csv',
       'settings.csv',
@@ -129,6 +142,22 @@ describe('backups', () => {
     expect((await getStoredRoutine())!.days).toHaveLength(2)
   })
 
+  it('still imports backups from before machine settings', async () => {
+    await someData()
+    await exportBackup()
+    const files = unzipSync(saved()[1] as Uint8Array)
+    delete files['machine-settings.csv'] // a version 2 zip
+    delete files['dumbbells.csv']
+    const json = { ...(await createBackup()), version: 1 } as Partial<Backup>
+    delete json.machine_settings // an older .json
+    await Promise.all(db.tables.map((t) => t.clear()))
+
+    await restoreBackup(await readBackupFile(new Blob([zipSync(files) as BlobPart])))
+    expect(await db.workouts.count()).toBe(1)
+    expect(await db.machineSettings.count()).toBe(0)
+    expect((await readBackupFile(new Blob([JSON.stringify(json)]))).machine_settings).toEqual([])
+  })
+
   it('rejects wrong or damaged files, and nothing is changed', async () => {
     await someData()
     await exportBackup()
@@ -142,8 +171,8 @@ describe('backups', () => {
       return new Blob([zipSync(files)])
     }
     const bad: [Blob, RegExp][] = [
-      [new Blob(['date,day,exercise\n']), /isn't a gains-train backup/],
-      [new Blob([JSON.stringify({ format: 'something-else' })]), /isn't a gains-train backup/],
+      [new Blob(['date,day,exercise\n']), /isn't a Gains Train backup/],
+      [new Blob([JSON.stringify({ format: 'something-else' })]), /isn't a Gains Train backup/],
       [
         zip({ 'settings.csv': 'setting,value\nformat,gains-train-backup\nversion,99\n' }),
         /newer version/,

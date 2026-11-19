@@ -25,8 +25,6 @@ export type ExerciseSummary = {
   image_urls: string[]
 }
 
-export type ExerciseDetail = ExerciseSummary & { instructions: string[] }
-
 export type ExerciseFilters = { muscles: string[]; equipment: string[] }
 
 // --- Workouts -----------------------------------------------------------------------------
@@ -111,7 +109,7 @@ export type Settings = {
   setup_completed_at: string | null
   rest_timer_enabled: boolean
   default_rest_seconds: number
-  /** Rides a week that reach a station on the Gains Line (the weekly streak). */
+  /** Your weekly goal: rides a week that count for the streak on the Gains Line. */
   weekly_target: number
   /** Weeks parked in the depot (their Mondays): holiday or injury, the streak waits. */
   depot_weeks: string[]
@@ -125,14 +123,21 @@ export type Settings = {
 
 // --- Stats --------------------------------------------------------------------------------
 
-export type SetRecord = { weight_kg: number; reps: number; performed_on: string }
+/** A record set, and the workout it was done in (to open it). */
+export type SetRecord = {
+  weight_kg: number
+  reps: number
+  performed_on: string
+  workout_id: string
+}
 
 export type Records = {
   heaviest: SetRecord
   best_e1rm: SetRecord
   best_e1rm_kg: number
-  best_session_volume_kg: number
-  best_session_volume_on: string
+  /** The best session's volume per set (its volume ÷ its sets). */
+  best_session_per_set_kg: number
+  best_session_on: string
   rep_records: SetRecord[]
 }
 
@@ -143,6 +148,8 @@ export type SessionPoint = {
   top_weight_reps: number
   best_e1rm_kg: number
   volume_kg: number
+  /** The session's volume divided by its sets: fair between a 3-set and a 5-set day. */
+  volume_per_set_kg: number
   set_count: number
 }
 
@@ -156,4 +163,6 @@ export type ExerciseOverview = {
   max_weight_kg: number
   best_e1rm_kg: number
   total_volume_kg: number
+  /** All its volume divided by all its sets. */
+  volume_per_set_kg: number
 }

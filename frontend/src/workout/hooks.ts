@@ -18,8 +18,10 @@ import {
   addExercise,
   deleteSet,
   deleteWorkout,
+  editSets,
   exerciseSessions,
   finishWorkout,
+  moveExercise,
   getWorkout,
   hydrate,
   removeExercise,
@@ -29,6 +31,7 @@ import {
   workoutsBetween,
   newSet,
 } from '../data/workouts'
+import { useWeightCount } from '../data/dumbbells'
 import { useExerciseLookup } from '../exercises'
 import { localDateString } from '../lib/format'
 
@@ -75,10 +78,11 @@ export function useWorkoutSummaries(
   to?: string,
 ): { data: WorkoutSummary[] | undefined; isPending: boolean } {
   const lookup = useExerciseLookup()
+  const count = useWeightCount()
   const stored = useLiveQuery(() => workoutsBetween(from, to), [from, to])
   const data = useMemo(
-    () => (stored && lookup ? stored.map((w) => summarize(w, lookup)) : undefined),
-    [stored, lookup],
+    () => (stored && lookup && count ? stored.map((w) => summarize(w, lookup, count)) : undefined),
+    [stored, lookup, count],
   )
   return { data, isPending: data === undefined }
 }
@@ -94,7 +98,7 @@ export function useWorkout(id: string): {
   return { data, isPending: data === undefined }
 }
 
-export { deleteWorkout }
+export { deleteWorkout, editSets }
 
 /** Changing the active workout. Writes go straight to the device; screens follow live. */
 export function useWorkoutActions() {
@@ -139,6 +143,7 @@ export function useWorkoutActions() {
       addExercise: (workoutId: string, exercise: ExerciseSummary) =>
         addExercise(workoutId, exercise.id),
       removeExercise,
+      moveExercise,
       saveSet,
       deleteSet: (workoutId: string, set: WorkoutSet) => deleteSet(workoutId, set.id),
       finish: (workoutId: string) => finishWorkout(workoutId),

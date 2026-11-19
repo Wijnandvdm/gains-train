@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { ExerciseStats } from '../data/types'
 import {
   formatDay,
@@ -16,9 +17,23 @@ const ProgressChart = lazy(() => import('./ProgressChart'))
 /** "Your progress" on an exercise page: records, a chart, and rep records. */
 export function ExerciseProgress({ exerciseId }: { exerciseId: string }) {
   const { data } = useExerciseStats(exerciseId)
+  // From the Progress tab (".../exercises/<id>#progress"): straight here, once it has loaded, so
+  // the page doesn't jump around after.
+  const { hash } = useLocation()
+  const section = useRef<HTMLElement>(null)
+  const loaded = data !== undefined
+  useEffect(() => {
+    if (hash === '#progress' && loaded) section.current?.scrollIntoView({ block: 'start' })
+  }, [hash, loaded])
 
   return (
-    <section aria-labelledby="progress-heading" className="flex flex-col gap-3">
+    <section
+      ref={section}
+      id="progress"
+      aria-labelledby="progress-heading"
+      // Clear of the sticky header when scrolled to.
+      className="flex scroll-mt-16 flex-col gap-3"
+    >
       <h2 id="progress-heading" className="font-semibold">
         Your progress
       </h2>
@@ -36,6 +51,7 @@ export function ExerciseProgress({ exerciseId }: { exerciseId: string }) {
 }
 
 function Progress({ stats }: { stats: ExerciseStats }) {
+  const navigate = useNavigate()
   const records = stats.records!
   return (
     <>
@@ -46,14 +62,14 @@ function Progress({ stats }: { stats: ExerciseStats }) {
           detail={`× ${records.heaviest.reps} · ${formatShortDay(records.heaviest.performed_on)}`}
         />
         <StatTile
+          label="Best session"
+          value={formatVolume(records.best_session_per_set_kg)}
+          detail={`per set · ${formatShortDay(records.best_session_on)}`}
+        />
+        <StatTile
           label="Best e1RM"
           value={formatE1rm(records.best_e1rm_kg)}
           detail={formatSet(records.best_e1rm.weight_kg, records.best_e1rm.reps)}
-        />
-        <StatTile
-          label="Best session"
-          value={formatVolume(records.best_session_volume_kg)}
-          detail={formatShortDay(records.best_session_volume_on)}
         />
       </dl>
 
@@ -80,11 +96,23 @@ function Progress({ stats }: { stats: ExerciseStats }) {
           </thead>
           <tbody className="tabular-nums">
             {records.rep_records.map((r) => (
-              <tr key={r.weight_kg} className="border-t border-neutral-200 dark:border-neutral-800">
+              // Tap a row for the workout of the record (the date is the link, for keyboards
+              // and screen readers).
+              <tr
+                key={r.weight_kg}
+                onClick={() => navigate(`/history/${r.workout_id}`)}
+                className="cursor-pointer border-t border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+              >
                 <td className="px-3 py-1.5">{formatWeight(r.weight_kg)}</td>
                 <td className="px-3 py-1.5">{r.reps}</td>
                 <td className="px-3 py-1.5 text-right text-neutral-500">
-                  {formatDay(r.performed_on)}
+                  <Link
+                    to={`/history/${r.workout_id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="underline decoration-neutral-300 underline-offset-2 dark:decoration-neutral-600"
+                  >
+                    {formatDay(r.performed_on)}
+                  </Link>
                 </td>
               </tr>
             ))}

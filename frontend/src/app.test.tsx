@@ -8,7 +8,6 @@ import { renderApp } from './test/utils'
 const LIBRARY = [
   libraryExercise('Seated_Leg_Curl', 'Seated Leg Curl', {
     secondary_muscles: ['calves'],
-    instructions: ['Sit down.', 'Curl your legs.'],
   }),
   libraryExercise('Preacher_Curl', 'Preacher Curl', {
     equipment: 'barbell',
@@ -20,7 +19,6 @@ const BULGARIAN = libraryExercise('custom-bss', 'Bulgarian Split Squat', {
   is_custom: true,
   primary_muscles: ['quadriceps', 'glutes'],
   image_urls: [],
-  instructions: [],
 })
 
 const seed = () => seedDevice({ library: LIBRARY, customExercises: [BULGARIAN] })
@@ -81,7 +79,7 @@ describe('exercise library', () => {
 })
 
 describe('exercise detail', () => {
-  it('shows images, muscles and instructions', async () => {
+  it('shows images, muscles, and who to watch for good form', async () => {
     await seed()
     renderApp('/exercises/Seated_Leg_Curl')
 
@@ -94,8 +92,15 @@ describe('exercise detail', () => {
     // The muscle map draws front + back, and describes itself for screen readers.
     const map = screen.getByRole('img', { name: 'Muscles worked: hamstrings; also calves' })
     await waitFor(() => expect(map.querySelectorAll('svg')).toHaveLength(2))
-    expect(screen.getByRole('heading', { name: 'How to' })).toBeVisible()
-    expect(screen.getByText('Curl your legs.')).toBeVisible()
+    // No written steps (the library still has them): coaches to watch instead.
+    expect(screen.queryByRole('heading', { name: 'How to' })).toBeNull()
+    expect(screen.queryByText('Curl your legs.')).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Good form' })).toBeVisible()
+    expect(
+      screen.getByText(
+        'For good form, watch Jeff Nippard, Mike Israetel, Dom Mazzetti, or Eric Janicki on YouTube.',
+      ),
+    ).toBeVisible()
     // The start and end pose drawings (tinted to the theme via a mask).
     const drawings = [
       ...document.querySelectorAll<HTMLElement>('[style*="/exercises/Seated_Leg_Curl/"]'),

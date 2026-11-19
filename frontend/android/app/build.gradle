@@ -5,6 +5,11 @@ def appVersion = "1.0.0"
 // Google Play needs a number that goes up with every version: 1.4.2 → 10402.
 def appVersionCode = appVersion.tokenize('.').collect { it.toInteger() }.inject(0) { code, part -> code * 100 + part }
 
+// The upload key that signs release builds for Google Play. It lives outside the repo, set up
+// in ~/.gradle/gradle.properties (see scripts/android.sh --release). Debug builds don't need it.
+def uploadKeystore = providers.gradleProperty('gainsTrainKeystore').getOrNull()
+def uploadKeystorePassword = providers.gradleProperty('gainsTrainKeystorePassword').getOrNull()
+
 android {
     namespace = "io.github.wijnandvdm.gainstrain"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -21,8 +26,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (uploadKeystore) {
+            upload {
+                storeFile = file(uploadKeystore)
+                storePassword = uploadKeystorePassword
+                keyAlias = 'upload'
+                keyPassword = uploadKeystorePassword // PKCS12 keystores have one password
+            }
+        }
+    }
     buildTypes {
         release {
+            if (uploadKeystore) signingConfig = signingConfigs.upload
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }

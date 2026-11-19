@@ -1,6 +1,7 @@
 // Loaded on demand (see ExerciseProgress): Recharts is most of the app's JavaScript,
 // and only this chart needs it.
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   CartesianGrid,
   Line,
@@ -11,6 +12,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { SessionPoint } from '../data/types'
+import { defaultRange, inRange, rangeChoices, type TimeRange } from '../lib/timeRange'
 import {
   formatDay,
   formatE1rm,
@@ -23,12 +25,13 @@ import {
   parseLocalDate,
 } from '../lib/format'
 
+/** In the order of the buttons; the chart opens on the first (volume per set). */
 const METRICS = {
-  e1rm: {
-    label: 'Estimated 1RM',
-    title: 'Estimated 1RM per session',
-    value: (p: SessionPoint) => p.best_e1rm_kg,
-    format: formatE1rm,
+  volume: {
+    label: 'Volume per set',
+    title: 'Volume per set (weight × reps, averaged over the session’s sets)',
+    value: (p: SessionPoint) => p.volume_per_set_kg,
+    format: formatVolume,
   },
   top: {
     label: 'Top weight',
@@ -36,19 +39,26 @@ const METRICS = {
     value: (p: SessionPoint) => p.top_weight_kg,
     format: formatWeight,
   },
-  volume: {
-    label: 'Volume',
-    title: 'Volume per session (weight × reps)',
-    value: (p: SessionPoint) => p.volume_kg,
-    format: formatVolume,
+  e1rm: {
+    label: 'Estimated 1RM',
+    title: 'Estimated 1RM per session',
+    value: (p: SessionPoint) => p.best_e1rm_kg,
+    format: formatE1rm,
   },
 } as const
 type Metric = keyof typeof METRICS
 
 export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }) {
-  const [metric, setMetric] = useState<Metric>('e1rm')
+  const navigate = useNavigate()
+  const [metric, setMetric] = useState<Metric>('volume')
   const { title, value, format } = METRICS[metric]
-  const points = sessions.map((p) => ({ ...p, time: parseLocalDate(p.performed_on).getTime() }))
+  // Time filters only once there's more than 3 months to filter; the table follows them.
+  const today = localDateString()
+  const choices = rangeChoices(sessions[0]?.performed_on ?? today, today)
+  const [picked, setPicked] = useState<TimeRange | null>(null)
+  const range = picked ?? defaultRange(choices)
+  const shown = sessions.filter((p) => inRange(p.performed_on, range, today))
+  const points = shown.map((p) => ({ ...p, time: parseLocalDate(p.performed_on).getTime() }))
 
   return (
     <figure className="card flex flex-col gap-2 p-3">
@@ -65,6 +75,21 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
           </button>
         ))}
       </div>
+      {choices.length > 0 && (
+        <div role="group" aria-label="Time range" className="flex flex-wrap gap-1.5">
+          {choices.map((r) => (
+            <button
+              key={r.label}
+              type="button"
+              aria-pressed={range.label === r.label}
+              onClick={() => setPicked(r)}
+              className={`chip text-xs ${range.label === r.label ? 'chip-active' : ''}`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      )}
       <figcaption className="text-sm font-medium">{title}</figcaption>
 
       <div className="h-56" aria-hidden="true">
@@ -105,19 +130,19 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
             <Line
               type="monotone"
               dataKey={value}
-              stroke="var(--color-brand-600)"
+              stroke="var(--color-train-600)"
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
               dot={{
                 r: 4,
-                fill: 'var(--color-brand-600)',
+                fill: 'var(--color-train-600)',
                 stroke: 'var(--chart-surface)',
                 strokeWidth: 2,
               }}
               activeDot={{
                 r: 6,
-                fill: 'var(--color-brand-600)',
+                fill: 'var(--color-train-600)',
                 stroke: 'var(--chart-surface)',
                 strokeWidth: 2,
               }}
@@ -139,12 +164,22 @@ export default function ProgressChart({ sessions }: { sessions: SessionPoint[] }
             </tr>
           </thead>
           <tbody>
-            {[...sessions].reverse().map((p) => (
+            {[...shown].reverse().map((p) => (
+              // Tap a row for its workout (the date is the link, for keyboards and screen readers).
               <tr
                 key={p.workout_id}
-                className="border-t border-neutral-200 dark:border-neutral-800"
+                onClick={() => navigate(`/history/${p.workout_id}`)}
+                className="cursor-pointer border-t border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
               >
-                <td className="py-1">{formatDay(p.performed_on)}</td>
+                <td className="py-1">
+                  <Link
+                    to={`/history/${p.workout_id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="underline decoration-neutral-300 underline-offset-2 dark:decoration-neutral-600"
+                  >
+                    {formatDay(p.performed_on)}
+                  </Link>
+                </td>
                 <td className="py-1">{formatSet(p.top_weight_kg, p.top_weight_reps)}</td>
                 <td className="py-1 text-right">{format(value(p))}</td>
               </tr>

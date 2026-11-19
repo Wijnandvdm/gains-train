@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/format'
+import { fitFontSize } from '../../lib/fitText'
 import { type NextSet, weightStep } from '../../workout/plan'
+import { useDumbbellMode, weightUnit } from '../../data/dumbbells'
 import { ExerciseThumb } from '../ExerciseImage'
+import { MachineSettings } from '../MachineSettings'
 
 type Props = {
   next: NextSet
@@ -20,6 +23,12 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
   const [weight, setWeight] = useState(toText(next.prefill.weight))
   const [reps, setReps] = useState(toText(next.prefill.reps))
   const step = weightStep(exercise)
+  // "kg each" or "kg total" for two-dumbbell exercises, so it's clear what to type.
+  const unit = weightUnit(useDumbbellMode(exercise) ?? null)
+  // Exercise preferences show while you set up the machine, until the exercise's first set is
+  // done; after that the ⚙ shows them again.
+  const setUp = next.item.sets.some((s) => s.completed_at)
+  const [showSettings, setShowSettings] = useState(false)
 
   const repCount = parseReps(reps)
   const weightKg = weight.trim() === '' ? 0 : parseWeight(weight)
@@ -33,22 +42,39 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
   return (
     <section
       aria-label="Current set"
-      className="card flex flex-col gap-4 border-brand-500 p-4 shadow-sm"
+      className="card flex flex-col gap-4 border-train-500 p-4 shadow-sm"
     >
       <header className="flex items-center gap-3">
         <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
         <div className="min-w-0 flex-1">
           <p className="line-clamp-2 text-lg leading-snug font-semibold">{exercise.name}</p>
-          {next.previous && (
+          {next.movedUp ? (
             <p className="text-sm text-neutral-500">
-              last time {formatSet(next.previous.weight_kg, next.previous.reps)}
+              last time {formatSet(next.movedUp.first.weight_kg, next.movedUp.first.reps)} →{' '}
+              {formatSet(next.movedUp.final.weight_kg, next.movedUp.final.reps)}
             </p>
+          ) : (
+            next.previous && (
+              <p className="text-sm text-neutral-500">
+                last time {formatSet(next.previous.weight_kg, next.previous.reps)}
+              </p>
+            )
           )}
         </div>
+        {setUp && !showSettings && (
+          <button
+            type="button"
+            aria-label="Show exercise preferences"
+            onClick={() => setShowSettings(true)}
+            className="shrink-0 rounded-lg p-2 text-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            ⚙
+          </button>
+        )}
         {/* Big enough to read at arm's length, mid-set. */}
         <div
           aria-label={`Set ${next.setNumber} of ${next.plannedSets}`}
-          className="flex shrink-0 flex-col items-center rounded-xl bg-brand-600 px-3 py-1 text-white"
+          className="flex shrink-0 flex-col items-center rounded-xl bg-train-600 px-3 py-1 text-white"
         >
           <span aria-hidden="true" className="text-2xl leading-tight font-bold tabular-nums">
             {next.setNumber}/{next.plannedSets}
@@ -58,10 +84,12 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
           </span>
         </div>
       </header>
+      {(!setUp || showSettings) && <MachineSettings exerciseId={exercise.id} />}
 
-      <div className="grid grid-cols-2 gap-3">
+      {/* Weight a little wider than reps (rarely more than 2 digits), so 100 kg fits too. */}
+      <div className="grid grid-cols-[1.15fr_1fr] gap-2">
         <Stepper
-          label="kg"
+          label={unit}
           value={weight}
           inputMode="decimal"
           onChange={setWeight}
@@ -120,10 +148,10 @@ function Stepper({
   step: number
 }) {
   const button =
-    'h-12 w-12 shrink-0 rounded-lg bg-neutral-100 text-xl font-semibold active:bg-neutral-200 dark:bg-neutral-800 dark:active:bg-neutral-700'
+    'h-12 w-10 shrink-0 rounded-lg bg-neutral-100 text-xl font-semibold active:bg-neutral-200 dark:bg-neutral-800 dark:active:bg-neutral-700'
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="flex w-full items-center gap-1.5">
+      <div className="flex w-full items-center gap-1">
         <button
           type="button"
           className={button}
@@ -132,15 +160,20 @@ function Stepper({
         >
           −
         </button>
-        <input
-          aria-label={label}
-          inputMode={inputMode}
-          value={value}
-          placeholder="–"
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={(e) => e.target.select()}
-          className="w-full min-w-0 rounded-lg bg-transparent py-2 text-center text-3xl font-bold tabular-nums outline-none focus:ring-2 focus:ring-brand-500"
-        />
+        {/* A size container: the number shrinks to fit when it’s long (102.5 kg). Without
+            container units (a very old WebView) it stays text-3xl, as before. */}
+        <div className="@container min-w-0 flex-1">
+          <input
+            aria-label={label}
+            inputMode={inputMode}
+            value={value}
+            placeholder="–"
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            style={{ fontSize: fitFontSize(value || '–') }}
+            className="w-full min-w-0 rounded-lg bg-transparent py-2 text-center text-3xl leading-9 font-bold tabular-nums outline-none focus:ring-2 focus:ring-train-500"
+          />
+        </div>
         <button type="button" className={button} onClick={onPlus} aria-label={`+ ${step} ${label}`}>
           +
         </button>

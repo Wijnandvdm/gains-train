@@ -18,5 +18,8 @@
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <!-- Android 12+ shows the app icon on this colour while starting: the logo's own
+             background (set by scripts/make-icons.py), so the icon blends in. -->
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
     </style>
 </resources>

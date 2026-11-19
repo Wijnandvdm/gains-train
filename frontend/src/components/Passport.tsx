@@ -1,8 +1,9 @@
 // The passport on the Progress tab: stamps you've earned (newest first) and the next one of
-// each kind, or every stamp grouped by kind. The rules live in data/passport.ts.
+// each kind, or every stamp grouped by kind. Tap a stamp for what it's for (under its row: a
+// bubble would be cut off in the row that scrolls sideways). The rules live in data/passport.ts.
 import { useState } from 'react'
 import type { Passport as PassportData, Stamp, StampKind } from '../data/passport'
-import { formatShortDay } from '../lib/format'
+import { formatDay, formatShortDay } from '../lib/format'
 import { usePassport } from '../passport'
 
 const KINDS: { kind: StampKind; name: string; unit: string }[] = [
@@ -10,14 +11,42 @@ const KINDS: { kind: StampKind; name: string; unit: string }[] = [
   { kind: 'weight', name: 'Weight hauled', unit: 'tonnes' },
   { kind: 'prs', name: 'Personal records', unit: 'PRs' },
   { kind: 'streak', name: 'Gains Line', unit: 'in a row' },
+  { kind: 'steam', name: 'Full steam ahead', unit: 'weeks' },
   { kind: 'explorer', name: 'Explorer', unit: 'explored' },
 ]
 const unitOf = (kind: StampKind) => KINDS.find((k) => k.kind === kind)!.unit
 
+/** What a stamp is for, and when you earned it or how far you are. */
+function stampStory(stamp: Stamp, progress: number): string {
+  const g = stamp.goal
+  const rule = {
+    rides: g === 1 ? 'Your first finished workout.' : `${g} finished workouts.`,
+    weight: `${g} tonnes lifted in total (weight × reps over all your workouts), as much as ${stamp.detail.toLowerCase()}.`,
+    prs:
+      g === 1
+        ? 'Your first personal record: beating your best on an exercise.'
+        : `${g} workouts where you beat your best on an exercise.`,
+    streak: `Your weekly goal reached ${g} weeks in a row.`,
+    steam: `One exercise stronger every week, ${g} weeks in a row.`,
+    explorer:
+      stamp.badge === 'All'
+        ? 'Every exercise in the library, done at least once.'
+        : `${g} different exercises from the library, done at least once.`,
+  }[stamp.kind]
+  const status = stamp.earnedOn
+    ? `Earned ${formatDay(stamp.earnedOn)}.`
+    : stamp.kind === 'streak' || stamp.kind === 'steam'
+      ? `Best so far: ${progress}.`
+      : `So far: ${progress} of ${g}.`
+  return `${rule} ${status}`
+}
+
 export function Passport() {
   const data = usePassport()
   const [all, setAll] = useState(false)
+  const [open, setOpen] = useState<string | null>(null) // the stamp explained
   if (!data) return null
+  const list = { data, open, onOpen: (id: string) => setOpen(open === id ? null : id) }
   const earned = data.stamps.filter((s) => s.earnedOn)
 
   return (
@@ -35,11 +64,11 @@ export function Passport() {
         KINDS.map(({ kind, name }) => (
           <div key={kind} className="flex flex-col gap-2">
             <h3 className="text-sm font-medium text-neutral-500">{name}</h3>
-            <StampList stamps={data.stamps.filter((s) => s.kind === kind)} data={data} wrap />
+            <StampList stamps={data.stamps.filter((s) => s.kind === kind)} {...list} wrap />
           </div>
         ))
       ) : (
-        <StampList stamps={highlights(data)} data={data} />
+        <StampList stamps={highlights(data)} {...list} />
       )}
 
       <button
@@ -68,22 +97,47 @@ function highlights(data: PassportData): Stamp[] {
 function StampList({
   stamps,
   data,
+  open,
+  onOpen,
   wrap = false,
 }: {
   stamps: Stamp[]
   data: PassportData
+  /** The stamp whose explanation shows (under this row, when it's in it). */
+  open: string | null
+  onOpen: (id: string) => void
   wrap?: boolean
 }) {
+  const explained = stamps.find((s) => s.id === open)
   return (
-    <ul
-      className={`flex gap-3 ${wrap ? 'flex-wrap' : 'scrollbar-none -mx-3 overflow-x-auto px-3 pb-1'}`}
-    >
-      {stamps.map((stamp, i) => (
-        <li key={stamp.id}>
-          <StampBadge stamp={stamp} progress={data.progress[stamp.kind]} tilt={i % 2 ? 6 : -8} />
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-2">
+      <ul
+        className={`flex gap-3 ${wrap ? 'flex-wrap' : 'scrollbar-none -mx-3 overflow-x-auto px-3 pb-1'}`}
+      >
+        {stamps.map((stamp, i) => (
+          <li key={stamp.id}>
+            <button
+              type="button"
+              aria-expanded={open === stamp.id}
+              onClick={() => onOpen(stamp.id)}
+              className={`rounded-lg p-0.5 ${open === stamp.id ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
+            >
+              <StampBadge
+                stamp={stamp}
+                progress={data.progress[stamp.kind]}
+                tilt={i % 2 ? 6 : -8}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+      {explained && (
+        <p role="note" className="rounded-lg bg-neutral-100 px-3 py-2 text-sm dark:bg-neutral-800">
+          <span className="font-semibold">{explained.title}:</span>{' '}
+          {stampStory(explained, data.progress[explained.kind])}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -118,7 +172,7 @@ export function StampBadge({
             ? 'shadow-[inset_0_0_0_3px_var(--chart-surface),inset_0_0_0_5px_currentColor]'
             : 'border-dashed border-neutral-300 text-neutral-400 dark:border-neutral-700 dark:text-neutral-500'
         }`}
-        style={earned ? { color: `var(--stamp-${stamp.kind})`, rotate: `${tilt}deg` } : undefined}
+        style={earned ? { color: `var(--ink-${stamp.kind})`, rotate: `${tilt}deg` } : undefined}
       >
         <span className="flex flex-col leading-none">
           <span className="text-lg font-black tabular-nums">{value}</span>

@@ -1,12 +1,85 @@
 # Changelog
 
 What changed in each version of gains-train. Write your changes under **[Unreleased]** as you
-go; releasing (see `RELEASE`) turns that section into the new version.
+go; releasing (see `release_scope.env`) turns that section into the new version.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
+
+### Added
+
+- Full steam ahead stamps in the passport: one exercise stronger every week, 3, 4, 6 or 8
+  weeks in a row (heavier, or more reps than the week before).
+- Coal and steam: more cheers after a set, and after a workout the weight you moved,
+  shovelled into the firebox (plus a word from the boiler when you set a record).
+- Edit a past workout: change a set's weight or reps, remove sets you didn't do, or add one
+  you forgot. Records, charts, the Gains Line and stamps follow.
+- On an exercise's page, tap a row of the progress table or of the rep records to open that
+  workout.
+- From the Progress tab, an exercise opens straight at its progress (records and chart).
+- Tap a passport stamp for what it's for, and when you earned it or how far you are.
+- Search finds exercises by the muscle they train, not just by name: "abs", "chest", "quads",
+  or slang like "booty" and "guns".
+- Time filters for an exercise's progress chart (3 months, 1 year, … All) that grow with your
+  data: only the ones shorter than your history, none until there are 3 months to filter. It
+  opens on the last year once you have more than a year; records stay all-time.
+- Your own exercises, for what the library doesn't have: make one right from the exercise
+  picker (or Exercises → New exercise) with a name and main muscle. Rename it, or delete it
+  while you haven't used it.
+- When an update adds an exercise that looks like one of your own, the Workout screen asks
+  whether to use the new one from now on; yes moves your workouts, records and preferences
+  over to it.
+- Exercise preferences per exercise (Seat 4, Pad L, −1): on the set card until the first set
+  is done (⚙ shows them again), and changeable there, in the routine editor or on the
+  exercise's page. Backups include them (backup format 3).
+- One or two dumbbells, per exercise: choose on its page whether you log one dumbbell, the
+  weight of each of two, or the total. The set card says "kg each" or "kg total", and volume
+  counts both dumbbells when you log each.
+- Change a workout on the go: drag an exercise up or down by its ≡ (what's next follows the
+  new order). In a routine workout, reordering, adding or removing an exercise asks whether
+  to make it your routine from now on; ignore it and it goes away, nothing changed.
+- Before you start a routine day, drag its exercises into today's order, or add one to start
+  with; the set card follows, and it asks whether to make it your routine.
+
+### Changed
+
+- No more written how-to steps on an exercise's page: it points you to Jeff Nippard, Mike
+  Israetel, Dom Mazzetti and Eric Janicki on YouTube for good form instead.
+- If you moved the weight up during an exercise last time, the next time starts at the weight
+  you ended on, and the card shows how it went ("last time 10 × 12 → 15 × 8").
+- A new look: the muscle-train logo as the app icon and splash screen, and the app in its
+  reds, from the header to ✓ Done. The main buttons are a shade darker, so their text reads
+  well, and error messages and warm-up sets have readable colours in dark mode too.
+- The Gains Line is about your weekly goal, in time: "Only 1 more workout to reach this
+  week's goal of 3!", weeks in a row, and milestones ("Two weeks in a row! Keep going for a
+  month."). On the Workout screen it's one slim line now (tap it for the details), so your
+  workout comes first.
+- The calendar's week column is a track, like a metro map: each week reached is a ring on
+  the line, and a missed week breaks it.
+- History's calendar shows each week filling up instead of a colour per routine day: a
+  day's ring fills with the week's rides so far (a third, two thirds, …) and the ride that
+  reaches the week's goal closes it.
+- No more legends in History: tap a week marker or the streak and ticket pills for what they
+  mean that week, in a small bubble; a selected day says which ride of the week it was. The
+  week and streak bubbles link straight to your weekly goal in Settings.
+- Volume per set instead of total volume: an exercise's progress chart opens on it, the Best
+  session record is the best volume per set, and the Progress tab shows your average per set.
+  So more sets alone don't count as progress. Estimated 1RM comes last, in the chart and in
+  the records.
+
+### Fixed
+
+- Your last weight and reps are filled in again after you skipped an exercise: a skipped
+  session no longer counts as "last time", however long ago you last did it.
+- When a screen crashes, a friendly screen says so (your data is safe), with Try again and
+  Go to Workout, instead of a developer message; the tabs stay, so you can tap away.
+- The phone's back button goes back to the previous screen; before, it closed the app on any
+  screen. On the first screen it puts the app in the background, keeping a rest timer or a
+  workout in progress.
+- Weights of 100 kg and more fit in the workout's set card; longer numbers (102.5) shrink to
+  fit instead of being cut off.
 
 ## [1.0.0] - 2026-09-29
 

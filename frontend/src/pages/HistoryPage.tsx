@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import type { Routine, WorkoutSummary } from '../data/types'
+import type { WorkoutSummary } from '../data/types'
 import { LinePills, WeekMarker } from '../components/GainsLine'
-import { BackIcon, DepotIcon, TicketIcon } from '../components/icons'
-import { type GainsLine, weekOf } from '../data/line'
+import { BackIcon } from '../components/icons'
+import { type GainsLine, nextMonday, onTheLine, previousMonday, weekOf } from '../data/line'
+import { HISTORY } from '../copy'
 import { useGainsLine } from '../line'
 import { Spinner } from '../components/Spinner'
 import {
@@ -18,19 +18,7 @@ import {
   weekdayLabels,
 } from '../lib/calendar'
 import { formatDay, formatVolume, localDateString, parseLocalDate, plural } from '../lib/format'
-import { useRoutine } from '../routine'
 import { useWorkoutSummaries } from '../workout/hooks'
-
-/** Routine day → colour token; days past the third (and non-routine workouts) are "other". */
-const DAY_COLORS = ['var(--day-1)', 'var(--day-2)', 'var(--day-3)']
-const OTHER_COLOR = 'var(--day-other)'
-
-function dayColors(routine: Routine | null | undefined): Map<string, string> {
-  return new Map(routine?.days.slice(0, DAY_COLORS.length).map((d, i) => [d.id, DAY_COLORS[i]!]))
-}
-
-const colorOf = (colors: Map<string, string>, w: WorkoutSummary) =>
-  (w.routine_day_id && colors.get(w.routine_day_id)) || OTHER_COLOR
 
 export function HistoryPage() {
   // Month and selected day live in the URL, so "back" from a workout returns right here.
@@ -40,8 +28,6 @@ export function HistoryPage() {
   const { from, to } = monthRange(month)
 
   const { data: workouts = [], isPending } = useWorkoutSummaries(from, to)
-  const { data: routine } = useRoutine()
-  const colors = dayColors(routine)
   const line = useGainsLine()
 
   const byDay = new Map<string, WorkoutSummary[]>()
@@ -74,8 +60,6 @@ export function HistoryPage() {
   const finished = workouts.filter((w) => w.status === 'completed')
   const sets = finished.reduce((sum, w) => sum + w.set_count, 0)
   const volume = finished.reduce((sum, w) => sum + w.volume_kg, 0)
-  const legend = routine?.days.slice(0, DAY_COLORS.length) ?? []
-  const hasOther = workouts.some((w) => colorOf(colors, w) === OTHER_COLOR)
 
   return (
     <section className="flex flex-col gap-4">
@@ -88,9 +72,7 @@ export function HistoryPage() {
         )}
       </div>
 
-      {line && (
-        <LinePills streak={line.streak} tickets={line.tickets} nextTicketAt={line.nextTicketAt} />
-      )}
+      {line && <LinePills line={line} />}
 
       <div className="card flex flex-col gap-3 p-3">
         <div className="flex items-center justify-between">
@@ -121,68 +103,11 @@ export function HistoryPage() {
         <CalendarGrid
           month={month}
           byDay={byDay}
-          colors={colors}
           selected={selected}
           today={today}
           line={line}
           onSelect={(day) => go({ day })}
         />
-
-        {(legend.length > 0 || hasOther) && workouts.length > 0 && (
-          <ul
-            className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-500"
-            aria-label="Legend"
-          >
-            {legend.map((d, i) => (
-              <li key={d.id} className="flex items-center gap-1.5">
-                <Dot color={DAY_COLORS[i]!} />
-                {d.name}
-              </li>
-            ))}
-            {hasOther && (
-              <li className="flex items-center gap-1.5">
-                <Dot color={OTHER_COLOR} />
-                Other
-              </li>
-            )}
-          </ul>
-        )}
-        {line && line.weeks.size > 1 && (
-          <ul
-            className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-500"
-            aria-label="Week legend"
-          >
-            <li className="flex items-center gap-1.5">
-              <span
-                aria-hidden="true"
-                className="grid h-4 w-4 place-items-center rounded-full bg-brand-600 text-[9px] text-white"
-              >
-                ✓
-              </span>
-              {line.target} rides: station reached
-            </li>
-            <li className="flex items-center gap-1.5">
-              <span
-                aria-hidden="true"
-                className="grid h-4 w-4 place-items-center rounded-full tone-ticket"
-              >
-                <TicketIcon className="h-3 w-3" />
-              </span>
-              saved by a ticket
-            </li>
-            {[...line.weeks.values()].some((w) => w.state === 'depot') && (
-              <li className="flex items-center gap-1.5">
-                <span
-                  aria-hidden="true"
-                  className="grid h-4 w-4 place-items-center rounded-full bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
-                >
-                  <DepotIcon className="h-3 w-3" />
-                </span>
-                in the depot
-              </li>
-            )}
-          </ul>
-        )}
       </div>
 
       {isPending ? (
@@ -198,7 +123,8 @@ export function HistoryPage() {
             <DayWorkouts
               day={selected}
               workouts={byDay.get(selected) ?? []}
-              colors={colors}
+              rides={ridesUpTo(line, selected, byDay.get(selected) ?? [])}
+              target={line?.target ?? 0}
               isFuture={selected > today}
             />
           )}
@@ -208,20 +134,9 @@ export function HistoryPage() {
   )
 }
 
-function Dot({ color }: { color: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className="inline-block h-2 w-2 shrink-0 rounded-full"
-      style={{ backgroundColor: color }}
-    />
-  )
-}
-
 function CalendarGrid({
   month,
   byDay,
-  colors,
   selected,
   today,
   line,
@@ -229,7 +144,6 @@ function CalendarGrid({
 }: {
   month: Month
   byDay: Map<string, WorkoutSummary[]>
-  colors: Map<string, string>
   selected: string | null
   today: string
   line: GainsLine | undefined
@@ -263,10 +177,13 @@ function CalendarGrid({
               const dayWorkouts = byDay.get(day) ?? []
               const isSelected = day === selected
               const isToday = day === today
+              const rides = ridesUpTo(line, day, dayWorkouts)
+              const target = line?.target ?? 0
               const label = [
                 formatDay(day),
                 isToday ? 'today' : null,
                 dayWorkouts.map((w) => w.name ?? 'Workout').join(', ') || 'no workout',
+                rides > 0 && target > 0 ? `ride ${rides} of ${target} this week` : null,
               ]
                 .filter(Boolean)
                 .join(': ')
@@ -284,18 +201,25 @@ function CalendarGrid({
                         : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'
                     } ${isToday && !isSelected ? 'font-bold underline decoration-2 underline-offset-4' : ''}`}
                   >
-                    <Station colors={dayWorkouts.map((w) => colorOf(colors, w))}>
-                      {parseLocalDate(day).getDate()}
-                    </Station>
+                    {dayWorkouts.length > 0 ? (
+                      <span className="relative grid h-8 w-8 place-items-center font-semibold text-neutral-900 dark:text-neutral-100">
+                        <RideRing
+                          rides={rides}
+                          target={target}
+                          size={32}
+                          className="absolute inset-0"
+                        />
+                        <span className="relative">{parseLocalDate(day).getDate()}</span>
+                      </span>
+                    ) : (
+                      parseLocalDate(day).getDate()
+                    )}
                   </button>
                 </td>
               )
             })}
             <td className="p-0">
-              <WeekMarker
-                week={line?.weeks.get(weekOf(week.find(Boolean)!))}
-                target={line?.target ?? 0}
-              />
+              <WeekColumn monday={weekOf(week.find(Boolean)!)} line={line} />
             </td>
           </tr>
         ))}
@@ -304,44 +228,117 @@ function CalendarGrid({
   )
 }
 
-/** A day you trained is a station: a ring in its routine day's colour (two for two rides). */
-function Station({ colors, children }: { colors: string[]; children: ReactNode }) {
-  if (colors.length === 0) return <span>{children}</span>
-  const [first, second = first] = colors
+/** The week's rides up to and including this day: 0 when the day has no finished ride. */
+function ridesUpTo(line: GainsLine | undefined, day: string, workouts: WorkoutSummary[]): number {
+  if (!workouts.some((w) => w.status === 'completed')) return 0
+  return line?.weeks.get(weekOf(day))?.rides.filter((d) => d <= day).length ?? 0
+}
+
+/** The week's marker, with the track joining the weeks before and after while the line runs. */
+function WeekColumn({ monday, line }: { monday: string; line: GainsLine | undefined }) {
+  const at = (m: string) => line?.weeks.get(m)
+  // The track joins two weeks when the first is on the line and the second goes on with it,
+  // or is this week, with the train on its way.
+  const joins = (a: string, b: string) =>
+    onTheLine(at(a)) && (onTheLine(at(b)) || at(b)?.state === 'open')
   return (
-    <span
-      data-station={colors.length}
-      className="grid h-8 w-8 place-items-center rounded-full border-4 bg-white font-semibold text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100"
-      style={{ borderColor: `${first} ${second} ${second} ${first}` }}
+    <WeekMarker
+      week={at(monday)}
+      target={line?.target ?? 0}
+      fromAbove={joins(previousMonday(monday), monday)}
+      onBelow={joins(monday, nextMonday(monday))}
+    />
+  )
+}
+
+/**
+ * A day you trained: a ring in as many parts as your weekly target, filled with the week's
+ * rides so far. The ride that reaches the week's goal closes the circle.
+ */
+function RideRing({
+  rides,
+  target,
+  size,
+  className = '',
+}: {
+  rides: number
+  target: number
+  size: number
+  className?: string
+}) {
+  const stroke = size / 8
+  const r = (size - stroke) / 2
+  const around = 2 * Math.PI * r
+  const parts = Math.max(target, 1)
+  const gap = parts === 1 ? 0 : stroke / 2
+  const part = around / parts - gap
+  const filled = Math.min(rides, parts)
+  // Dashes, starting at the top: the filled parts, then nothing for the rest of the way round.
+  const dashes = Array.from({ length: filled }, (_, i) => [part, i < filled - 1 ? gap : around])
+  return (
+    <svg
+      aria-hidden="true"
+      data-rides={filled}
+      viewBox={`0 0 ${size} ${size}`}
+      width={size}
+      height={size}
+      className={`-rotate-90 ${className}`}
     >
-      {children}
-    </span>
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        strokeWidth={stroke}
+        strokeDasharray={`${part} ${gap}`}
+        className="fill-white stroke-neutral-200 dark:fill-neutral-900 dark:stroke-neutral-700"
+      />
+      {filled > 0 && (
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          strokeDasharray={dashes.flat().join(' ')}
+          className="stroke-done-700 dark:stroke-done-600"
+        />
+      )}
+    </svg>
   )
 }
 
 function DayWorkouts({
   day,
   workouts,
-  colors,
+  rides,
+  target,
   isFuture,
 }: {
   day: string
   workouts: WorkoutSummary[]
-  colors: Map<string, string>
+  /** The week's rides up to this day (its ring in the calendar). */
+  rides: number
+  target: number
   isFuture: boolean
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="font-semibold">{formatDay(day)}</h2>
+      <div>
+        <h2 className="font-semibold">{formatDay(day)}</h2>
+        {rides > 0 && target > 0 && (
+          <p className="text-sm text-neutral-500">
+            Ride {rides} of {target} this week
+            {rides === target ? ': week goal reached' : rides > target ? ': a bonus ride' : ''}
+          </p>
+        )}
+      </div>
       {workouts.length === 0 ? (
-        <p className="text-sm text-neutral-500">
-          {isFuture ? 'Not there yet.' : 'Rest day. The train was in the depot. 🚂'}
-        </p>
+        <p className="text-sm text-neutral-500">{isFuture ? 'Not there yet.' : HISTORY.restDay}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {workouts.map((workout) => (
             <li key={workout.id}>
-              <WorkoutCard workout={workout} color={colorOf(colors, workout)} />
+              <WorkoutCard workout={workout} />
             </li>
           ))}
         </ul>
@@ -350,23 +347,20 @@ function DayWorkouts({
   )
 }
 
-function WorkoutCard({ workout, color }: { workout: WorkoutSummary; color: string }) {
+function WorkoutCard({ workout }: { workout: WorkoutSummary }) {
   const inProgress = workout.status === 'in_progress'
   return (
     <Link
       to={inProgress ? '/workout' : `/history/${workout.id}`}
-      className="card flex flex-col gap-1 p-3 transition hover:border-brand-500"
+      className="card flex flex-col gap-1 p-3 transition hover:border-train-500"
     >
-      <span className="flex items-center gap-2">
-        <Dot color={color} />
-        <span className="truncate font-medium">{workout.name ?? 'Workout'}</span>
-      </span>
+      <span className="truncate font-medium">{workout.name ?? 'Workout'}</span>
       <span className="truncate text-sm text-neutral-500">
         {workout.exercise_names.join(' · ') || 'No exercises'}
       </span>
       <span className="flex gap-3 text-sm">
         {inProgress ? (
-          <span className="font-medium text-brand-600 dark:text-brand-500">In progress</span>
+          <span className="font-medium text-train-600 dark:text-train-500">In progress</span>
         ) : (
           <>
             <span>{plural(workout.set_count, 'set')}</span>

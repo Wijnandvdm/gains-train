@@ -1,5 +1,5 @@
-import { type ReactNode, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { BackupFileHint } from '../components/BackupFileHint'
 import { FilePicker } from '../components/FilePicker'
 import { DepotControls } from '../components/GainsLine'
@@ -23,6 +23,14 @@ import { ErrorMessage } from '../components/ErrorMessage'
 export function SettingsPage() {
   const settings = useSettings()
   const line = useGainsLine()
+  // Coming from "Change it →" (a Gains Line bubble): straight to the weekly target.
+  const { hash } = useLocation()
+  const weeklyTarget = useRef<HTMLSelectElement>(null)
+  useEffect(() => {
+    if (hash !== '#weekly-target' || !settings) return
+    weeklyTarget.current?.scrollIntoView({ block: 'center' })
+    weeklyTarget.current?.focus()
+  }, [hash, settings])
   return (
     <section className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold">Settings</h1>
@@ -54,8 +62,10 @@ export function SettingsPage() {
 
       <Card title="The Gains Line">
         <label className="flex items-center justify-between gap-3 text-sm">
-          Rides per week to reach a station
+          Your weekly goal (workouts per week)
           <select
+            id="weekly-target"
+            ref={weeklyTarget}
             value={settings?.weekly_target ?? DEFAULT_SETTINGS.weekly_target}
             onChange={(e) => void updateSettings({ weekly_target: Number(e.target.value) })}
             className="input w-auto py-1 text-base"
@@ -68,9 +78,9 @@ export function SettingsPage() {
           </select>
         </label>
         <p className="text-sm text-neutral-500">
-          Every week with this many rides is a station; stations in a row are your streak. You earn
-          a ticket for every 4 stations in a row and for every extra ride, and a ticket saves your
-          streak when a week falls short. Changing the number recalculates your whole line.
+          Every week you reach your goal adds to your streak. You earn a ticket for every 4 weeks in
+          a row and for every extra workout, and a ticket saves your streak when a week falls short.
+          Changing the number recalculates your whole streak.
         </p>
         {line && (
           <div className="flex flex-col gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
@@ -125,7 +135,7 @@ function Switch({
       {label}
       <span
         aria-hidden="true"
-        className={`relative h-6 w-11 shrink-0 rounded-full transition ${checked ? 'bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition ${checked ? 'bg-done-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}
       >
         <span
           className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left] ${checked ? 'left-5.5' : 'left-0.5'}`}
@@ -178,7 +188,7 @@ function BackupCard() {
       </div>
       <BackupFileHint />
       {message && (
-        <p role="status" className="text-sm text-brand-700 dark:text-brand-500">
+        <p role="status" className="text-sm text-done-700 dark:text-done-500">
           {message}
         </p>
       )}
@@ -234,9 +244,8 @@ function AboutCard() {
         Exercise drawings: {link('https://github.com/bryllim/workout-guide', 'Workout Guide')} by
         Bryl Lim, based on {link('https://github.com/everkinetic/data', 'Everkinetic')}, under{' '}
         {link('https://creativecommons.org/licenses/by-sa/4.0/', 'CC BY-SA 4.0')}; recoloured to fit
-        the app's theme. Exercise instructions:{' '}
-        {link('https://github.com/yuhonas/free-exercise-db', 'free-exercise-db')} (public domain)
-        and our own.
+        the app's theme. Exercise details (muscles, equipment):{' '}
+        {link('https://github.com/yuhonas/free-exercise-db', 'free-exercise-db')} (public domain).
       </p>
     </Card>
   )

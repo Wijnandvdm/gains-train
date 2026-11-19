@@ -17,8 +17,8 @@ export function AppLayout() {
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-neutral-50/90 px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">
         <Link to="/workout" className="flex items-center gap-1.5 font-bold tracking-tight">
-          <TrainIcon className="h-6 w-6 text-brand-600 dark:text-brand-500" />
-          gains-train
+          <TrainIcon className="h-6 w-6 text-train-700 dark:text-train-600" />
+          Gains Train
         </Link>
         <Link
           to="/settings"
@@ -46,7 +46,7 @@ export function AppLayout() {
                 className={({ isActive }) =>
                   `flex flex-col items-center gap-0.5 py-2 text-xs ${
                     isActive
-                      ? 'text-brand-600 dark:text-brand-500'
+                      ? 'text-train-600 dark:text-train-500'
                       : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
                   }`
                 }

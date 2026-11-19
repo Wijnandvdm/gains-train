@@ -4,11 +4,12 @@
  * workout, so finishing a workout can announce the stamps it earned.
  */
 import { detectPRs } from '../workout/prs'
-import { gainsLine } from './line'
+import type { WeightCount } from './dumbbells'
+import { gainsLine, nextMonday, weekOf } from './line'
 import { type PerformedSet, performedSets } from './stats'
 import type { StoredWorkout } from './types'
 
-export type StampKind = 'rides' | 'weight' | 'prs' | 'streak' | 'explorer'
+export type StampKind = 'rides' | 'weight' | 'prs' | 'streak' | 'steam' | 'explorer'
 
 export type Stamp = {
   id: string
@@ -26,7 +27,12 @@ export type Stamp = {
 
 export type Passport = {
   stamps: Stamp[]
-  /** How far you are, per kind: rides, tonnes hauled, PRs, best streak, exercises done. */
+  /** The workouts that set a personal record. */
+  recordWorkouts: ReadonlySet<string>
+  /**
+   * How far you are, per kind: rides, tonnes hauled, PRs, best streak, most weeks at full steam,
+   * exercises done.
+   */
   progress: Record<StampKind, number>
 }
 
@@ -41,12 +47,14 @@ const HAULED: [number, string][] = [
 ]
 const PRS = [1, 10, 25, 50, 100]
 const STREAKS: [number, string][] = [
-  [4, 'stations in a row'],
-  [8, 'stations in a row'],
-  [12, 'stations in a row'],
-  [26, 'half a year of stations'],
-  [52, 'a whole year of stations'],
+  [4, 'weeks in a row'],
+  [8, 'weeks in a row'],
+  [12, 'weeks in a row'],
+  [26, 'half a year in a row'],
+  [52, 'a whole year in a row'],
 ]
+/** Full steam ahead: weeks in a row that one exercise got stronger. */
+const STEAM_WEEKS = [3, 4, 6, 8]
 /** Different library exercises done; the last stamp is for all of them. */
 const EXPLORED = [25, 50, 100, 200]
 
@@ -98,6 +106,42 @@ function prWorkouts(workouts: StoredWorkout[]): Milestone[] {
 }
 
 /**
+ * Full steam ahead: one exercise getting stronger week after week. A week counts when one of its sets
+ * beats everything done on that exercise the week before (heavier, a better estimated 1RM,
+ * or more reps at that weight); a week without the exercise starts the count over. The value
+ * is the weeks in a row so far, counting the week it started from.
+ */
+function fullSteam(workouts: StoredWorkout[]): { value: number; at: Milestone }[] {
+  const weeks = new Map<string, Map<string, PerformedSet[]>>() // exercise → Monday → its sets
+  for (const set of performedSets(workouts)) {
+    const byWeek = weeks.get(set.exercise_id) ?? new Map<string, PerformedSet[]>()
+    const monday = weekOf(set.performed_on)
+    byWeek.set(monday, [...(byWeek.get(monday) ?? []), set])
+    weeks.set(set.exercise_id, byWeek)
+  }
+  const order = new Map(workouts.map((w, i) => [w.id, i]))
+  const found: { value: number; at: Milestone; order: number }[] = []
+  for (const byWeek of weeks.values()) {
+    let before: { monday: string; lifts: { weight: number; reps: number }[] } | null = null
+    let run = 1
+    for (const [monday, sets] of byWeek) {
+      const lifts = sets.map((s) => ({ weight: s.weight_kg, reps: s.reps }))
+      const stronger =
+        before && nextMonday(before.monday) === monday
+          ? sets.find((_, i) => detectPRs(lifts[i]!, null, before!.lifts).length > 0)
+          : undefined
+      run = stronger ? run + 1 : 1
+      if (stronger) {
+        const at = { day: stronger.performed_on, workoutId: stronger.workout_id }
+        found.push({ value: run, at, order: order.get(stronger.workout_id)! })
+      }
+      before = { monday, lifts }
+    }
+  }
+  return found.sort((a, b) => a.order - b.order)
+}
+
+/**
  * @param line your Gains Line settings (for the streak stamps)
  * @param library the ids of the library's exercises (for the explorer stamps)
  */
@@ -105,6 +149,7 @@ export function passport(
   workouts: StoredWorkout[],
   line: { target: number; depot: ReadonlySet<string>; today: string },
   library: ReadonlySet<string>,
+  count?: WeightCount,
 ): Passport {
   const done = chronological(workouts)
   const at = (w: StoredWorkout): Milestone => ({ day: w.performed_on, workoutId: w.id })
@@ -114,8 +159,11 @@ export function passport(
 
   // Weight hauled, in tonnes, workout by workout
   const perWorkout = new Map<string, number>()
-  for (const s of performedSets(done)) {
-    perWorkout.set(s.workout_id, (perWorkout.get(s.workout_id) ?? 0) + s.weight_kg * s.reps)
+  for (const s of performedSets(done, undefined, count)) {
+    perWorkout.set(
+      s.workout_id,
+      (perWorkout.get(s.workout_id) ?? 0) + s.weight_kg * s.reps * s.count,
+    )
   }
   let total = 0
   const hauled = done.map((w) => {
@@ -124,9 +172,10 @@ export function passport(
   })
 
   // PRs
-  const prs = prWorkouts(done).map((m, i) => ({ value: i + 1, at: m }))
+  const prMilestones = prWorkouts(done)
+  const prs = prMilestones.map((m, i) => ({ value: i + 1, at: m }))
 
-  // Streaks on the Gains Line: the week's target ride reaches the station
+  // Streaks on the Gains Line: the ride that reaches the week's goal
   const weeks = gainsLine(
     done.map((w) => w.performed_on),
     line.target,
@@ -137,6 +186,9 @@ export function passport(
   const streaks = [...weeks.values()]
     .filter((w) => w.state === 'reached')
     .map((w) => ({ value: w.streak, at: at(lastOn(w.rides[line.target - 1]!)) }))
+
+  // Full steam ahead
+  const steam = fullSteam(done)
 
   // Explorer: each library exercise done for the first time (custom ones don't count)
   const explored = new Set<string>()
@@ -173,6 +225,7 @@ export function passport(
     STREAKS.map(([n]) => n),
     streaks,
   )
+  const steamAt = reachedAt(STEAM_WEEKS, steam)
   const [allAt, ...exploredAt] = reachedAt([library.size, ...EXPLORED], explorer)
 
   return {
@@ -185,6 +238,9 @@ export function passport(
         stamp('prs', n, n === 1 ? 'First PR' : `${n} PRs`, 'personal records', prsAt[i]!),
       ),
       ...STREAKS.map(([n, what], i) => stamp('streak', n, `${n} in a row`, what, streaksAt[i]!)),
+      ...STEAM_WEEKS.map((n, i) =>
+        stamp('steam', n, `${n} weeks`, 'one exercise stronger every week', steamAt[i]!),
+      ),
       ...EXPLORED.map((n, i) =>
         stamp('explorer', n, `${n} exercises`, 'different exercises', exploredAt[i]!),
       ),
@@ -200,11 +256,13 @@ export function passport(
         badge: 'All',
       },
     ],
+    recordWorkouts: new Set(prMilestones.map((m) => m.workoutId)),
     progress: {
       rides: rides.length,
       weight: Math.floor(total / 1000),
       prs: prs.length,
       streak: Math.max(0, ...streaks.map((s) => s.value)),
+      steam: Math.max(0, ...steam.map((c) => c.value)),
       explorer: explored.size,
     },
   }

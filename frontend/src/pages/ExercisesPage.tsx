@@ -1,6 +1,8 @@
 import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { createCustomExercise } from '../data/customExercises'
 import type { ExerciseSummary } from '../data/types'
+import { CustomExerciseForm } from '../components/CustomExerciseForm'
 import { ExerciseThumb } from '../components/ExerciseImage'
 import { SearchIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
@@ -42,10 +44,29 @@ export function ExercisesPage() {
   const results = useExerciseSearch(search)
   const { visible: exercises, hasMore, showMore } = usePaged(results.data)
   const total = results.data?.length
+  const navigate = useNavigate()
+  const [creating, setCreating] = useState(false)
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-bold">Exercises</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold">Exercises</h1>
+        {!creating && (
+          <button type="button" className="btn py-1" onClick={() => setCreating(true)}>
+            New exercise
+          </button>
+        )}
+      </div>
+      {creating && (
+        <CustomExerciseForm
+          title="New exercise"
+          initial={{ name: text.trim(), muscle: search.muscle ?? null }}
+          submitLabel="Create"
+          onSave={createCustomExercise}
+          onSaved={(exercise) => navigate(`/exercises/${exercise.id}`)}
+          onCancel={() => setCreating(false)}
+        />
+      )}
 
       <label className="relative block">
         <span className="sr-only">Search exercises</span>
@@ -155,7 +176,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseSummary }) {
   return (
     <Link
       to={`/exercises/${exercise.id}`}
-      className="card flex items-center gap-3 p-2 transition hover:border-brand-500"
+      className="card flex items-center gap-3 p-2 transition hover:border-train-500"
     >
       <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
       <div className="min-w-0 flex-1">
@@ -166,7 +187,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseSummary }) {
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1 pr-1 text-xs">
         {exercise.is_custom && (
-          <span className="rounded bg-brand-100 px-1.5 py-0.5 font-medium text-brand-700 dark:bg-brand-900 dark:text-brand-100">
+          <span className="rounded bg-train-100 px-1.5 py-0.5 font-medium text-train-700 dark:bg-train-900 dark:text-train-100">
             Custom
           </span>
         )}

@@ -3,6 +3,7 @@
  * Each workout is one document with its exercises and sets nested inside.
  */
 import { uuid } from '../lib/uuid'
+import type { WeightCount } from './dumbbells'
 import { db } from './db'
 import type {
   ExerciseId,
@@ -44,7 +45,11 @@ export async function workoutsBetween(from?: string, to?: string): Promise<Store
   return rows.sort(newestFirst)
 }
 
-/** Your previous finished sessions of an exercise, newest first (for "last time"). */
+/**
+ * Your previous finished sessions of an exercise, newest first (for "last time"), however long
+ * ago. Only sessions where you did it: a routine workout also holds the exercises you skipped.
+ * Their sets are the ones really done, warm-ups included (not rows you never ticked off).
+ */
 export async function exerciseSessions(
   exerciseId: ExerciseId,
   limit = 1,
@@ -57,10 +62,11 @@ export async function exerciseSessions(
     // Normally once per workout; if an exercise was done twice, the later entry first.
     for (const we of [...w.exercises].reverse()) {
       if (we.exercise_id !== exerciseId) continue
+      if (!we.sets.some((s) => isPerformed(s, w))) continue
       sessions.push({
         workout_id: w.id,
         performed_on: w.performed_on,
-        sets: we.sets,
+        sets: we.sets.filter((s) => isPerformed({ ...s, is_warmup: false }, w)),
       })
       if (sessions.length === limit) return sessions
     }
@@ -115,8 +121,14 @@ export function hydrate(w: StoredWorkout, lookup: ExerciseLookup): WorkoutDetail
   }
 }
 
-export function summarize(w: StoredWorkout, lookup: ExerciseLookup): WorkoutSummary {
-  const done = w.exercises.flatMap((we) => we.sets).filter((s) => isPerformed(s, w))
+export function summarize(
+  w: StoredWorkout,
+  lookup: ExerciseLookup,
+  count: WeightCount = () => 1,
+): WorkoutSummary {
+  const done = w.exercises.flatMap((we) =>
+    we.sets.filter((s) => isPerformed(s, w)).map((s) => ({ ...s, count: count(we.exercise_id) })),
+  )
   return {
     id: w.id,
     name: w.name,
@@ -127,7 +139,7 @@ export function summarize(w: StoredWorkout, lookup: ExerciseLookup): WorkoutSumm
     ended_at: w.ended_at,
     exercise_names: w.exercises.map((we) => lookup(we.exercise_id).name),
     set_count: done.length,
-    volume_kg: done.reduce((sum, s) => sum + s.weight_kg! * s.reps!, 0),
+    volume_kg: done.reduce((sum, s) => sum + s.weight_kg! * s.reps! * s.count, 0),
   }
 }
 
@@ -195,6 +207,20 @@ export async function removeExercise(workoutId: string, workoutExerciseId: strin
   })
 }
 
+/** Move an exercise to another place in the workout (0 = first); the rest shift around it. */
+export async function moveExercise(
+  workoutId: string,
+  workoutExerciseId: string,
+  toIndex: number,
+): Promise<void> {
+  await modify(workoutId, (w) => {
+    const from = w.exercises.findIndex((we) => we.id === workoutExerciseId)
+    if (from < 0) throw new WorkoutError('Exercise not found in this workout')
+    const [moved] = w.exercises.splice(from, 1)
+    w.exercises.splice(Math.max(0, Math.min(toIndex, w.exercises.length)), 0, moved!)
+  })
+}
+
 /** Create or replace a set (matched by id). */
 export async function saveSet(workoutId: string, set: WorkoutSet): Promise<void> {
   await modify(workoutId, (w) => {
@@ -209,6 +235,27 @@ export async function saveSet(workoutId: string, set: WorkoutSet): Promise<void>
 export async function deleteSet(workoutId: string, setId: string): Promise<void> {
   await modify(workoutId, (w) => {
     for (const we of w.exercises) we.sets = we.sets.filter((s) => s.id !== setId)
+  })
+}
+
+/**
+ * Change a workout's sets afterwards, all at once: per exercise (by its id in the workout),
+ * the sets as they should be, in order. Every set kept counts as done: one that was never
+ * ticked off gets the workout's end time.
+ */
+export async function editSets(workoutId: string, sets: Map<string, WorkoutSet[]>): Promise<void> {
+  await modify(workoutId, (w) => {
+    const done = w.ended_at ?? new Date().toISOString()
+    for (const we of w.exercises) {
+      const edited = sets.get(we.id)
+      if (!edited) continue
+      we.sets = edited.map((s, i) => ({
+        ...s,
+        workout_exercise_id: we.id,
+        position: i + 1,
+        completed_at: s.completed_at ?? done,
+      }))
+    }
   })
 }
 

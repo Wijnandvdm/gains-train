@@ -50,6 +50,8 @@ describe('live workout', () => {
 
     await user.click(screen.getByRole('button', { name: 'Finish' }))
     expect(await screen.findByText(/Workout saved/)).toBeVisible()
+    // 80 × 12 + 80 × 11
+    expect(await screen.findByText(/^1\D?840 kg shovelled into the firebox\.$/)).toBeVisible()
     expect(await loggedSets('completed')).toEqual([`${ROW.id}: 80×12 ✓`, `${ROW.id}: 80×11 ✓`])
   })
 
@@ -98,7 +100,7 @@ describe('live workout', () => {
       'aria-pressed',
       'false',
     )
-    expect(within(block).getByLabelText('Set 1 reps')).toHaveClass('border-red-500!')
+    expect(within(block).getByLabelText('Set 1 reps')).toHaveClass('border-error-500!')
   })
 })
 

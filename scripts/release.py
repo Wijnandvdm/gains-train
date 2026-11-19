@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """Releases, driven by two files you edit on your branch:
 
-    RELEASE        release=major | minor | patch | none
-    CHANGELOG.md   what changed, under "## [Unreleased]"
+    release_scope.env   release=major | minor | patch | none
+    CHANGELOG.md        what changed, under "## [Unreleased]"
 
-    python3 scripts/release.py kind    print what RELEASE asks for (major/minor/patch/none)
-    python3 scripts/release.py check   RELEASE is valid, and a release has changelog notes
-                                       (runs on every pull request)
+    python3 scripts/release.py kind    print what release_scope.env asks for
+                                       (major/minor/patch/none)
+    python3 scripts/release.py check   release_scope.env is valid, and a release has changelog
+                                       notes (runs on every pull request)
     python3 scripts/release.py apply   the release itself (runs on every merge to main):
                                        bump the version everywhere (bump-my-version,
                                        .bumpversion.toml), turn [Unreleased] into the new
-                                       version, set RELEASE back to none. Prints the new
-                                       version and writes its notes to $RELEASE_NOTES
+                                       version, set release_scope.env back to none. Prints the
+                                       new version and writes its notes to $RELEASE_NOTES
                                        (default: release-notes.md, not committed);
-                                       does nothing when RELEASE says none.
+                                       does nothing when release_scope.env says none.
 
 Only the standard library; bump-my-version must be installed for "apply".
 """
@@ -26,7 +27,7 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-RELEASE = ROOT / "RELEASE"
+SCOPE = ROOT / "release_scope.env"
 CHANGELOG = ROOT / "CHANGELOG.md"
 NOTES = Path(os.environ.get("RELEASE_NOTES", ROOT / "release-notes.md"))
 KINDS = ("major", "minor", "patch", "none")
@@ -40,13 +41,17 @@ class ReleaseError(Exception):
 
 
 def release_kind() -> str:
-    """The kind of release RELEASE asks for (lower case)."""
-    lines = RELEASE_LINE.findall(RELEASE.read_text())
+    """The kind of release release_scope.env asks for (lower case)."""
+    lines = RELEASE_LINE.findall(SCOPE.read_text())
     if len(lines) != 1:
-        raise ReleaseError(f"RELEASE needs exactly one 'release=...' line ({', '.join(KINDS)}).")
+        raise ReleaseError(
+            f"release_scope.env needs exactly one 'release=...' line ({', '.join(KINDS)})."
+        )
     kind = lines[0].lower()
     if kind not in KINDS:
-        raise ReleaseError(f"RELEASE says release={lines[0]}; use one of: {', '.join(KINDS)}.")
+        raise ReleaseError(
+            f"release_scope.env says release={lines[0]}; use one of: {', '.join(KINDS)}."
+        )
     return kind
 
 
@@ -62,10 +67,10 @@ def check() -> None:
     kind = release_kind()
     if kind != "none" and not unreleased_notes():
         raise ReleaseError(
-            f"RELEASE asks for a {kind} release, but [Unreleased] in CHANGELOG.md is empty. "
-            "Write what changed there."
+            f"release_scope.env asks for a {kind} release, but [Unreleased] in CHANGELOG.md is "
+            "empty. Write what changed there."
         )
-    print(f"RELEASE: {kind}" + ("" if kind == "none" else " (changelog notes found)"))
+    print(f"release_scope.env: {kind}" + ("" if kind == "none" else " (changelog notes found)"))
 
 
 def current_version() -> str:
@@ -79,7 +84,7 @@ def apply(today: date | None = None) -> None:
     check()
     kind = release_kind()
     if kind == "none":
-        print("No release: RELEASE says none.")
+        print("No release: release_scope.env says none.")
         return
     notes = unreleased_notes()
 
@@ -93,7 +98,7 @@ def apply(today: date | None = None) -> None:
     )
     CHANGELOG.write_text(changelog)
     NOTES.write_text(notes + "\n")
-    RELEASE.write_text(RELEASE_LINE.sub("release=none", RELEASE.read_text(), count=1))
+    SCOPE.write_text(RELEASE_LINE.sub("release=none", SCOPE.read_text(), count=1))
     print(version)
 
 

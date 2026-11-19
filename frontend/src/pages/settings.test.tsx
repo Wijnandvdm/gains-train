@@ -14,6 +14,8 @@ const BACKUP: Backup = {
   workouts: [LAST_DAY2],
   custom_exercises: [],
   rest_prefs: [],
+  machine_settings: [],
+  dumbbell_modes: [],
   routine: DAY2_ROUTINE,
   settings: {
     ...DEFAULT_SETTINGS,
@@ -57,7 +59,7 @@ describe('first open on a new phone', () => {
     const notABackup = new File(['Date,Day,Exercise'], 'Log.json', { type: 'application/json' })
     await user.upload(await screen.findByLabelText('Restore a backup'), notABackup)
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      "This isn't a gains-train backup file.",
+      "This isn't a Gains Train backup file.",
     )
   })
 })
