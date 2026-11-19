@@ -1,10 +1,11 @@
 # bump-my-version (github.com/callowayproject/bump-my-version): where the app's version lives.
-# Don't bump by hand: set the kind of release in RELEASE and merge to main (see
+# Don't bump by hand: set the kind of release in release_scope.env and merge to main (see
 # scripts/release.py and .github/workflows/release.yaml).
 [tool.bumpversion]
 current_version = "1.0.0"
 commit = false
-# The release script edits RELEASE and CHANGELOG.md around the bump; it commits everything itself.
+# The release script edits release_scope.env and CHANGELOG.md around the bump; it commits
+# everything itself.
 allow_dirty = true
 tag = false
 

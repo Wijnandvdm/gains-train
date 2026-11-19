@@ -1,7 +1,7 @@
 # Changelog
 
 What changed in each version of gains-train. Write your changes under **[Unreleased]** as you
-go; releasing (see `RELEASE`) turns that section into the new version.
+go; releasing (see `release_scope.env`) turns that section into the new version.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [semantic versioning](https://semver.org/).

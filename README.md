@@ -40,9 +40,9 @@ on the Play Console (store listing texts, the answers for each form) is in
 
 Versions follow [semantic versioning](https://semver.org). On your branch, write what changed
 under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) and set the kind of release in
-[RELEASE](RELEASE) (`major`, `minor`, `patch` or `none`). Merging to main does the rest: a
-GitHub Action bumps the version everywhere, dates the changelog, tags the release and resets
-`RELEASE` to none. Details: [scripts/release.py](scripts/release.py).
+[release_scope.env](release_scope.env) (`major`, `minor`, `patch` or `none`). Merging to main
+does the rest: a GitHub Action bumps the version everywhere, dates the changelog, tags the
+release and resets `release_scope.env` to none. Details: [scripts/release.py](scripts/release.py).
 
 ## Your data: backups
 
@@ -65,19 +65,5 @@ Backup: every month, 3 months, 6 months, a year, or never).
 - Exercise details (muscles, equipment): [free-exercise-db](https://github.com/yuhonas/free-exercise-db)
   (public domain). For how to do an exercise, the app points to coaches on YouTube.
 
-## TODO
-
-1. Finish the developer account: wait for the identity check, then verify the Android
-   device in the Play Console app (Google shows the task there once it's ready).
-2. Make the store graphics: 512 × 512 icon, 1024 × 500 feature graphic, at least 2 phone
-   screenshots (see [docs/google-play.md](docs/google-play.md)).
-3. Merge to main, so `PRIVACY.md` is online (the privacy policy link points there) and the
-   current version is released; build the bundle with `scripts/android.sh --release` on main.
-4. Create the app in the Play Console and fill in the store listing and the App content
-   forms from [docs/google-play.md](docs/google-play.md).
-5. Upload the bundle to a closed test track and get 12 testers to opt in and install; keep
-   all of them in for 14 days in a row.
-6. Apply for production access, and publish after Google's review.
-
 # TODO:
-1. How does stick figures work for representing exercises? I have a feeling that I do miss a few. Perhaps also generate them with AI? Chatgpt?
+1. Find a way to improve upon the images representing exercises.
