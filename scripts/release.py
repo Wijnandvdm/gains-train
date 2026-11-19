@@ -32,7 +32,9 @@ CHANGELOG = ROOT / "CHANGELOG.md"
 NOTES = Path(os.environ.get("RELEASE_NOTES", ROOT / "release-notes.md"))
 KINDS = ("major", "minor", "patch", "none")
 
-RELEASE_LINE = re.compile(r"^\s*release\s*=\s*(\S+)\s*$", re.IGNORECASE | re.MULTILINE)
+# Spaces and tabs only ([ \t], not \s): \s would also take the line's newline along, and
+# setting the file back to none would leave it without one at the end.
+RELEASE_LINE = re.compile(r"^[ \t]*release[ \t]*=[ \t]*(\S+)[ \t]*$", re.IGNORECASE | re.MULTILINE)
 UNRELEASED = re.compile(r"^## \[Unreleased\][^\n]*\n(.*?)(?=^## \[|\Z)", re.MULTILINE | re.DOTALL)
 
 
