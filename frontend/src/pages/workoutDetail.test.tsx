@@ -30,6 +30,25 @@ async function startEditing() {
   return { user, block: screen.getByRole('region', { name: 'Seated Cable Rows' }) }
 }
 
+describe('a past workout', () => {
+  it('shows the PRs you set in it', async () => {
+    const before = workout({ id: 'before', performed_on: '2026-09-08' }, [
+      [ROW.id, [set('b1', 'bwe', 1, 80, 10)]],
+    ])
+    await seedDevice({ workouts: [before, PAST] })
+    renderApp('/history/past')
+
+    const block = await screen.findByRole('region', { name: 'Seated Cable Rows' })
+    // 80 × 12 beat 80 × 10 the week before: more reps at that weight and a better 1RM.
+    expect(
+      await within(block).findByRole('img', {
+        name: 'Personal record: Best estimated 1RM, Most reps at this weight',
+      }),
+    ).toHaveTextContent(/^PR$/)
+    expect(within(block).getAllByRole('img', { name: /Personal record/ })).toHaveLength(1)
+  })
+})
+
 describe('editing a past workout', () => {
   it('corrects the numbers, removes a set and adds a forgotten one', async () => {
     const { user, block } = await startEditing()

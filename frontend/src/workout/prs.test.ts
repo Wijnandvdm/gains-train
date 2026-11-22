@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Records, WorkoutSet } from '../data/types'
-import { detectPRs, e1rm, prsForSets } from './prs'
+import { ROW, set, workout } from '../test/device'
+import { detectPRs, e1rm, historyPrs, prsForSets } from './prs'
 
 // Records like your Lat Pulldown: 90 × 12 heaviest, then 85 × 12 and 80 × 14.
 const RECORDS: Records = {
@@ -91,4 +92,31 @@ it('e1rm uses Epley', () => {
   expect(e1rm(100, 1)).toBe(100)
   expect(e1rm(90, 12)).toBeCloseTo(126)
   expect(e1rm(60, 0)).toBeNull()
+})
+
+describe('historyPrs', () => {
+  const day = (id: string, performed_on: string, sets: WorkoutSet[]) =>
+    workout({ id, performed_on }, [[ROW.id, sets]])
+
+  it('judges each finished set against everything before it, like the badge did then', () => {
+    const prs = historyPrs([
+      // Out of order on purpose: history goes by date.
+      day('w3', '2026-09-15', [set('c', 'w3e', 1, 90, 5)]),
+      day('w1', '2026-09-01', [set('a1', 'w1e', 1, 80, 10), set('a2', 'w1e', 2, 85, 8)]),
+      day('w2', '2026-09-08', [
+        set('b0', 'w2e', 1, 100, 1, { is_warmup: true }), // warm-ups don't count
+        set('b1', 'w2e', 2, 80, 12),
+        set('b2', 'w2e', 3, 90, 5, { completed_at: null }), // never ticked off
+        set('b3', 'w2e', 4, 120, 0), // no reps: not a lift
+      ]),
+      workout({ id: 'now', status: 'in_progress' }, [[ROW.id, [set('n', 'ne', 1, 200, 5)]]]),
+    ])
+
+    expect([...prs.keys()].sort()).toEqual(['w1', 'w2', 'w3'])
+    // The very first set is never a PR; the second beat it (as it did during that workout).
+    expect([...prs.get('w1')!]).toEqual([['a2', ['weight', 'e1rm']]])
+    expect([...prs.get('w2')!]).toEqual([['b1', ['e1rm', 'reps']]])
+    // Heavier than every lift before it (the warm-up, unticked and 0-rep sets don't count).
+    expect([...prs.get('w3')!]).toEqual([['c', ['weight']]])
+  })
 })

@@ -34,6 +34,7 @@ import {
 import { useWeightCount } from '../data/dumbbells'
 import { useExerciseLookup } from '../exercises'
 import { localDateString } from '../lib/format'
+import { historyPrs, type WorkoutPrs } from './prs'
 
 /** The workout in progress (null if none); undefined while loading. */
 export function useActiveWorkout(): { data: WorkoutDetail | null | undefined; isPending: boolean } {
@@ -96,6 +97,12 @@ export function useWorkout(id: string): {
   const stored = useLiveQuery(async () => (await getWorkout(id)) ?? null, [id])
   const data = stored === undefined || !lookup ? undefined : stored && hydrate(stored, lookup)
   return { data, isPending: data === undefined }
+}
+
+/** The PRs in your history, by workout id; undefined while loading. */
+export function useHistoryPrs(): ReadonlyMap<string, WorkoutPrs> | undefined {
+  const workouts = useLiveQuery(() => db.workouts.where('status').equals('completed').toArray(), [])
+  return useMemo(() => workouts && historyPrs(workouts), [workouts])
 }
 
 export { deleteWorkout, editSets }

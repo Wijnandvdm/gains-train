@@ -67,3 +67,7 @@ Backup: every month, 3 months, 6 months, a year, or never).
 
 # TODO:
 1. Find a way to improve upon the images representing exercises.
+2. do we want to see during a workout, besides the previous weight, the all time best? So that you know what your best was? With the option to edit it if you realize your form was off in that best or something?
+3. achievements: night train, early bird (other pun?), record activity x days in a row (multiple times earning a badge? Repeatable passport stamp), holiday related things (acitvity on new years day, etc.), obscure app functionality usage things (e.g. usage of the exercise preferences)
+4. primary muscle trained and secondary muscle trained colors should not be as they are now. the darker color looks more primary to me, but currenlty this is set to secondary
+5. Possible to make the litte trains we got in the app the sam as the icon?
