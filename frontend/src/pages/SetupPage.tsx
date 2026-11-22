@@ -64,6 +64,7 @@ export function SetupPage() {
         <h2 id="been-here" className="font-semibold">
           Been here before?
         </h2>
+        <p className="text-sm text-neutral-500">{SETUP.restore}</p>
         <FilePicker
           label="Restore a backup"
           accept={BACKUP_FILE_TYPES}

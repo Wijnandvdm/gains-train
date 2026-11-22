@@ -18,6 +18,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - The little trains in the app (the header, the workout track, a finished workout and the
   setup screen) are now the app's logo: the flexing locomotive.
+- The setup screen says what restoring a backup brings back: workouts, routine, your own
+  exercises, exercise preferences, dumbbells, rest times and settings.
+
+### Removed
+
+- Importing the old .json backups: only the .zip backups can be restored.
 
 ## [1.1.0] - 2026-11-19
 

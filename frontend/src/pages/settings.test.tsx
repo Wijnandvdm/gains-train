@@ -2,32 +2,20 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { unzipSync } from 'fflate'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { type Backup, BACKUP_FORMAT, BACKUP_VERSION } from '../data/backup'
-import { db, DEFAULT_SETTINGS, getSettings } from '../data/db'
+import { exportBackup } from '../data/backup'
+import { db, getSettings } from '../data/db'
 import { DAY2_ROUTINE, LAST_DAY2, seedDevice } from '../test/device'
 import { renderApp } from '../test/utils'
 
-const BACKUP: Backup = {
-  format: BACKUP_FORMAT,
-  version: BACKUP_VERSION,
-  exported_at: '2026-09-20T10:00:00Z',
-  workouts: [LAST_DAY2],
-  custom_exercises: [],
-  rest_prefs: [],
-  machine_settings: [],
-  dumbbell_modes: [],
-  routine: DAY2_ROUTINE,
-  settings: {
-    ...DEFAULT_SETTINGS,
-    setup_completed_at: '2026-09-01T00:00:00Z',
-    default_rest_seconds: 120,
-  },
-}
-
-const json = (data: unknown) =>
-  new File([JSON.stringify(data)], 'gains-train-backup-2026-09-20.json', {
-    type: 'application/json',
+/** A backup from your old phone: exported there as the app does, then the device is wiped. */
+async function backupFromOldPhone(): Promise<File> {
+  await seedDevice({ routine: DAY2_ROUTINE, workouts: [LAST_DAY2] })
+  const downloads = captureDownloads()
+  await exportBackup()
+  return new File([downloads[0]!], 'gains-train-backup-2026-09-20.zip', {
+    type: 'application/zip',
   })
+}
 
 describe('first open on a new phone', () => {
   it('shows which file to pick', async () => {
@@ -38,14 +26,19 @@ describe('first open on a new phone', () => {
     ).toBeVisible()
     const hint = screen.getByText('Pick the backup file you exported earlier, like:').parentElement!
     expect(hint).toHaveTextContent(/gains-train-backup-\d{4}-\d{2}-\d{2}\.zip/)
+    // And what a backup brings back.
+    expect(screen.getByText(/brings everything back on board/)).toHaveTextContent(
+      /routine.*exercise preferences/,
+    )
   })
 
   it('restores a backup and goes straight to your workout', async () => {
+    const backup = await backupFromOldPhone()
     await seedDevice({ setupDone: false })
     const user = userEvent.setup()
     renderApp('/workout')
 
-    await user.upload(await screen.findByLabelText('Restore a backup'), json(BACKUP))
+    await user.upload(await screen.findByLabelText('Restore a backup'), backup)
     expect(await screen.findByText('Next stop')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Day2 · Back & Triceps' })).toBeVisible()
     expect(await db.workouts.count()).toBe(1)
@@ -56,7 +49,10 @@ describe('first open on a new phone', () => {
     const user = userEvent.setup()
     renderApp('/setup')
 
-    const notABackup = new File(['Date,Day,Exercise'], 'Log.json', { type: 'application/json' })
+    // Named like a backup, but no zip inside.
+    const notABackup = new File(['Date,Day,Exercise'], 'gains-train-backup.zip', {
+      type: 'application/zip',
+    })
     await user.upload(await screen.findByLabelText('Restore a backup'), notABackup)
     expect(await screen.findByRole('alert')).toHaveTextContent(
       "This isn't a Gains Train backup file.",

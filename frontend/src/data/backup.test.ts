@@ -3,11 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { libraryExercise } from '../test/library'
 import { saveFile } from '../lib/saveFile'
 import {
-  type Backup,
   backupDue,
   BackupError,
   backupFileName,
-  createBackup,
   exportBackup,
   readBackupFile,
   restoreBackup,
@@ -132,30 +130,17 @@ describe('backups', () => {
     expect(workouts[1]).toMatch(/^2026-09-25,"Day1 · Legs, ""heavy""",Hack Squat,1,62.5,8,no,/)
   })
 
-  it('still imports the older .json backups', async () => {
-    await someData()
-    const old = { ...(await createBackup()), version: 1 }
-    await Promise.all(db.tables.map((t) => t.clear()))
-    const backup = await readBackupFile(new Blob([JSON.stringify(old)]))
-    await restoreBackup(backup)
-    expect(await db.workouts.count()).toBe(1)
-    expect((await getStoredRoutine())!.days).toHaveLength(2)
-  })
-
   it('still imports backups from before machine settings', async () => {
     await someData()
     await exportBackup()
     const files = unzipSync(saved()[1] as Uint8Array)
     delete files['machine-settings.csv'] // a version 2 zip
     delete files['dumbbells.csv']
-    const json = { ...(await createBackup()), version: 1 } as Partial<Backup>
-    delete json.machine_settings // an older .json
     await Promise.all(db.tables.map((t) => t.clear()))
 
     await restoreBackup(await readBackupFile(new Blob([zipSync(files) as BlobPart])))
     expect(await db.workouts.count()).toBe(1)
     expect(await db.machineSettings.count()).toBe(0)
-    expect((await readBackupFile(new Blob([JSON.stringify(json)]))).machine_settings).toEqual([])
   })
 
   it('rejects wrong or damaged files, and nothing is changed', async () => {
@@ -172,7 +157,7 @@ describe('backups', () => {
     }
     const bad: [Blob, RegExp][] = [
       [new Blob(['date,day,exercise\n']), /isn't a Gains Train backup/],
-      [new Blob([JSON.stringify({ format: 'something-else' })]), /isn't a Gains Train backup/],
+      [zip({ 'workouts.csv': 'date,workout_id\nyesterday,w\n' }), /a workout is incomplete/],
       [
         zip({ 'settings.csv': 'setting,value\nformat,gains-train-backup\nversion,99\n' }),
         /newer version/,

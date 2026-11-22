@@ -10,7 +10,6 @@
  *   machine-settings.csv  your machine settings per exercise, one row per setting (since 3)
  *   dumbbells.csv         one or two dumbbells per exercise, as you chose them (since 3)
  *   settings.csv          your settings, plus the file's format, version and date
- * Older backups (one .json file, version 1) can still be imported.
  */
 import { readCsv, toCsv } from '../lib/csv'
 import { saveFile } from '../lib/saveFile'
@@ -34,10 +33,10 @@ import type {
   StoredWorkoutExercise,
 } from './types'
 
-export const BACKUP_FORMAT = 'gains-train-backup'
-export const BACKUP_VERSION = 3
-/** What the import file picker accepts: backups (.zip) and older ones (.json). */
-export const BACKUP_FILE_TYPES = '.zip,application/zip,.json,application/json'
+const BACKUP_FORMAT = 'gains-train-backup'
+const BACKUP_VERSION = 3
+/** What the import file picker accepts: backups (.zip). */
+export const BACKUP_FILE_TYPES = '.zip,application/zip'
 /** Reminder choices in months (0 = never). */
 export const BACKUP_REMINDER_MONTHS = [1, 3, 6, 12, 0]
 
@@ -58,7 +57,7 @@ export type Backup = {
 
 export class BackupError extends Error {}
 
-export async function createBackup(now = new Date()): Promise<Backup> {
+async function createBackup(now = new Date()): Promise<Backup> {
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -297,6 +296,10 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
   const setting = Object.fromEntries(settingsRows.map((r) => [r.setting!, r.value!]))
   if (setting.format !== BACKUP_FORMAT)
     throw new BackupError("This isn't a Gains Train backup file.")
+  const version = num(setting.version, 'version') ?? BACKUP_VERSION
+  if (version > BACKUP_VERSION) {
+    throw new BackupError('This backup was made by a newer version of the app. Update first.')
+  }
 
   // Workouts: rows grouped by workout, then by exercise, in file order.
   const workouts = new Map<string, StoredWorkout>()
@@ -304,6 +307,9 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
   for (const r of table(files, 'workouts.csv', ['date', 'workout_id'], strFromU8)) {
     let w = workouts.get(r.workout_id!)
     if (!w) {
+      if (!r.workout_id || !/^\d{4}-\d{2}-\d{2}$/.test(r.date!)) {
+        throw new BackupError('The backup is damaged (a workout is incomplete).')
+      }
       w = {
         id: r.workout_id!,
         name: orNull(r.workout),
@@ -400,9 +406,9 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
       )
     : []
 
-  return validateBackup({
+  return {
     format: BACKUP_FORMAT,
-    version: num(setting.version, 'version') ?? BACKUP_VERSION,
+    version,
     exported_at: setting.exported_at ?? new Date().toISOString(),
     workouts: [...workouts.values()],
     custom_exercises,
@@ -423,61 +429,17 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
         num(setting.backup_reminder_months, 'backup_reminder_months') ??
         DEFAULT_SETTINGS.backup_reminder_months,
     },
-  })
-}
-
-const isObject = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null && !Array.isArray(v)
-
-/** Check a backup before it replaces anything (throws BackupError with a reason). */
-function validateBackup(data: unknown): Backup {
-  if (!isObject(data) || data.format !== BACKUP_FORMAT) {
-    throw new BackupError("This isn't a Gains Train backup file.")
-  }
-  if (typeof data.version !== 'number' || data.version > BACKUP_VERSION) {
-    throw new BackupError('This backup was made by a newer version of the app. Update first.')
-  }
-  for (const key of ['workouts', 'custom_exercises', 'rest_prefs'] as const) {
-    if (!Array.isArray(data[key])) throw new BackupError(`The backup is damaged (${key}).`)
-  }
-  for (const w of data.workouts as unknown[]) {
-    if (
-      !isObject(w) ||
-      typeof w.id !== 'string' ||
-      typeof w.performed_on !== 'string' ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(w.performed_on) ||
-      !Array.isArray(w.exercises) ||
-      !Array.isArray(w.exercise_ids)
-    ) {
-      throw new BackupError('The backup is damaged (a workout is incomplete).')
-    }
-  }
-  if (data.routine !== null && !(isObject(data.routine) && Array.isArray(data.routine.days))) {
-    throw new BackupError('The backup is damaged (routine).')
-  }
-  if (data.machine_settings !== undefined && !Array.isArray(data.machine_settings)) {
-    throw new BackupError('The backup is damaged (machine_settings).')
-  }
-  return {
-    ...(data as unknown as Backup),
-    machine_settings: (data.machine_settings as MachineSettings[] | undefined) ?? [],
-    dumbbell_modes: (data.dumbbell_modes as DumbbellChoice[] | undefined) ?? [],
-    settings: { ...DEFAULT_SETTINGS, ...(isObject(data.settings) ? data.settings : {}) },
   }
 }
 
-/** Read and check a picked backup file (.zip, or an older .json); nothing is changed yet. */
+/** Read and check a picked backup file (.zip); nothing is changed yet. */
 export async function readBackupFile(file: Blob): Promise<Backup> {
   const bytes = new Uint8Array(await file.arrayBuffer())
   // Zip files start with "PK".
-  if (bytes[0] === 0x50 && bytes[1] === 0x4b) return zipToBackup(bytes)
-  let data: unknown
-  try {
-    data = JSON.parse(new TextDecoder().decode(bytes))
-  } catch {
+  if (bytes[0] !== 0x50 || bytes[1] !== 0x4b) {
     throw new BackupError("This isn't a Gains Train backup file.")
   }
-  return validateBackup(data)
+  return zipToBackup(bytes)
 }
 
 /** Replace everything on the device with the backup's contents (all or nothing). */
