@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Gains Train (gains-train), Android app. Last updated: 30 September 2026._
+_Gains Train (gains-train), Android app. Last updated: 22 November 2026._
 
 **Gains Train collects no data.** Everything you enter stays on your phone, and nothing is
 sent to us or anyone else.
@@ -37,8 +37,10 @@ The app isn't aimed at children, and it collects no data from anyone.
 
 ## Changes
 
-If this policy changes, the new version is published here with a new date. The history of
-every change is in this repository.
+If this policy changes, the new version is published with a new date at
+https://github.com/Wijnandvdm/gains-train/blob/main/PRIVACY.md, along with the history of
+every change. The app shows the version it came with under **Settings → About → Privacy
+policy**.
 
 ## Contact
 

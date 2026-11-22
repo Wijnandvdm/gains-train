@@ -5,7 +5,8 @@ import { defineConfig } from 'vitest/config'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  server: { host: true },
+  // fs.allow: the privacy page shows ../PRIVACY.md, from the repo root.
+  server: { host: true, fs: { allow: ['..'] } },
   test: {
     environment: 'jsdom',
     // One jsdom per worker instead of one per test file (much faster), while each file

@@ -1,7 +1,6 @@
 # Google Play
 
-What to fill in on the Play Console, prepared so it's copy and paste. What's still to do is in
-the TODO list of the [README](../README.md).
+What to fill in on the Play Console, prepared so it's copy and paste.
 
 ## The app
 
@@ -38,15 +37,19 @@ phones, you keep the upload key.
 > Set up your training days once. When you open the app, the next day is ready to go.
 >
 > SEE YOUR PROGRESS
-> Your history as a calendar, and per exercise your records and a chart of how you've grown.
+> Your history as a calendar, with your records marked, and per exercise a chart of how
+> you've grown.
 >
 > RIDE THE GAINS LINE
-> A weekly streak with stations and tickets, plus a depot for holidays so a week off doesn't
-> break it. Collect passport stamps for rides, weight hauled, records, streaks and exercises
-> explored.
+> A weekly streak with tickets that save it, plus a depot for holidays so a week off doesn't
+> break it. Plus loads of achievements, collected as stamps in your passport: night trains
+> and lunch breaks, holiday specials, the big three, fast trains and many more.
 >
-> 302 EXERCISES
-> Each with a drawing and the muscles it works. Add your own too.
+> A BIG EXERCISE LIBRARY
+> Every exercise has a drawing and shows which muscles it works. Add your own too.
+>
+> LIGHT OR DARK
+> Like the rest of your phone, or always light or always dark.
 >
 > PRIVATE BY DESIGN
 > No account, no ads, no tracking. The app doesn't even have internet access: your workouts
@@ -61,8 +64,9 @@ phones, you keep the upload key.
 - App icon: [store/icon-512.png](store/icon-512.png) (512 × 512).
 - Feature graphic: [store/feature-1024x500.png](store/feature-1024x500.png) (1024 × 500).
 - Both are made from the logo by `scripts/make-icons.py`, along with all the app's icons.
-- Phone screenshots: at least 2 (up to 8), taken on the phone and not kept in the repo; for
-  example the workout screen, a set being logged, History, Progress and the passport.
+- Phone screenshots: 2 to 8, made by `scripts/screenshots.sh` (the app with demo data, light
+  and dark, 1080 × 1920) in `~/repos/gains-train-screenshots/<version>/`, not in the repo.
+  Re-run it for a new version and pick your 8.
 
 **Contact details:** an email address is required and shown publicly on the listing.
 
