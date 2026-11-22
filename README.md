@@ -35,6 +35,8 @@ live: see the top of [scripts/android.sh](scripts/android.sh).
 `scripts/android.sh --release` builds the signed app bundle to upload. Everything to fill in
 on the Play Console (store listing texts, the answers for each form) is in
 [docs/google-play.md](docs/google-play.md). Privacy policy: [PRIVACY.md](PRIVACY.md).
+`scripts/screenshots.sh` takes the store screenshots (outside the repo; see the top of
+[scripts/screenshots.sh](scripts/screenshots.sh)).
 
 ## Releases
 
