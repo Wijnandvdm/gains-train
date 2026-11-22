@@ -61,6 +61,33 @@ describe('first open on a new phone', () => {
 })
 
 describe('settings', () => {
+  it('switches between light and dark, or follows the phone', async () => {
+    await seedDevice()
+    const user = userEvent.setup()
+    renderApp('/settings')
+    const theme = await screen.findByRole('group', { name: 'Theme' })
+    expect(within(theme).getByRole('button', { name: 'Phone' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+
+    await user.click(within(theme).getByRole('button', { name: 'Dark' }))
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
+    expect(localStorage.getItem('gains-train-theme')).toBe('dark') // for the next start
+    await waitFor(async () => expect((await getSettings()).theme).toBe('dark'))
+    await waitFor(() =>
+      expect(within(theme).getByRole('button', { name: 'Dark' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      ),
+    )
+
+    // Like the phone again (the test browser's phone is light).
+    await user.click(within(theme).getByRole('button', { name: 'Phone' }))
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+    await waitFor(async () => expect((await getSettings()).theme).toBe('phone'))
+  })
+
   it('exports a backup file that restores everything', async () => {
     await seedDevice({ routine: DAY2_ROUTINE, workouts: [LAST_DAY2], restPrefs: { x: 60 } })
     const exported = captureDownloads()

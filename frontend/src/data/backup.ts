@@ -233,6 +233,7 @@ async function backupToZip(backup: Backup): Promise<Uint8Array> {
     version: text(backup.version),
     exported_at: backup.exported_at,
     setup_completed_at: text(s.setup_completed_at),
+    theme: s.theme,
     rest_timer_enabled: yesNo(s.rest_timer_enabled),
     default_rest_seconds: text(s.default_rest_seconds),
     weekly_target: text(s.weekly_target),
@@ -419,6 +420,7 @@ async function zipToBackup(bytes: Uint8Array): Promise<Backup> {
     settings: {
       ...DEFAULT_SETTINGS,
       setup_completed_at: orNull(setting.setup_completed_at),
+      theme: setting.theme === 'light' || setting.theme === 'dark' ? setting.theme : 'phone',
       rest_timer_enabled: setting.rest_timer_enabled !== 'no',
       default_rest_seconds:
         num(setting.default_rest_seconds, 'default_rest_seconds') ??

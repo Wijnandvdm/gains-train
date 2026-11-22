@@ -61,6 +61,7 @@ async function someData() {
     is_custom: true,
     image_urls: [],
   })
+  await updateSettings({ theme: 'dark' }) // a choice that isn't the default
   await db.restPrefs.add({ exercise_id: 'Hack_Squat', rest_seconds: 195 })
   await db.dumbbellModes.add({ exercise_id: 'Hack_Squat', mode: 'total' })
   await db.machineSettings.add({

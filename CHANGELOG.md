@@ -13,6 +13,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - PRs in your history: a past workout shows 🏆 PR or PR on the sets that set one, just as you
   saw them while lifting, and its card in History counts them (with the cup when one was your
   heaviest yet).
+- Light or dark in Settings → Appearance: like the rest of your phone (as before), or always
+  light or always dark. Backups include the choice.
 
 ### Changed
 

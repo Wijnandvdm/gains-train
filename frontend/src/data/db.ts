@@ -53,6 +53,7 @@ export const db = new GainsDb()
 
 export const DEFAULT_SETTINGS: Settings = {
   setup_completed_at: null,
+  theme: 'phone',
   rest_timer_enabled: true,
   default_rest_seconds: DEFAULT_REST_SECONDS,
   weekly_target: DEFAULT_WEEKLY_TARGET,

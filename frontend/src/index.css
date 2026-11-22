@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Dark mode follows data-theme on <html> (your choice in Settings, or the phone's: theme.ts),
+   so dark: classes and the dark colours below switch with it. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 /* ============================================================================================
  * COLOURS: change them here.
  *
@@ -110,27 +114,29 @@
   --ink-steam: var(--stamp-steam);
   --ink-explorer: var(--stamp-explorer);
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --chart-grid: var(--color-neutral-800);
-    --chart-surface: var(--color-neutral-900);
-    /* Stamp inks lighter, to read on the dark card. */
-    --map-body: var(--color-neutral-700);
-    --map-primary: var(--muscle-primary-dark);
-    --map-secondary: var(--muscle-secondary-dark);
-    --ink-rides: color-mix(in srgb, var(--stamp-rides) 55%, white);
-    --ink-weight: color-mix(in srgb, var(--stamp-weight) 55%, white);
-    --ink-prs: color-mix(in srgb, var(--stamp-prs) 55%, white);
-    --ink-streak: color-mix(in srgb, var(--stamp-streak) 55%, white);
-    --ink-steam: color-mix(in srgb, var(--stamp-steam) 55%, white);
-    --ink-explorer: color-mix(in srgb, var(--stamp-explorer) 55%, white);
-  }
+:root[data-theme='dark'] {
+  --chart-grid: var(--color-neutral-800);
+  --chart-surface: var(--color-neutral-900);
+  /* Stamp inks lighter, to read on the dark card. */
+  --map-body: var(--color-neutral-700);
+  --map-primary: var(--muscle-primary-dark);
+  --map-secondary: var(--muscle-secondary-dark);
+  --ink-rides: color-mix(in srgb, var(--stamp-rides) 55%, white);
+  --ink-weight: color-mix(in srgb, var(--stamp-weight) 55%, white);
+  --ink-prs: color-mix(in srgb, var(--stamp-prs) 55%, white);
+  --ink-streak: color-mix(in srgb, var(--stamp-streak) 55%, white);
+  --ink-steam: color-mix(in srgb, var(--stamp-steam) 55%, white);
+  --ink-explorer: color-mix(in srgb, var(--stamp-explorer) 55%, white);
 }
 
 @layer base {
+  /* Native parts (scrollbars, date pickers) in the app's light or dark too. */
   html {
-    color-scheme: light dark;
+    color-scheme: light;
     -webkit-tap-highlight-color: transparent;
+  }
+  html[data-theme='dark'] {
+    color-scheme: dark;
   }
   body {
     @apply bg-neutral-50 text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;

@@ -105,8 +105,12 @@ export type Routine = { days: RoutineDay[]; next_day_id: string | null }
 
 // --- Settings -----------------------------------------------------------------------------
 
+/** Light or dark: like the rest of the phone, or always light or always dark. */
+export type ThemeChoice = 'phone' | 'light' | 'dark'
+
 export type Settings = {
   setup_completed_at: string | null
+  theme: ThemeChoice
   rest_timer_enabled: boolean
   default_rest_seconds: number
   /** Your weekly goal: rides a week that count for the streak on the Gains Line. */

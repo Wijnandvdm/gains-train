@@ -1,6 +1,7 @@
 import createBodyHighlighter, { ModelType } from 'body-highlighter'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { regionsFor } from '../lib/muscleMap'
+import { useShownTheme } from '../theme'
 
 const VIEWS = [ModelType.ANTERIOR, ModelType.POSTERIOR]
 
@@ -13,21 +14,6 @@ function readColors() {
     primary: get('--map-primary'),
     secondary: get('--map-secondary'),
   }
-}
-
-function useColorScheme(): string {
-  const query = '(prefers-color-scheme: dark)'
-  const [scheme, setScheme] = useState(() =>
-    window.matchMedia?.(query).matches ? 'dark' : 'light',
-  )
-  useEffect(() => {
-    const media = window.matchMedia?.(query)
-    if (!media) return
-    const onChange = () => setScheme(media.matches ? 'dark' : 'light')
-    media.addEventListener('change', onChange)
-    return () => media.removeEventListener('change', onChange)
-  }, [])
-  return scheme
 }
 
 /**
@@ -44,7 +30,7 @@ export function MuscleMap({
   width?: number
 }) {
   const containers = useRef<(HTMLDivElement | null)[]>([])
-  const scheme = useColorScheme()
+  const scheme = useShownTheme() // redrawn in the new colours when you switch
   const primaryKey = primary.join(',')
   const secondaryKey = secondary.join(',')
 

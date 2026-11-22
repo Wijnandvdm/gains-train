@@ -24,6 +24,7 @@ afterEach(async () => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
   localStorage.clear()
+  delete document.documentElement.dataset.theme // light or dark, as a test left it
   // Every test starts with an empty on-device database.
   await Promise.all(db.tables.map((table) => table.clear()))
   setLibraryForTests(null)

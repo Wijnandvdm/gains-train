@@ -10,6 +10,17 @@
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <title>Gains Train</title>
+    <script>
+      // Light or dark before the app loads, so it starts in the right colours (src/theme.ts
+      // keeps it in step from then on).
+      try {
+        var choice = localStorage.getItem('gains-train-theme') || 'phone'
+        var dark =
+          choice === 'dark' ||
+          (choice === 'phone' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -13,12 +13,14 @@ import {
 } from '../data/backup'
 import { WEEKLY_TARGETS } from '../data/line'
 import { DEFAULT_SETTINGS } from '../data/db'
+import type { ThemeChoice } from '../data/types'
 import { formatClock, formatDay, plural } from '../lib/format'
 import { REST_CHOICES } from '../lib/rest'
 import { useGainsLine } from '../line'
 import { useAction } from '../lib/useAction'
 import { updateSettings, useSettings } from '../settings'
 import { ErrorMessage } from '../components/ErrorMessage'
+import { applyTheme } from '../theme'
 
 export function SettingsPage() {
   const settings = useSettings()
@@ -34,6 +36,13 @@ export function SettingsPage() {
   return (
     <section className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold">Settings</h1>
+
+      <Card title="Appearance">
+        <ThemePicker choice={settings?.theme ?? DEFAULT_SETTINGS.theme} />
+        <p className="text-sm text-neutral-500">
+          Phone: light or dark, like the rest of your phone.
+        </p>
+      </Card>
 
       <Card title="Rest timer">
         <Switch
@@ -112,6 +121,42 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
       <h2 className="font-semibold">{title}</h2>
       {children}
     </section>
+  )
+}
+
+const THEMES: { choice: ThemeChoice; label: string }[] = [
+  { choice: 'phone', label: 'Phone' },
+  { choice: 'light', label: 'Light' },
+  { choice: 'dark', label: 'Dark' },
+]
+
+/** Light, dark, or like the phone: three buttons, the chosen one filled in. */
+function ThemePicker({ choice }: { choice: ThemeChoice }) {
+  return (
+    <div
+      role="group"
+      aria-label="Theme"
+      className="grid grid-cols-3 gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800"
+    >
+      {THEMES.map((t) => (
+        <button
+          key={t.choice}
+          type="button"
+          aria-pressed={choice === t.choice}
+          onClick={() => {
+            applyTheme(t.choice) // straight away, before the setting is saved
+            void updateSettings({ theme: t.choice })
+          }}
+          className={`rounded-md py-1.5 text-sm font-medium transition ${
+            choice === t.choice
+              ? 'bg-train-600 text-white shadow-sm'
+              : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
   )
 }
 
