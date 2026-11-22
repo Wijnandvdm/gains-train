@@ -1,6 +1,7 @@
 import { Link, Navigate, NavLink, Outlet } from 'react-router-dom'
 import { useSettings } from '../settings'
-import { ChartIcon, DumbbellIcon, GearIcon, HistoryIcon, ListIcon, TrainIcon } from './icons'
+import { ChartIcon, DumbbellIcon, GearIcon, HistoryIcon, ListIcon } from './icons'
+import { TrainLogo } from './TrainLogo'
 
 const TABS = [
   { to: '/workout', label: 'Workout', icon: DumbbellIcon },
@@ -17,7 +18,7 @@ export function AppLayout() {
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-neutral-50/90 px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">
         <Link to="/workout" className="flex items-center gap-1.5 font-bold tracking-tight">
-          <TrainIcon className="h-6 w-6 text-train-700 dark:text-train-600" />
+          <TrainLogo className="h-6 w-6" />
           Gains Train
         </Link>
         <Link

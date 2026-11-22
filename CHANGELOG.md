@@ -14,6 +14,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   saw them while lifting, and its card in History counts them (with the cup when one was your
   heaviest yet).
 
+### Changed
+
+- The little trains in the app (the header, the workout track, a finished workout and the
+  setup screen) are now the app's logo: the flexing locomotive.
+
 ## [1.1.0] - 2026-11-19
 
 ### Added

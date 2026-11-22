@@ -9,7 +9,7 @@ import { RoutineSuggestion, type Suggestion } from '../components/workout/Routin
 import { SortableExercises } from '../components/workout/SortableExercises'
 import { moved, orderDiffers } from '../workout/reorder'
 import { WorkoutTrack } from '../components/workout/WorkoutTrack'
-import { TrainIcon } from '../components/icons'
+import { TrainLogo } from '../components/TrainLogo'
 import { Spinner } from '../components/Spinner'
 import { cheer, firebox, WORKOUT } from '../copy'
 import { formatDay, plural } from '../lib/format'
@@ -77,10 +77,7 @@ function FinishedBanner({ workoutId, day }: { workoutId: string; day: string }) 
       className="relative overflow-hidden rounded-lg bg-done-50 px-4 pt-9 pb-3 text-done-900 dark:bg-done-900/40 dark:text-done-100"
     >
       {/* Rolls across once; stays parked on the left with reduced motion. */}
-      <TrainIcon
-        aria-hidden="true"
-        className="absolute top-2 left-3 h-7 w-7 -scale-x-100 text-train-600 motion-safe:animate-choo dark:text-train-500"
-      />
+      <TrainLogo className="absolute top-2 left-3 h-7 w-7 motion-safe:animate-choo" />
       <p>
         <strong>{WORKOUT.finished}</strong> Workout saved. See it in{' '}
         <Link to="/history" className="font-semibold underline">

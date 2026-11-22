@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackupFileHint } from '../components/BackupFileHint'
 import { FilePicker } from '../components/FilePicker'
-import { TrainIcon } from '../components/icons'
+import { TrainLogo } from '../components/TrainLogo'
 import { SETUP } from '../copy'
 import { BACKUP_FILE_TYPES, readBackupFile, restoreBackup } from '../data/backup'
 import { DEFAULT_REST_SECONDS } from '../lib/rest'
@@ -52,8 +52,9 @@ export function SetupPage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 p-6 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       <header className="flex flex-col items-center gap-3 text-center">
-        <div className="rounded-2xl bg-train-600 p-3 text-white">
-          <TrainIcon className="h-10 w-10" />
+        {/* On black, like the app icon: the red train would vanish on red. */}
+        <div className="rounded-2xl bg-black p-3">
+          <TrainLogo className="h-10 w-10" />
         </div>
         <h1 className="text-2xl font-bold">{SETUP.title}</h1>
         <p className="text-neutral-500">{SETUP.intro}</p>

@@ -81,8 +81,7 @@
   /* A train rolling across the "workout finished" banner. */
   --animate-choo: choo 2.6s ease-in-out both;
   /* Rolls in from the left and parks at the right end of its container. Animates `left`
-     (a % of the container), not `transform`: the icon is mirrored with `scale`, and a
-     transform would move in that mirrored space (i.e. drive backwards). */
+     (a % of the container), so it works the same in any container width. */
   @keyframes choo {
     from {
       left: -3rem;
