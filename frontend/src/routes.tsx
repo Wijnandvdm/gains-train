@@ -10,12 +10,13 @@ import { ProgressPage } from './pages/ProgressPage'
 import { WorkoutDetailPage } from './pages/WorkoutDetailPage'
 import { WorkoutPage } from './pages/WorkoutPage'
 
-// Screens you rarely open (setup, settings, the routine editor) load when first opened, so the
+// Screens you rarely open (setup, settings, the routine editor, the privacy policy) load when first opened, so the
 // app starts with just the everyday screens.
 const lazyPage = {
   setup: async () => ({ Component: (await import('./pages/SetupPage')).SetupPage }),
   routine: async () => ({ Component: (await import('./pages/RoutinePage')).RoutinePage }),
   settings: async () => ({ Component: (await import('./pages/SettingsPage')).SettingsPage }),
+  privacy: async () => ({ Component: (await import('./pages/PrivacyPage')).PrivacyPage }),
 }
 
 // When something crashes: ErrorPage instead of React Router's developer message. A screen's
@@ -44,6 +45,7 @@ export const routes: RouteObject[] = [
           { path: 'progress', element: <ProgressPage /> },
           { path: 'routine', lazy: lazyPage.routine },
           { path: 'settings', lazy: lazyPage.settings },
+          { path: 'privacy', lazy: lazyPage.privacy },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

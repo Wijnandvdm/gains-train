@@ -8,6 +8,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+
+- The privacy policy inside the app: Settings → About → Privacy policy. It reads offline, with a
+  link to the online version.
+
 ## [1.2.0] - 2026-11-22
 
 ### Added

@@ -292,6 +292,12 @@ function AboutCard() {
         the app's theme. Exercise details (muscles, equipment):{' '}
         {link('https://github.com/yuhonas/free-exercise-db', 'free-exercise-db')} (public domain).
       </p>
+      <Link
+        to="/privacy"
+        className="text-sm font-medium text-train-600 underline dark:text-train-500"
+      >
+        Privacy policy
+      </Link>
     </Card>
   )
 }
