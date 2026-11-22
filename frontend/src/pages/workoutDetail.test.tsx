@@ -31,6 +31,27 @@ async function startEditing() {
 }
 
 describe('a past workout', () => {
+  it('shows when it started and ended, and how long it took', async () => {
+    const timed = workout(
+      {
+        id: 'timed',
+        started_at: new Date(2026, 8, 15, 18, 5).toISOString(),
+        ended_at: new Date(2026, 8, 15, 19, 17).toISOString(),
+      },
+      [[ROW.id, [set('t1', 'twe', 1, 80, 10)]]],
+    )
+    await seedDevice({ workouts: [timed, PAST] })
+    renderApp('/history/timed')
+    expect(await screen.findByText('18:05–19:17 · 1 h 12 min')).toBeVisible()
+  })
+
+  it('leaves the times out when it has none (imported)', async () => {
+    await seedDevice({ workouts: [PAST] }) // no start time
+    renderApp('/history/past')
+    expect(await screen.findByRole('region', { name: 'Seated Cable Rows' })).toBeVisible()
+    expect(screen.queryByText(/ min$| h$/)).toBeNull()
+  })
+
   it('shows the PRs you set in it', async () => {
     const before = workout({ id: 'before', performed_on: '2026-09-08' }, [
       [ROW.id, [set('b1', 'bwe', 1, 80, 10)]],

@@ -40,6 +40,11 @@
   --stamp-streak: #7c3aed;
   --stamp-steam: #475569; /* Full steam ahead: coal */
   --stamp-explorer: #be185d;
+  --stamp-hours: #3730a3; /* Odd hours: night blue */
+  --stamp-express: #15803d;
+  --stamp-holiday: #a16207; /* festive gold */
+  --stamp-features: #0f766e;
+  --stamp-big3: #9a3412; /* The big three: rusty iron */
 }
 
 /* --- Worked out from the colours above: no need to change anything below this line. ------- */
@@ -113,6 +118,11 @@
   --ink-streak: var(--stamp-streak);
   --ink-steam: var(--stamp-steam);
   --ink-explorer: var(--stamp-explorer);
+  --ink-hours: var(--stamp-hours);
+  --ink-express: var(--stamp-express);
+  --ink-holiday: var(--stamp-holiday);
+  --ink-features: var(--stamp-features);
+  --ink-big3: var(--stamp-big3);
 }
 :root[data-theme='dark'] {
   --chart-grid: var(--color-neutral-800);
@@ -127,6 +137,11 @@
   --ink-streak: color-mix(in srgb, var(--stamp-streak) 55%, white);
   --ink-steam: color-mix(in srgb, var(--stamp-steam) 55%, white);
   --ink-explorer: color-mix(in srgb, var(--stamp-explorer) 55%, white);
+  --ink-hours: color-mix(in srgb, var(--stamp-hours) 55%, white);
+  --ink-express: color-mix(in srgb, var(--stamp-express) 55%, white);
+  --ink-holiday: color-mix(in srgb, var(--stamp-holiday) 55%, white);
+  --ink-features: color-mix(in srgb, var(--stamp-features) 55%, white);
+  --ink-big3: color-mix(in srgb, var(--stamp-big3) 55%, white);
 }
 
 @layer base {

@@ -15,6 +15,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   heaviest yet).
 - Light or dark in Settings → Appearance: like the rest of your phone (as before), or always
   light or always dark. Backups include the choice.
+- New passport stamps you can earn again and again (with a ×3 on the stamp): Night train and
+  Early commute (your first one, a week that reaches your weekly goal with them, and 7 days in a
+  row), the Marathon line (a workout of two hours or more), Burning coal (10 tonnes in one
+  workout), Obstruction cleared (a PR after a plateau of 8 weeks), Double track (twice your
+  starting weight on an exercise), Express (3, 5 or 7 days in a row, the Weekend express:
+  Saturday and Sunday, the Blue Monday line: 4 Mondays in a row, and the Double decker: two
+  workouts on one day), Holiday specials (New Year's Day, Easter, King's Day, Christmas, the
+  leap day and your gym birthday) and Off the beaten track (your routine, Side-tracked: an
+  exercise that isn't in the routine day, your own exercise, exercise preferences, two
+  dumbbells, the depot, a backup). After a workout the app tells you when one was stamped again.
+- A past workout shows when you started and finished, and how long it took (18:05–19:17 · 1 h
+  12 min).
+- The ride stamps have names, ever longer rides: from Conductor in training (your first ride)
+  through the Glacier Express (100) and the Orient Express (250) to the Trans-Siberian (500).
+  The famous rides tell where they went.
+- Stamps for the big three: bench press, squat and deadlift each at 60 kg (Branch line), 80
+  (Main line), 100 (Heavy freight) and 120 kg (Iron horse). The next one shows how many of the
+  three are there already (2/3).
 
 ### Changed
 

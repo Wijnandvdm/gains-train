@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  formatDuration,
   formatE1rm,
   formatNumber,
+  formatTimeOfDay,
   formatVolume,
   formatWeight,
   parseWeight,
@@ -41,5 +43,17 @@ describe('number formatting', () => {
     // Even if something formatted with a Dutch locale, our output must not change.
     expect(new original('nl-NL').format(7148)).toBe('7.148')
     expect(formatVolume(7148)).toBe(`7${NNBSP}148 kg`)
+  })
+})
+
+describe('workout times', () => {
+  it('says how long something took, to the minute', () => {
+    expect(formatDuration(45 * 60_000)).toBe('45 min')
+    expect(formatDuration(72 * 60_000 + 20_000)).toBe('1 h 12 min')
+    expect(formatDuration(120 * 60_000)).toBe('2 h')
+  })
+
+  it('gives the time of day on the phone clock', () => {
+    expect(formatTimeOfDay(new Date(2026, 8, 15, 8, 5).toISOString())).toBe('08:05')
   })
 })

@@ -17,10 +17,12 @@ describe('the passport', () => {
     renderApp('/progress')
 
     const passport = await screen.findByRole('region', { name: 'Passport' })
-    expect(within(passport).getByText('2 of 31 stamps')).toBeVisible()
+    // Rides 1 and 10, and (ten days in a row) the Express stamps for 3, 5 and 7 days and the
+    // Weekend express (Saturday 15 and Sunday 16 August).
+    expect(within(passport).getByText('6 of 64 stamps')).toBeVisible()
     expect(
       within(passport).getByRole('img', {
-        name: `10 rides (finished workouts), earned ${formatShortDay('2026-08-19')}`,
+        name: `Regular commuter (10 finished workouts), earned ${formatShortDay('2026-08-19')}`,
       }),
     ).toBeVisible()
     expect(
@@ -35,7 +37,14 @@ describe('the passport', () => {
         name: '3 weeks (one exercise stronger every week): 0 of 3',
       }),
     ).toBeVisible()
-    expect(within(passport).getAllByRole('img')).toHaveLength(31)
+    expect(within(passport).getByRole('heading', { name: 'Holiday specials' })).toBeVisible()
+    expect(within(passport).getByRole('img', { name: 'Night train: not yet' })).toBeVisible()
+    expect(
+      within(passport).getByRole('img', {
+        name: `7 days in a row, earned ${formatShortDay('2026-08-16')}`,
+      }),
+    ).toBeVisible()
+    expect(within(passport).getAllByRole('img')).toHaveLength(64)
   })
 
   it('explains a stamp when you tap it', async () => {
@@ -49,9 +58,9 @@ describe('the passport', () => {
     renderApp('/progress')
     const passport = await screen.findByRole('region', { name: 'Passport' })
 
-    await user.click(within(passport).getByRole('button', { name: /^10 rides/ }))
+    await user.click(within(passport).getByRole('button', { name: /^Regular commuter/ }))
     expect(within(passport).getByRole('note')).toHaveTextContent(
-      `10 rides: 10 finished workouts. Earned ${formatDay('2026-08-19')}.`,
+      `Regular commuter: 10 finished workouts. Earned ${formatDay('2026-08-19')}.`,
     )
     // One still to earn: how far you are.
     await user.click(within(passport).getByRole('button', { name: /^40 t/ }))
@@ -80,6 +89,6 @@ describe('the passport', () => {
     await user.click(screen.getByRole('button', { name: 'Finish' }))
 
     expect(await screen.findByText('New stamp in your passport!')).toBeVisible()
-    expect(screen.getByRole('img', { name: /^First ride/ })).toBeVisible()
+    expect(screen.getByRole('img', { name: /^Conductor in training/ })).toBeVisible()
   })
 })

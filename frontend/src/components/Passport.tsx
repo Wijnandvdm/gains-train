@@ -3,24 +3,33 @@
 // bubble would be cut off in the row that scrolls sideways). The rules live in data/passport.ts.
 import { useState } from 'react'
 import type { Passport as PassportData, Stamp, StampKind } from '../data/passport'
-import { formatDay, formatShortDay } from '../lib/format'
+import { formatDay, formatShortDay, plural } from '../lib/format'
 import { usePassport } from '../passport'
 
 const KINDS: { kind: StampKind; name: string; unit: string }[] = [
   { kind: 'rides', name: 'Rides', unit: 'rides' },
   { kind: 'weight', name: 'Weight hauled', unit: 'tonnes' },
   { kind: 'prs', name: 'Personal records', unit: 'PRs' },
+  { kind: 'big3', name: 'Big three: bench, squat & deadlift', unit: 'kg' },
   { kind: 'streak', name: 'Gains Line', unit: 'in a row' },
   { kind: 'steam', name: 'Full steam ahead', unit: 'weeks' },
   { kind: 'explorer', name: 'Explorer', unit: 'explored' },
+  { kind: 'hours', name: 'Odd hours', unit: 'train' },
+  { kind: 'express', name: 'Express', unit: 'days' },
+  { kind: 'holiday', name: 'Holiday specials', unit: 'special' },
+  { kind: 'features', name: 'Off the beaten track', unit: 'found' },
 ]
-const unitOf = (kind: StampKind) => KINDS.find((k) => k.kind === kind)!.unit
+const unitOf = (stamp: Stamp) => stamp.unit ?? KINDS.find((k) => k.kind === stamp.kind)!.unit
+/** Stamps you earn once and then keep counting (×3). */
+const repeats = (stamp: Stamp) => stamp.times !== undefined
 
 /** What a stamp is for, and when you earned it or how far you are. */
 function stampStory(stamp: Stamp, progress: number): string {
   const g = stamp.goal
   const rule = {
-    rides: g === 1 ? 'Your first finished workout.' : `${g} finished workouts.`,
+    rides:
+      (g === 1 ? 'Your first finished workout.' : `${g} finished workouts.`) +
+      (stamp.note ? ` ${stamp.note}` : ''),
     weight: `${g} tonnes lifted in total (weight × reps over all your workouts), as much as ${stamp.detail.toLowerCase()}.`,
     prs:
       g === 1
@@ -28,17 +37,46 @@ function stampStory(stamp: Stamp, progress: number): string {
         : `${g} workouts where you beat your best on an exercise.`,
     streak: `Your weekly goal reached ${g} weeks in a row.`,
     steam: `One exercise stronger every week, ${g} weeks in a row.`,
+    big3: `Bench press, squat and deadlift, each lifted at ${g} kg or more (a set of at least 1 rep; sumo deadlifts count too).`,
     explorer:
       stamp.badge === 'All'
         ? 'Every exercise in the library, done at least once.'
         : `${g} different exercises from the library, done at least once.`,
+    // The stamps you can earn again say what they're for themselves (stamp.detail, above).
+    hours: stamp.detail,
+    express: stamp.detail,
+    holiday: stamp.detail,
+    features: stamp.detail,
   }[stamp.kind]
+  if (repeats(stamp)) return `${stamp.detail} ${repeatStatus(stamp, progress)}`
   const status = stamp.earnedOn
     ? `Earned ${formatDay(stamp.earnedOn)}.`
     : stamp.kind === 'streak' || stamp.kind === 'steam'
       ? `Best so far: ${progress}.`
-      : `So far: ${progress} of ${g}.`
+      : stamp.lifts
+        ? liftsSoFar(stamp.lifts)
+        : `So far: ${progress} of ${g}.`
   return `${rule} ${status}`
+}
+
+/** The big three: which lifts got there already. */
+function liftsSoFar(lifts: string[]): string {
+  if (lifts.length === 0) return 'None of the three at this weight yet.'
+  const [last, ...rest] = [...lifts].reverse()
+  const list = rest.length ? `${rest.reverse().join(', ')} and ${last}` : last
+  return `So far: ${list} (${lifts.length} of 3).`
+}
+
+function repeatStatus(stamp: Stamp, progress: number): string {
+  if (!stamp.earnedOn) {
+    return stamp.goal > 1 ? `Most so far: ${plural(progress, 'day')} in a row.` : 'Not yet.'
+  }
+  // Only your latest backup is known, so that's the date it shows.
+  if (stamp.id === 'features-backup') return `Your latest: ${formatDay(stamp.earnedOn)}.`
+  const times = stamp.times ?? 1
+  return times === 1
+    ? `Earned ${formatDay(stamp.earnedOn)}.`
+    : `First on ${formatDay(stamp.earnedOn)}; ${times} times so far.`
 }
 
 export function Passport() {
@@ -155,9 +193,18 @@ export function StampBadge({
   const value =
     stamp.badge ??
     (stamp.kind === 'weight' ? `${stamp.goal}t` : stamp.goal === 1 ? '1st' : String(stamp.goal))
+  const times = earned && (stamp.times ?? 1) > 1 ? stamp.times! : null
+  // Stamps you can earn again explain themselves when tapped; their name says enough here.
+  const name = repeats(stamp) ? stamp.title : `${stamp.title} (${stamp.detail})`
   const label = earned
-    ? `${stamp.title} (${stamp.detail}), earned ${formatShortDay(stamp.earnedOn!)}`
-    : `${stamp.title} (${stamp.detail}): ${progress ?? 0} of ${stamp.goal}`
+    ? `${name}, earned ${formatShortDay(stamp.earnedOn!)}${times ? `, ${times} times` : ''}`
+    : repeats(stamp) && stamp.goal === 1
+      ? `${name}: not yet`
+      : stamp.lifts
+        ? `${name}: ${stamp.lifts.length} of 3 exercises`
+        : `${name}: ${progress ?? 0} of ${stamp.goal}`
+  // Words (Night, Xmas) in smaller letters than numbers, to fit the ring.
+  const word = /^[^0-9]/.test(value) && value.length > 3
 
   return (
     <div
@@ -167,7 +214,7 @@ export function StampBadge({
     >
       <div
         aria-hidden="true"
-        className={`grid h-16 w-16 place-items-center rounded-full border-[3px] ${
+        className={`relative grid h-16 w-16 place-items-center rounded-full border-[3px] ${
           earned
             ? 'shadow-[inset_0_0_0_3px_var(--chart-surface),inset_0_0_0_5px_currentColor]'
             : 'border-dashed border-neutral-300 text-neutral-400 dark:border-neutral-700 dark:text-neutral-500'
@@ -175,20 +222,30 @@ export function StampBadge({
         style={earned ? { color: `var(--ink-${stamp.kind})`, rotate: `${tilt}deg` } : undefined}
       >
         <span className="flex flex-col leading-none">
-          <span className="text-lg font-black tabular-nums">{value}</span>
-          <span className="text-[8px] font-bold tracking-wider uppercase">
-            {unitOf(stamp.kind)}
-          </span>
+          <span className={`${word ? 'text-sm' : 'text-lg'} font-black tabular-nums`}>{value}</span>
+          <span className="text-[8px] font-bold tracking-wider uppercase">{unitOf(stamp)}</span>
         </span>
+        {times && (
+          // How often you earned it: a little tag on the ring, in the stamp's ink.
+          <span className="absolute -top-1.5 -right-2.5 rounded-full bg-current px-1.5 py-0.5 text-[10px] leading-none font-bold">
+            <span className="text-white dark:text-neutral-950">×{times}</span>
+          </span>
+        )}
       </div>
       <span
         aria-hidden="true"
         className="line-clamp-2 text-[11px] leading-tight text-neutral-600 dark:text-neutral-300"
       >
-        {stamp.kind === 'weight' ? stamp.detail : stamp.title}
+        {stamp.kind === 'weight' && !repeats(stamp) ? stamp.detail : stamp.title}
       </span>
       <span aria-hidden="true" className="text-[11px] leading-tight text-neutral-500 tabular-nums">
-        {earned ? formatShortDay(stamp.earnedOn!) : `${progress ?? 0}/${stamp.goal}`}
+        {earned
+          ? formatShortDay(stamp.earnedOn!)
+          : repeats(stamp) && stamp.goal === 1
+            ? 'not yet'
+            : stamp.lifts
+              ? `${stamp.lifts.length}/3`
+              : `${progress ?? 0}/${stamp.goal}`}
       </span>
     </div>
   )
