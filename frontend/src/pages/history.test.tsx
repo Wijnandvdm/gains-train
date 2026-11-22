@@ -30,6 +30,25 @@ const seed = () => seedDevice({ routine: ROUTINE, workouts: WORKOUTS })
 
 const day = (iso: string) => screen.getByRole('button', { name: new RegExp(`^${formatDay(iso)}`) })
 
+describe('PRs in history', () => {
+  it('counts the PRs of a workout on its card, with the cup for a heavier weight', async () => {
+    await seedDevice({
+      workouts: [
+        ride('first', '2026-09-08', null, 'Back'),
+        workout({ id: 'heavy', performed_on: '2026-09-15', name: 'Heavy back' }, [
+          [ROW.id, [set('h1', 'hwe', 1, 110, 8), set('h2', 'hwe', 2, 100, 12)]],
+        ]),
+      ],
+    })
+    renderApp('/history?month=2026-09&day=2026-09-15')
+
+    const card = await screen.findByRole('link', { name: /Heavy back/ })
+    expect(await within(card).findByRole('img', { name: '2 personal records' })).toHaveTextContent(
+      '🏆 2 PRs',
+    )
+  })
+})
+
 describe('calendar history', () => {
   // Thursday 17 September 2026 (only the clock is faked; timers run as usual).
   beforeEach(() => {
@@ -70,6 +89,8 @@ describe('calendar history', () => {
     expect(day('2026-09-15')).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByText('Ride 3 of 3 this week: week goal reached')).toBeVisible()
     expect(screen.getByRole('link', { name: /Cardio/ })).toHaveAttribute('href', '/history/extra')
+    // Every ride was 100 × 10: nothing beat the first one, so no PRs.
+    expect(screen.queryByRole('img', { name: /personal record/ })).toBeNull()
   })
 
   it('explains a week marker or pill when you tap it', async () => {

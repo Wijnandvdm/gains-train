@@ -18,7 +18,9 @@ import {
   weekdayLabels,
 } from '../lib/calendar'
 import { formatDay, formatVolume, localDateString, parseLocalDate, plural } from '../lib/format'
-import { useWorkoutSummaries } from '../workout/hooks'
+import { useHistoryPrs, useWorkoutSummaries } from '../workout/hooks'
+import type { WorkoutPrs } from '../workout/prs'
+import { PrCount } from '../components/workout/PrBadge'
 
 export function HistoryPage() {
   // Month and selected day live in the URL, so "back" from a workout returns right here.
@@ -321,6 +323,7 @@ function DayWorkouts({
   target: number
   isFuture: boolean
 }) {
+  const prs = useHistoryPrs()
   return (
     <div className="flex flex-col gap-2">
       <div>
@@ -338,7 +341,7 @@ function DayWorkouts({
         <ul className="flex flex-col gap-2">
           {workouts.map((workout) => (
             <li key={workout.id}>
-              <WorkoutCard workout={workout} />
+              <WorkoutCard workout={workout} prs={prs?.get(workout.id)} />
             </li>
           ))}
         </ul>
@@ -347,7 +350,7 @@ function DayWorkouts({
   )
 }
 
-function WorkoutCard({ workout }: { workout: WorkoutSummary }) {
+function WorkoutCard({ workout, prs }: { workout: WorkoutSummary; prs?: WorkoutPrs }) {
   const inProgress = workout.status === 'in_progress'
   return (
     <Link
@@ -358,13 +361,14 @@ function WorkoutCard({ workout }: { workout: WorkoutSummary }) {
       <span className="truncate text-sm text-neutral-500">
         {workout.exercise_names.join(' · ') || 'No exercises'}
       </span>
-      <span className="flex gap-3 text-sm">
+      <span className="flex items-center gap-3 text-sm">
         {inProgress ? (
           <span className="font-medium text-train-600 dark:text-train-500">In progress</span>
         ) : (
           <>
             <span>{plural(workout.set_count, 'set')}</span>
             <span className="text-neutral-500">{formatVolume(workout.volume_kg)}</span>
+            {prs && <PrCount prs={prs} />}
           </>
         )}
       </span>

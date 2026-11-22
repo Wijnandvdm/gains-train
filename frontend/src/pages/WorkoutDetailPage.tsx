@@ -3,11 +3,20 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import type { WorkoutDetail, WorkoutSet } from '../data/types'
 import { newSet } from '../data/workouts'
 import { ExerciseThumb } from '../components/ExerciseImage'
+import { PrBadge } from '../components/workout/PrBadge'
 import { BackIcon } from '../components/icons'
 import { Spinner } from '../components/Spinner'
-import { formatDay, formatSet, parseReps, parseWeight, weightInputText } from '../lib/format'
+import {
+  formatDay,
+  formatDuration,
+  formatSet,
+  formatTimeOfDay,
+  parseReps,
+  parseWeight,
+  weightInputText,
+} from '../lib/format'
 import { useAction } from '../lib/useAction'
-import { deleteWorkout, editSets, useWorkout } from '../workout/hooks'
+import { deleteWorkout, editSets, useHistoryPrs, useWorkout } from '../workout/hooks'
 import { setLabels } from '../workout/sets'
 import { ErrorMessage } from '../components/ErrorMessage'
 
@@ -52,6 +61,7 @@ export function WorkoutDetailPage() {
 }
 
 function Workout({ workout }: { workout: WorkoutDetail }) {
+  const prs = useHistoryPrs()?.get(workout.id) // the PRs you set in it, as you saw them then
   const navigate = useNavigate()
   const remove = useAction(deleteWorkout)
   const [editing, setEditing] = useState(false)
@@ -76,6 +86,13 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
           )}
         </div>
         <p className="text-neutral-500">{formatDay(workout.performed_on)}</p>
+        {workout.started_at && workout.ended_at && (
+          // How long it took (workouts imported without times don't know).
+          <p className="text-sm text-neutral-500 tabular-nums">
+            {formatTimeOfDay(workout.started_at)}–{formatTimeOfDay(workout.ended_at)} ·{' '}
+            {formatDuration(Date.parse(workout.ended_at) - Date.parse(workout.started_at))}
+          </p>
+        )}
         {workout.notes && (
           <p className="mt-2 whitespace-pre-line text-neutral-700 dark:text-neutral-300">
             {workout.notes}
@@ -108,6 +125,7 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
                         {labels[i]}
                       </span>
                       <span className="tabular-nums">{formatSet(set.weight_kg, set.reps)}</span>
+                      {prs?.has(set.id) && <PrBadge prs={prs.get(set.id)!} />}
                       {set.notes && <span className="text-neutral-500 italic">{set.notes}</span>}
                     </li>
                   ))}

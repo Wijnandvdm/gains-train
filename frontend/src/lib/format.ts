@@ -78,6 +78,21 @@ export function formatShortDay(isoDate: string): string {
 }
 
 /** Seconds → "1:05" (or "1:02:05" past an hour) */
+/** A moment's time of day on the phone's clock: "18:05". */
+export function formatTimeOfDay(iso: string): string {
+  const d = new Date(iso)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/** How long something took, to the minute: "45 min", "1 h 12 min", "2 h". */
+export function formatDuration(ms: number): string {
+  const minutes = Math.max(0, Math.round(ms / 60_000))
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h === 0) return `${m} min`
+  return m === 0 ? `${h} h` : `${h} h ${m} min`
+}
+
 export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.round(totalSeconds))
   const h = Math.floor(s / 3600)

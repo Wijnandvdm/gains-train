@@ -8,6 +8,57 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+
+- PRs in your history: a past workout shows 🏆 PR or PR on the sets that set one, just as you
+  saw them while lifting, and its card in History counts them (with the cup when one was your
+  heaviest yet).
+- Light or dark in Settings → Appearance: like the rest of your phone (as before), or always
+  light or always dark. Backups include the choice.
+- New passport stamps you can earn again and again (with a ×3 on the stamp): Night train and
+  Early commute (your first one, a week that reaches your weekly goal with them, and 7 days in a
+  row), the Marathon line (a workout of two hours or more), the Bullet train and the Maglev
+  (your whole routine day, at least 2 sets of every exercise, in under 30 or 20 minutes), the
+  Lunch break line (started between 11:30 and 13:30), Rush hour (between 17:00 and 20:00), the
+  Return ticket and Back on track (your first workout after a break of 4 weeks, and your weekly
+  goal reached that week), Burning coal (10 tonnes in one workout), Obstruction cleared (a PR
+  after a plateau of 8 weeks), Double track (twice your starting weight on an exercise), Express
+  (3, 5 or 7 days in a row, the Weekend express: Saturday and Sunday, the Blue Monday line: 4
+  Mondays in a row, and the Double decker: two workouts on one day), Holiday specials (New
+  Year's Day, Easter, King's Day, Christmas, the leap day, Friday the 13th, Pi Day, Halloween,
+  the Polar Express on all three days of Christmas, and your gym birthday) and Off the beaten
+  track (your routine, Side-tracked: an exercise that isn't in the routine day, your own
+  exercise, exercise preferences, two dumbbells, the depot, the Railway roundhouse: 4 weeks in a
+  row in the depot, a backup), the Train yard (every 10 workouts with a barbell, dumbbells, a
+  cable, the Smith machine or a kettlebell, and all five of them in one month: Network newbie,
+  or in one week: Network navigator). Workouts in a week parked in the depot earn no stamps.
+  After a workout the app tells you when one was stamped again. Tickets on the Gains Line get
+  stamps too: Ticket to ride (your first), Two-way ticket (holding two) and Overbooked (a ticket
+  with no room left for it). Tap a stamp to see whether you can earn it again.
+- Stamps for collecting stamps: Trainspotter (10), Railway Baron (50), Track Tycoon (75), Last
+  stop before the terminus (all but 5) and End of the line (every one).
+- A past workout shows when you started and finished, and how long it took (18:05–19:17 · 1 h
+  12 min).
+- The ride stamps have names, ever longer rides: from Conductor in training (your first ride)
+  through the Glacier Express (100) and the Orient Express (250) to the Trans-Siberian (500).
+  The famous rides tell where they went.
+- Stamps for the big three: bench press, squat and deadlift each at 60 kg (Branch line), 80
+  (Main line), 100 (Heavy freight) and 120 kg (Iron horse). The next one shows how many of the
+  three are there already (2/3).
+
+### Changed
+
+- The little trains in the app (the header, the workout track, a finished workout and the
+  setup screen) are now the app's logo: the flexing locomotive.
+- The setup screen says what restoring a backup brings back: workouts, routine, your own
+  exercises, exercise preferences, dumbbells, rest times and settings.
+- The muscle map: the main muscles are deep red and the ones that help orange, so the two
+  are easy to tell apart (in dark mode it was a light and a dark red, the wrong way around).
+
+### Removed
+
+- Importing the old .json backups: only the .zip backups can be restored.
+
 ## [1.1.0] - 2026-11-19
 
 ### Added

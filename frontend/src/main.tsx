@@ -5,11 +5,14 @@ import { syncWithLibrary } from './data/migrate'
 import './index.css'
 import { handleBackButton } from './lib/backButton'
 import { routes } from './routes'
+import { followTheme } from './theme'
 
 const router = createBrowserRouter(routes)
 
 // Keep your data in step with this version's exercise library (see data/migrate.ts).
 syncWithLibrary().catch((e: unknown) => console.warn('Exercise library sync failed', e))
+// Light or dark, as chosen in Settings or like the phone (see theme.ts).
+followTheme()
 // On the phone, its back button goes to the previous screen (see lib/backButton.ts).
 handleBackButton().catch((e: unknown) => console.warn('Back button setup failed', e))
 

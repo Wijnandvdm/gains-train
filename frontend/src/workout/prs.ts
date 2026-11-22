@@ -1,9 +1,11 @@
 /**
  * Personal-record detection for sets logged in the workout in progress, the moment a set
  * is ticked: against your records from finished workouts plus the earlier sets of this
- * workout. The definitions match data/stats.ts.
+ * workout. The definitions match data/stats.ts. Looking back (History), each set of a
+ * finished workout is judged the same way, against what came before it.
  */
-import type { Records, WorkoutSet } from '../data/types'
+import type { ExerciseId, Records, StoredWorkout, WorkoutSet } from '../data/types'
+import { isPerformed } from '../data/workouts'
 
 export type PrKind = 'weight' | 'e1rm' | 'reps'
 
@@ -80,4 +82,41 @@ export function prsForSets(sets: WorkoutSet[], records: Records | null): PrKind[
     earlier.push(lift)
     return kinds
   })
+}
+
+/** The PRs of one finished workout: PR kinds by set id (only sets that set one). */
+export type WorkoutPrs = ReadonlyMap<string, PrKind[]>
+
+/**
+ * PRs in your history, by workout: each set judged like the badge during that workout, against
+ * everything done on its exercise in earlier workouts and earlier in the same one. A later
+ * workout never takes a badge away. Workouts without PRs are left out.
+ */
+export function historyPrs(workouts: StoredWorkout[]): Map<string, WorkoutPrs> {
+  const done = new Map<ExerciseId, Lift[]>() // per exercise, everything so far
+  const found = new Map<string, Map<string, PrKind[]>>()
+  const ordered = workouts
+    .filter((w) => w.status === 'completed')
+    .sort(
+      (a, b) =>
+        a.performed_on.localeCompare(b.performed_on) ||
+        (a.started_at ?? '').localeCompare(b.started_at ?? ''),
+    )
+  for (const w of ordered) {
+    for (const we of w.exercises) {
+      const lifts = done.get(we.exercise_id) ?? []
+      done.set(we.exercise_id, lifts)
+      for (const s of we.sets) {
+        if (!isPerformed(s, w) || s.reps! < 1) continue // like performed() above
+        const lift = { weight: s.weight_kg!, reps: s.reps! }
+        const kinds = detectPRs(lift, null, lifts)
+        if (kinds.length > 0) {
+          const prs = found.get(w.id) ?? new Map<string, PrKind[]>()
+          found.set(w.id, prs.set(s.id, kinds))
+        }
+        lifts.push(lift)
+      }
+    }
+  }
+  return found
 }

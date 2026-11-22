@@ -12,6 +12,8 @@ import { formatVolume } from './lib/format'
 export const SETUP = {
   title: "Let's lay the tracks",
   intro: 'Two questions, then every workout is one tap per set. Choo choo.',
+  restore:
+    'Your backup brings everything back on board: workouts, routine, your own exercises, exercise preferences, dumbbells, rest times and settings.',
   start: 'All aboard! 🚂',
   starting: 'Laying tracks…',
 }

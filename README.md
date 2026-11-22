@@ -67,3 +67,4 @@ Backup: every month, 3 months, 6 months, a year, or never).
 
 # TODO:
 1. Find a way to improve upon the images representing exercises.
+2. do we want to see during a workout, besides the previous weight, the all time best? So that you know what your best was? With the option to edit it if you realize your form was off in that best or something?

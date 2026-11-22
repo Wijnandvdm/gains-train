@@ -63,6 +63,11 @@ export type LineWeek = {
   state: WeekState
   /** The streak after this week. */
   streak: number
+  /** Tickets earned this week: the ride that earned each (its place in `rides`) and how many you
+   * held right after. */
+  ticketsEarned: { ride: number; held: number }[]
+  /** Rides that earned a ticket while you already held the most (MAX_TICKETS): it didn't fit. */
+  ticketsOverbooked: number[]
 }
 
 export type GainsLine = {
@@ -126,13 +131,27 @@ export function gainsLine(
   const first = [...byWeek.keys()][0]
   for (let monday = first ?? current; monday <= current; monday = nextMonday(monday)) {
     const rides = byWeek.get(monday) ?? []
+    const ticketsEarned: LineWeek['ticketsEarned'] = []
+    const ticketsOverbooked: number[] = []
     let state: WeekState
     if (rides.length >= target) {
       state = 'reached'
       started = true
       streak += 1
-      const earned = (streak % WEEKS_PER_TICKET === 0 ? 1 : 0) + (rides.length - target)
-      tickets = Math.min(MAX_TICKETS, tickets + earned)
+      // A ticket for every WEEKS_PER_TICKET weeks in a row (with the ride that reached the
+      // goal) and one for every bonus ride above it, as long as they fit.
+      const earning = [
+        ...(streak % WEEKS_PER_TICKET === 0 ? [target - 1] : []),
+        ...rides.slice(target).map((_, i) => target + i),
+      ]
+      for (const ride of earning) {
+        if (tickets < MAX_TICKETS) {
+          tickets += 1
+          ticketsEarned.push({ ride, held: tickets })
+        } else {
+          ticketsOverbooked.push(ride)
+        }
+      }
     } else if (depot.has(monday)) {
       state = 'depot' // parked: skipped, the streak waits
     } else if (monday === current) {
@@ -146,7 +165,7 @@ export function gainsLine(
       state = 'missed'
       streak = 0
     }
-    weeks.set(monday, { monday, rides, state, streak })
+    weeks.set(monday, { monday, rides, state, streak, ticketsEarned, ticketsOverbooked })
   }
 
   let parkedUntil: string | null = null

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Make every icon from the logo (frontend/assets/logo.png): the app icon and splash screen,
 then the Android icons and splash screens in every size from those, the browser tab icon
-(frontend/public/favicon.png, for the dev server) and the Google Play store graphics
-(docs/store: the 512 x 512 icon and the 1024 x 500 feature graphic, to upload in the Play
-Console under store listing → Graphics).
+(frontend/public/favicon.png, for the dev server), the train in the app itself
+(frontend/src/assets/train.png: the logo cut out of its background) and the Google Play
+store graphics (docs/store: the 512 x 512 icon and the 1024 x 500 feature graphic, to upload
+in the Play Console under store listing → Graphics).
 
     python3 scripts/make-icons.py
 
@@ -23,6 +24,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "frontend/assets"
 FAVICON = ROOT / "frontend/public/favicon.png"
+TRAIN = ROOT / "frontend/src/assets/train.png"
 LAUNCHER_COLOR = ROOT / "frontend/android/app/src/main/res/values/ic_launcher_background.xml"
 STORE = ROOT / "docs/store"
 
@@ -50,6 +52,23 @@ def placed(logo: Image.Image, size: int, share: float, background) -> Image.Imag
     w, h = round(logo.width * scale), round(logo.height * scale)
     canvas.alpha_composite(logo.resize((w, h), Image.LANCZOS), ((size - w) // 2, (size - h) // 2))
     return canvas
+
+
+def cut_out(logo: Image.Image, background, size: int) -> Image.Image:
+    """The logo without its background (see-through, so it sits on any colour of the app),
+    in the middle of a square of `size`. Pixels close to the background fade out smoothly."""
+    distance = Image.eval(
+        Image.merge("RGB", [
+            band.point(lambda v, b=b: abs(v - b))
+            for band, b in zip(logo.convert("RGB").split(), background[:3])
+        ]).convert("L"),
+        lambda v: v,
+    )
+    alpha = distance.point(lambda v: 0 if v < 6 else min(255, (v - 6) * 8))
+    drawing = logo.convert("RGBA")
+    drawing.putalpha(alpha)
+    drawing = drawing.crop(alpha.point(lambda v: 255 if v > 40 else 0).getbbox())
+    return placed(drawing, size, 1.0, (0, 0, 0, 0))
 
 
 def store_graphics(icon: Image.Image, background) -> None:
@@ -84,6 +103,8 @@ def main() -> None:
     for name in ("splash.png", "splash-dark.png"):
         placed(logo, 2732, 0.3, bg).save(ASSETS / name)
     placed(logo, 64, 0.98, bg).save(FAVICON)  # the browser tab
+    TRAIN.parent.mkdir(exist_ok=True)
+    cut_out(logo, bg, 160).save(TRAIN)  # the train in the app: up to 40 px, on 4x screens
     text = LAUNCHER_COLOR.read_text()
     start = text.index(">#") + 1
     LAUNCHER_COLOR.write_text(text[:start] + hex_bg + text[start + 7 :])

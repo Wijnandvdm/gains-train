@@ -9,7 +9,7 @@ import { RoutineSuggestion, type Suggestion } from '../components/workout/Routin
 import { SortableExercises } from '../components/workout/SortableExercises'
 import { moved, orderDiffers } from '../workout/reorder'
 import { WorkoutTrack } from '../components/workout/WorkoutTrack'
-import { TrainIcon } from '../components/icons'
+import { TrainLogo } from '../components/TrainLogo'
 import { Spinner } from '../components/Spinner'
 import { cheer, firebox, WORKOUT } from '../copy'
 import { formatDay, plural } from '../lib/format'
@@ -68,7 +68,10 @@ export function WorkoutPage() {
 
 function FinishedBanner({ workoutId, day }: { workoutId: string; day: string }) {
   const passport = usePassport()
-  const stamps = passport?.stamps.filter((s) => s.earnedBy === workoutId) ?? []
+  // New stamps, and ones you earned again (Night train ×2) with this workout.
+  const stamps =
+    passport?.stamps.filter((s) => s.earnedBy === workoutId || s.againBy === workoutId) ?? []
+  const fresh = stamps.filter((s) => s.earnedBy === workoutId)
   const volume = useWorkoutSummaries(day, day).data?.find((w) => w.id === workoutId)?.volume_kg
   const coal = volume === undefined ? null : firebox(volume)
   return (
@@ -77,10 +80,7 @@ function FinishedBanner({ workoutId, day }: { workoutId: string; day: string }) 
       className="relative overflow-hidden rounded-lg bg-done-50 px-4 pt-9 pb-3 text-done-900 dark:bg-done-900/40 dark:text-done-100"
     >
       {/* Rolls across once; stays parked on the left with reduced motion. */}
-      <TrainIcon
-        aria-hidden="true"
-        className="absolute top-2 left-3 h-7 w-7 -scale-x-100 text-train-600 motion-safe:animate-choo dark:text-train-500"
-      />
+      <TrainLogo className="absolute top-2 left-3 h-7 w-7 motion-safe:animate-choo" />
       <p>
         <strong>{WORKOUT.finished}</strong> Workout saved. See it in{' '}
         <Link to="/history" className="font-semibold underline">
@@ -93,9 +93,11 @@ function FinishedBanner({ workoutId, day }: { workoutId: string; day: string }) 
       {stamps.length > 0 && (
         <div className="mt-3 flex flex-col gap-2">
           <p className="font-semibold">
-            {stamps.length === 1
-              ? 'New stamp in your passport!'
-              : `${stamps.length} new stamps in your passport!`}
+            {fresh.length === 0
+              ? 'Stamped again in your passport!'
+              : fresh.length === 1
+                ? 'New stamp in your passport!'
+                : `${fresh.length} new stamps in your passport!`}
           </p>
           <ul className="flex flex-wrap gap-3">
             {stamps.map((stamp) => (

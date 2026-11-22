@@ -1,4 +1,4 @@
-import { TrainIcon } from '../icons'
+import { TrainLogo } from '../TrainLogo'
 
 type Station = { name: string; done: number; planned: number }
 
@@ -53,9 +53,8 @@ export function WorkoutTrack({ stations }: { stations: Station[] }) {
           style={{ left: at(positions[i]!) }}
         />
       ))}
-      {/* The icon faces left; mirror it so the train heads down the line. */}
-      <TrainIcon
-        className="absolute top-0 h-7 w-7 -translate-x-1/2 -scale-x-100 text-train-600 motion-safe:transition-[left] motion-safe:duration-700 dark:text-train-500"
+      <TrainLogo
+        className="absolute top-0 h-7 w-7 -translate-x-1/2 motion-safe:transition-[left] motion-safe:duration-700"
         style={{ left: at(done / total) }}
       />
     </div>

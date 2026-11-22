@@ -27,7 +27,7 @@ export function BackupFileHint() {
               ))}
           </span>
           <span className="text-xs text-neutral-500">
-            Zip file · usually in Google Drive or Files → Downloads (older .json backups work too)
+            Zip file · usually in Google Drive or Files → Downloads
           </span>
         </span>
       </div>

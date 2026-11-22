@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { WorkoutSet } from '../../data/types'
 import { formatSet, parseReps, parseWeight, weightInputText } from '../../lib/format'
-import { PR_LABELS, type PrKind } from '../../workout/prs'
+import type { PrKind } from '../../workout/prs'
+import { PrBadge } from './PrBadge'
 
 type Props = {
   set: WorkoutSet
@@ -81,14 +82,7 @@ export function SetRow({ set, label, previous, prs, onSave, onDelete, onComplete
       </button>
       <span className="flex min-w-0 items-center gap-1 text-sm text-neutral-400 tabular-nums">
         {prs.length > 0 ? (
-          <span
-            role="img"
-            aria-label={`Personal record: ${prs.map((k) => PR_LABELS[k]).join(', ')}`}
-            title={prs.map((k) => PR_LABELS[k]).join(' · ')}
-            className="tone-ticket shrink-0 rounded px-1.5 py-0.5 text-xs font-bold"
-          >
-            {prs.includes('weight') ? '🏆 PR' : 'PR'}
-          </span>
+          <PrBadge prs={prs} />
         ) : (
           <span className="truncate">
             {previous ? formatSet(previous.weight_kg, previous.reps) : '–'}
