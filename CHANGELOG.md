@@ -20,6 +20,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   setup screen) are now the app's logo: the flexing locomotive.
 - The setup screen says what restoring a backup brings back: workouts, routine, your own
   exercises, exercise preferences, dumbbells, rest times and settings.
+- The muscle map: the main muscles are deep red and the ones that help orange, so the two
+  are easy to tell apart (in dark mode it was a light and a dark red, the wrong way around).
 
 ### Removed
 
