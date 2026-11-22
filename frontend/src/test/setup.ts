@@ -23,6 +23,7 @@ afterEach(async () => {
   cleanup()
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
+  vi.useRealTimers() // a test that faked the clock
   localStorage.clear()
   delete document.documentElement.dataset.theme // light or dark, as a test left it
   // Every test starts with an empty on-device database.

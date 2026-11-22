@@ -45,6 +45,8 @@
   --stamp-holiday: #a16207; /* festive gold */
   --stamp-features: #0f766e;
   --stamp-big3: #9a3412; /* The big three: rusty iron */
+  --stamp-gear: #4d7c0f; /* Train yard: olive */
+  --stamp-collection: #1e293b; /* Stamp collection: the conductor's ink */
 }
 
 /* --- Worked out from the colours above: no need to change anything below this line. ------- */
@@ -123,6 +125,8 @@
   --ink-holiday: var(--stamp-holiday);
   --ink-features: var(--stamp-features);
   --ink-big3: var(--stamp-big3);
+  --ink-gear: var(--stamp-gear);
+  --ink-collection: var(--stamp-collection);
 }
 :root[data-theme='dark'] {
   --chart-grid: var(--color-neutral-800);
@@ -142,6 +146,8 @@
   --ink-holiday: color-mix(in srgb, var(--stamp-holiday) 55%, white);
   --ink-features: color-mix(in srgb, var(--stamp-features) 55%, white);
   --ink-big3: color-mix(in srgb, var(--stamp-big3) 55%, white);
+  --ink-gear: color-mix(in srgb, var(--stamp-gear) 55%, white);
+  --ink-collection: color-mix(in srgb, var(--stamp-collection) 55%, white);
 }
 
 @layer base {

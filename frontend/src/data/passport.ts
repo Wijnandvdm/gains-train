@@ -6,7 +6,7 @@
 import { localDateString, parseLocalDate, plural } from '../lib/format'
 import { detectPRs } from '../workout/prs'
 import type { WeightCount } from './dumbbells'
-import { gainsLine, nextMonday, weekOf } from './line'
+import { gainsLine, type LineWeek, MAX_TICKETS, nextMonday, weekOf } from './line'
 import { type PerformedSet, performedSets } from './stats'
 import type { StoredRoutine, StoredWorkout } from './types'
 
@@ -22,6 +22,8 @@ export type StampKind =
   | 'holiday'
   | 'features'
   | 'big3'
+  | 'gear'
+  | 'collection'
 
 export type Stamp = {
   id: string
@@ -29,6 +31,8 @@ export type Stamp = {
   goal: number
   title: string
   detail: string
+  /** How far towards the goal, when the kind's own progress doesn't say (7 of 10 workouts). */
+  soFar?: number
   /** The big three: which of the lifts already got to this stamp's weight. */
   lifts?: string[]
   /** A line more to tell, when tapped (e.g. where the Orient Express ran). */
@@ -37,6 +41,8 @@ export type Stamp = {
   badge?: string
   /** The small word under it, when not the kind's (e.g. "commute"). */
   unit?: string
+  /** Whether you can earn it again and again (a ×3 on it); false for one you earn once. */
+  repeatable?: boolean
   /** Stamps you can earn again: how often so far (0 while not yet). */
   times?: number
   /** And the workout that earned it most recently (to announce it again). */
@@ -63,6 +69,8 @@ export type PassportExtras = {
   /** Exercises with exercise preferences (Seat 4, …). */
   preferences?: ReadonlySet<string>
   lastBackupAt?: string | null
+  /** The library's exercises: their equipment and name (for the Train yard stamps). */
+  exercises?: ReadonlyMap<string, GearInfo>
   /** Your routine as it is now (for Side-tracked: an exercise that isn't in the day). */
   routine?: StoredRoutine | null
 }
@@ -120,8 +128,76 @@ const STEAM_WEEKS = [3, 4, 6, 8]
 const EXPLORED = [25, 50, 100, 200]
 /** Express: days in a row with a workout. */
 const EXPRESS_DAYS = [3, 5, 7]
+/** What the Train yard stamps look at: an exercise's equipment and name. */
+type GearInfo = { equipment: string | null; name: string }
+
+/** Train yard: workouts with this kind of equipment, stamped again every GEAR_EVERY. */
+const GEAR: {
+  id: string
+  title: string
+  badge: string
+  rule: string
+  is: (e: GearInfo) => boolean
+}[] = [
+  {
+    id: 'barbell',
+    title: 'Barbell boarding',
+    badge: 'Bar',
+    rule: 'with a barbell exercise',
+    is: (e) => e.equipment === 'barbell',
+  },
+  {
+    id: 'dumbbell',
+    title: 'Dumbbell depot',
+    badge: 'DB',
+    rule: 'with a dumbbell exercise',
+    is: (e) => e.equipment === 'dumbbell',
+  },
+  {
+    id: 'cable',
+    title: 'Cable car connection',
+    badge: 'Cable',
+    rule: 'with a cable exercise',
+    is: (e) => e.equipment === 'cable',
+  },
+  {
+    // The library calls it a machine; its name says Smith.
+    id: 'smith',
+    title: 'Fixed track',
+    badge: 'Smith',
+    rule: 'with a Smith machine exercise (the bar runs on rails, like a train)',
+    is: (e) => /smith machine/i.test(e.name),
+  },
+  {
+    id: 'kettlebell',
+    title: 'Kettlebell caboose',
+    badge: 'KB',
+    rule: 'with a kettlebell exercise (the caboose is the little car at the very end of a freight train, where the crew rode)',
+    is: (e) => e.equipment === 'kettlebells',
+  },
+]
+const GEAR_EVERY = 10
+/** Railway roundhouse: this many weeks in a row parked in the depot. */
+const ROUNDHOUSE_WEEKS = 4
 /** Marathon line: a workout at least this long, start to finish. */
 const MARATHON_HOURS = 2
+/** Stamp collection: stamps for how many other stamps you have ("all", or all but `minus`). */
+const COLLECTION: { goal: number | 'all'; minus?: number; title: string }[] = [
+  { goal: 10, title: 'Trainspotter' },
+  { goal: 50, title: 'Railway Baron' },
+  { goal: 75, title: 'Track Tycoon' },
+  { goal: 'all', minus: 5, title: 'Last stop before the terminus' },
+  { goal: 'all', title: 'End of the line' },
+]
+/** Fast trains: your whole routine day in under this many minutes. */
+const FAST_TRAINS: { id: string; title: string; minutes: number }[] = [
+  { id: 'bullet', title: 'Bullet train', minutes: 30 },
+  { id: 'maglev', title: 'Maglev', minutes: 20 },
+]
+/** …with at least this many sets of every exercise of the day (none skipped). */
+const FAST_SETS = 2
+/** Return ticket and Back on track: a break of at least this many days without any workout. */
+const BREAK_DAYS = 28
 /** Blue Monday line: this many Mondays in a row with a workout. */
 const MONDAYS = 4
 /** Burning coal: this much hauled in one workout, in kg (weight × reps). */
@@ -372,6 +448,27 @@ const HOLIDAYS: {
     rule: 'A workout on 29 February, which only comes every four years.',
     on: (d) => monthDay(d) === '02-29',
   },
+  {
+    id: 'friday-13',
+    title: 'Jinxed junction',
+    badge: 'Fri13',
+    rule: 'A workout on Friday the 13th: no bad luck under the bar.',
+    on: (d) => d.slice(8) === '13' && parseLocalDate(d).getDay() === 5,
+  },
+  {
+    id: 'pi-day',
+    title: 'Pi platform',
+    badge: '3.14',
+    rule: 'A workout on 14 March: 3.14, Pi Day.',
+    on: (d) => monthDay(d) === '03-14',
+  },
+  {
+    id: 'halloween',
+    title: 'Ghost train',
+    badge: 'Boo',
+    rule: 'A workout on Halloween (31 October): a ride on the ghost train.',
+    on: (d) => monthDay(d) === '10-31',
+  },
 ]
 
 /**
@@ -385,7 +482,9 @@ export function passport(
   count?: WeightCount,
   extras: PassportExtras = {},
 ): Passport {
-  const done = chronological(workouts)
+  // Weeks in the depot earn nothing: their workouts don't count for any stamp (the depot
+  // stamps themselves, In the depot and Railway roundhouse, come from the weeks, not workouts).
+  const done = chronological(workouts).filter((w) => !line.depot.has(weekOf(w.performed_on)))
   const at = (w: StoredWorkout): Milestone => ({ day: w.performed_on, workoutId: w.id })
 
   // Rides
@@ -420,6 +519,19 @@ export function passport(
   const streaks = [...weeks.values()]
     .filter((w) => w.state === 'reached')
     .map((w) => ({ value: w.streak, at: at(lastOn(w.rides[line.target - 1]!)) }))
+
+  // Tickets: the workout behind the ride that earned one (or found no room for it)
+  const rideOf = (week: LineWeek, ride: number): Moment => {
+    const day = week.rides[ride]!
+    const nth = week.rides.slice(0, ride + 1).filter((d) => d === day).length // 2nd ride that day…
+    return { day, workoutId: done.filter((w) => w.performed_on === day)[nth - 1]!.id }
+  }
+  const ticketsEarned = [...weeks.values()].flatMap((week) =>
+    week.ticketsEarned.map((t) => ({ ...rideOf(week, t.ride), held: t.held })),
+  )
+  const overbooked = [...weeks.values()].flatMap((week) =>
+    week.ticketsOverbooked.map((ride) => rideOf(week, ride)),
+  )
 
   // Full steam ahead
   const steam = fullSteam(done)
@@ -456,20 +568,24 @@ export function passport(
     title: string,
     detail: string,
     moments: Moment[],
-    looks: { badge?: string; unit?: string; goal?: number } = {},
-  ): Stamp => ({
-    id: `${kind}-${id}`,
-    kind,
-    goal: looks.goal ?? 1,
-    title,
-    detail,
-    badge: looks.badge,
-    unit: looks.unit,
-    earnedOn: moments[0]?.day ?? null,
-    earnedBy: moments[0]?.workoutId ?? null,
-    times: moments.length,
-    againBy: moments.at(-1)?.workoutId ?? null,
-  })
+    looks: { badge?: string; unit?: string; goal?: number; once?: boolean } = {},
+  ): Stamp => {
+    const counted = looks.once ? moments.slice(0, 1) : moments
+    return {
+      id: `${kind}-${id}`,
+      kind,
+      goal: looks.goal ?? 1,
+      title,
+      detail,
+      badge: looks.badge,
+      unit: looks.unit,
+      earnedOn: counted[0]?.day ?? null,
+      earnedBy: counted[0]?.workoutId ?? null,
+      times: counted.length,
+      againBy: counted.at(-1)?.workoutId ?? null,
+      repeatable: !looks.once,
+    }
+  }
 
   // Odd hours
   const night = workoutsWhere(done, (w) => {
@@ -480,6 +596,16 @@ export function passport(
     const hour = startHour(w)
     return hour !== null && hour >= 4 && hour < 7
   })
+  // Started between two clock times (minutes after midnight), on the phone's clock
+  const startedBetween = (from: number, to: number) =>
+    workoutsWhere(done, (w) => {
+      if (!w.started_at) return false
+      const start = new Date(w.started_at)
+      const minutes = start.getHours() * 60 + start.getMinutes()
+      return minutes >= from && minutes < to
+    })
+  const lunch = startedBetween(11 * 60 + 30, 13 * 60 + 30) // Lunch break line
+  const rushHour = startedBetween(17 * 60, 20 * 60) // Rush hour
 
   // Marathon line: long workouts (only those with a start and an end time)
   const marathons = workoutsWhere(
@@ -517,6 +643,22 @@ export function passport(
     if (earlier === 1) doubleDeckers.push({ day: w.performed_on, workoutId: w.id })
   })
 
+  // Return ticket: the first workout after a break of BREAK_DAYS without any (depot weeks or
+  // not); Back on track: that week also reaches your weekly goal
+  const counting = new Set(done.map((w) => w.id)) // not in a depot week
+  const returns: Moment[] = []
+  const backOnTrack: Moment[] = []
+  const everything = chronological(workouts)
+  everything.forEach((w, i) => {
+    const before = everything[i - 1]
+    if (!before || daysBetween(before.performed_on, w.performed_on) < BREAK_DAYS) return
+    if (!counting.has(w.id)) return
+    returns.push({ day: w.performed_on, workoutId: w.id })
+    const thatWeek = done.filter((o) => weekOf(o.performed_on) === weekOf(w.performed_on))
+    const reached = thatWeek[line.target - 1]
+    if (reached) backOnTrack.push({ day: reached.performed_on, workoutId: reached.id })
+  })
+
   // Weekend express: Saturday and Sunday of one weekend, stamped on the Sunday
   const trainedOn = new Set(done.map((w) => w.performed_on))
   const weekends = perDay(done, (day) => {
@@ -549,9 +691,25 @@ export function passport(
   const birthdays = first
     ? perDay(done, (d) => monthDay(d) === monthDay(first) && yearOf(d) > yearOf(first))
     : []
+  // Polar Express: 24, 25 and 26 December all trained, once a year (stamped on the 26th)
+  const polar = perDay(
+    done,
+    (d) =>
+      monthDay(d) === '12-26' &&
+      trainedOn.has(`${yearOf(d)}-12-24`) &&
+      trainedOn.has(`${yearOf(d)}-12-25`),
+  )
   const holidays = [
     ...HOLIDAYS.map((h) =>
       again('holiday', h.id, h.title, h.rule, perDay(done, h.on), { badge: h.badge }),
+    ),
+    again(
+      'holiday',
+      'polar-express',
+      'Polar Express',
+      'A workout on each of 24, 25 and 26 December: all of Christmas on the rails.',
+      polar,
+      { badge: 'Polar', unit: 'express' },
     ),
     again(
       'holiday',
@@ -565,20 +723,55 @@ export function passport(
 
   // Off the beaten track
   const sets = performedSets(done, undefined, count)
+
+  // Fast trains: a routine workout with every exercise of its day done (at least FAST_SETS sets
+  // each), from start to finish in under the train's minutes
+  const fullRoute = (w: StoredWorkout) => {
+    const day = extras.routine?.days.find((d) => d.id === w.routine_day_id)
+    if (!day || day.exercises.length === 0) return false
+    const done = new Map<string, number>()
+    for (const s of sets) {
+      if (s.workout_id === w.id) done.set(s.exercise_id, (done.get(s.exercise_id) ?? 0) + 1)
+    }
+    return day.exercises.every((e) => (done.get(e.exercise_id) ?? 0) >= FAST_SETS)
+  }
+  const minutesOf = (w: StoredWorkout) =>
+    w.started_at && w.ended_at
+      ? (Date.parse(w.ended_at) - Date.parse(w.started_at)) / 60_000
+      : Infinity
+  const fast = FAST_TRAINS.map((f) =>
+    again(
+      'hours',
+      f.id,
+      f.title,
+      `Your whole routine day (at least ${FAST_SETS} sets of every exercise, none skipped) in under ${f.minutes} minutes, from start to finish.`,
+      workoutsWhere(done, (w) => minutesOf(w) < f.minutes && fullRoute(w)),
+      { badge: `<${f.minutes}`, unit: 'min' },
+    ),
+  )
   const workoutsWith = (did: (s: PerformedSet) => boolean): Moment[] => {
     const ids = new Set(sets.filter(did).map((s) => s.workout_id))
     return workoutsWhere(done, (w) => ids.has(w.id))
   }
   const preferences = extras.preferences ?? new Set<string>()
   const backupDay = extras.lastBackupAt ? localDateString(new Date(extras.lastBackupAt)) : null
+  // Depot weeks that have started (their Mondays), oldest first; and runs of them in a row
+  const depotWeeks = [...line.depot].filter((d) => d <= line.today).sort()
+  const roundhouse: Moment[] = []
+  let parked = 0
+  depotWeeks.forEach((monday, i) => {
+    parked = i > 0 && daysLater(depotWeeks[i - 1]!, 7) === monday ? parked + 1 : 1
+    if (parked === ROUNDHOUSE_WEEKS) roundhouse.push({ day: monday, workoutId: null })
+  })
+
   const features = [
     again(
       'features',
       'routine',
       'Laid the tracks',
-      'Built your own routine and did a workout from it (the app counts every one since).',
+      'Built your own routine and did your first workout from it.',
       workoutsWhere(done, (w) => w.routine_day_id !== null),
-      { badge: 'Route', unit: 'planned' },
+      { badge: 'Route', unit: 'planned', once: true },
     ),
     again(
       'features',
@@ -622,11 +815,16 @@ export function passport(
       'depot',
       'In the depot',
       'Parked a week in the depot (holiday or injury: the streak waits).',
-      [...line.depot]
-        .filter((d) => d <= line.today)
-        .sort()
-        .map((day) => ({ day, workoutId: null })),
+      depotWeeks.map((day) => ({ day, workoutId: null })),
       { badge: 'Depot', unit: 'parked' },
+    ),
+    again(
+      'features',
+      'roundhouse',
+      'Railway roundhouse',
+      `${ROUNDHOUSE_WEEKS} weeks in a row in the depot: a long stay in the roundhouse, the round shed where locomotives rest and get repaired.`,
+      roundhouse,
+      { badge: 'Round', unit: 'house' },
     ),
     again(
       'features',
@@ -656,6 +854,65 @@ export function passport(
     bigThree,
   )
 
+  // Train yard: every GEAR_EVERY-th workout with that kind of equipment
+  const usedPerGear = GEAR.map((g) =>
+    workoutsWith((s) => {
+      const exercise = extras.exercises?.get(s.exercise_id)
+      return exercise !== undefined && g.is(exercise)
+    }),
+  )
+  const gear = GEAR.map((g, gi) => {
+    const used = usedPerGear[gi]!
+    return {
+      ...again(
+        'gear',
+        g.id,
+        g.title,
+        `${GEAR_EVERY} workouts ${g.rule}. Every ${GEAR_EVERY} more counts again.`,
+        used.filter((_, i) => (i + 1) % GEAR_EVERY === 0),
+        { badge: g.badge, unit: `${GEAR_EVERY} rides`, goal: GEAR_EVERY },
+      ),
+      soFar: used.length,
+    }
+  })
+
+  // Network navigator: every kind of equipment in one week, or in one month (each once)
+  const order = new Map(done.map((w, i) => [w.id, i])) // a workout's place in time
+  const navigator = (period: (day: string) => string): Moment[] => {
+    const kinds = new Map<string, Set<string>>() // period → the kinds done in it so far
+    const found: Moment[] = []
+    const moments = usedPerGear
+      .flatMap((used, gi) => used.map((m) => ({ ...m, kind: GEAR[gi]!.id })))
+      .sort((a, b) => order.get(a.workoutId!)! - order.get(b.workoutId!)!)
+    for (const m of moments) {
+      const seen = kinds.get(period(m.day)) ?? new Set<string>()
+      kinds.set(period(m.day), seen)
+      if (seen.has(m.kind)) continue
+      seen.add(m.kind)
+      if (seen.size === GEAR.length) found.push({ day: m.day, workoutId: m.workoutId })
+    }
+    return found
+  }
+  // The month first: it's the easier one.
+  const navigators = [
+    again(
+      'gear',
+      'navigator-month',
+      'Network newbie',
+      'Every kind in the Train yard (barbell, dumbbells, cable, Smith machine and kettlebell) in one calendar month.',
+      navigator((day) => day.slice(0, 7)),
+      { badge: 'All 5', unit: 'month' },
+    ),
+    again(
+      'gear',
+      'navigator-week',
+      'Network navigator',
+      'Every kind in the Train yard (barbell, dumbbells, cable, Smith machine and kettlebell) in one week.',
+      navigator(weekOf),
+      { badge: 'All 5', unit: 'week' },
+    ),
+  ]
+
   const ridesAt = reachedAt(
     RIDES.map(([n]) => n),
     rides,
@@ -672,149 +929,232 @@ export function passport(
   const steamAt = reachedAt(STEAM_WEEKS, steam)
   const [allAt, ...exploredAt] = reachedAt([library.size, ...EXPLORED], explorer)
 
-  return {
-    stamps: [
-      ...RIDES.map(([n, name, note], i) => ({
-        ...stamp('rides', n, name, plural(n, 'finished workout'), ridesAt[i]!),
-        note,
-      })),
-      ...HAULED.map(([t, what], i) => stamp('weight', t, `${t} t`, what, hauledAt[i]!)),
-      again(
-        'weight',
-        'coal',
-        'Burning coal',
-        `${COAL_KG / 1000} tonnes or more in a single workout (weight × reps).`,
-        coal,
-        { badge: `${COAL_KG / 1000}t`, unit: 'in one go' },
+  const stamps: Stamp[] = [
+    ...RIDES.map(([n, name, note], i) => ({
+      ...stamp('rides', n, name, plural(n, 'finished workout'), ridesAt[i]!),
+      note,
+    })),
+    ...HAULED.map(([t, what], i) => stamp('weight', t, `${t} t`, what, hauledAt[i]!)),
+    again(
+      'weight',
+      'coal',
+      'Burning coal',
+      `${COAL_KG / 1000} tonnes or more in a single workout (weight × reps).`,
+      coal,
+      { badge: `${COAL_KG / 1000}t`, unit: 'in one go' },
+    ),
+    ...PRS.map((n, i) =>
+      stamp('prs', n, n === 1 ? 'First PR' : `${n} PRs`, 'personal records', prsAt[i]!),
+    ),
+    again(
+      'prs',
+      'plateau',
+      'Obstruction cleared',
+      `A PR on an exercise that hadn't had one for ${PLATEAU_DAYS / 7} weeks or more, while you kept training it: through the plateau, the obstruction is off the track.`,
+      breakthroughs,
+      { badge: 'Clear', unit: 'line' },
+    ),
+    again(
+      'prs',
+      'double',
+      'Double track',
+      'Twice the weight you started an exercise with (the heaviest set of its first session). Counts once per exercise.',
+      doubled,
+      { badge: 'Double', unit: 'track' },
+    ),
+    ...STREAKS.map(([n, what], i) => stamp('streak', n, `${n} in a row`, what, streaksAt[i]!)),
+    again(
+      'streak',
+      'ticket-1',
+      'Ticket to ride',
+      'Your first ticket: earned with 4 weeks in a row on your weekly goal, or a bonus ride above it. A ticket saves your streak when a week falls short.',
+      ticketsEarned,
+      { badge: '1st', unit: 'ticket', once: true },
+    ),
+    again(
+      'streak',
+      'ticket-2',
+      'Two-way ticket',
+      `${MAX_TICKETS} tickets in your pocket at once, the most you can hold.`,
+      ticketsEarned.filter((t) => t.held >= MAX_TICKETS),
+      { badge: String(MAX_TICKETS), unit: 'tickets', once: true },
+    ),
+    again(
+      'streak',
+      'overbooked',
+      'Overbooked',
+      `You earned another ticket while you already held ${MAX_TICKETS}: no room for it.`,
+      overbooked,
+      { badge: 'Over', unit: 'booked' },
+    ),
+    ...STEAM_WEEKS.map((n, i) =>
+      stamp('steam', n, `${n} weeks`, 'one exercise stronger every week', steamAt[i]!),
+    ),
+    ...EXPLORED.map((n, i) =>
+      stamp('explorer', n, `${n} exercises`, 'different exercises', exploredAt[i]!),
+    ),
+    {
+      ...stamp(
+        'explorer',
+        library.size,
+        'The whole network',
+        'every exercise in the library',
+        allAt!,
       ),
-      ...PRS.map((n, i) =>
-        stamp('prs', n, n === 1 ? 'First PR' : `${n} PRs`, 'personal records', prsAt[i]!),
-      ),
-      again(
-        'prs',
-        'plateau',
-        'Obstruction cleared',
-        `A PR on an exercise that hadn't had one for ${PLATEAU_DAYS / 7} weeks or more, while you kept training it: through the plateau, the obstruction is off the track.`,
-        breakthroughs,
-        { badge: 'Clear', unit: 'line' },
-      ),
-      again(
-        'prs',
-        'double',
-        'Double track',
-        'Twice the weight you started an exercise with (the heaviest set of its first session). Counts once per exercise.',
-        doubled,
-        { badge: 'Double', unit: 'track' },
-      ),
-      ...STREAKS.map(([n, what], i) => stamp('streak', n, `${n} in a row`, what, streaksAt[i]!)),
-      ...STEAM_WEEKS.map((n, i) =>
-        stamp('steam', n, `${n} weeks`, 'one exercise stronger every week', steamAt[i]!),
-      ),
-      ...EXPLORED.map((n, i) =>
-        stamp('explorer', n, `${n} exercises`, 'different exercises', exploredAt[i]!),
-      ),
+      id: 'explorer-all',
+      badge: 'All',
+    },
+    ...BIG_THREE_KG.map(([kg, name], i) => ({
+      ...stamp('big3', kg, name, `bench, squat and deadlift at ${kg} kg`, bigThreeAt[i]!),
+      lifts: lifts.filter(([lift]) => best[lift] >= kg).map(([lift]) => LIFT_NAMES[lift]),
+    })),
+    ...[
       {
-        ...stamp(
-          'explorer',
-          library.size,
-          'The whole network',
-          'every exercise in the library',
-          allAt!,
-        ),
-        id: 'explorer-all',
-        badge: 'All',
+        id: 'night',
+        name: 'Night train',
+        when: 'started from 21:00 (or in the small hours)',
+        badge: 'Night',
+        unit: 'train',
+        days: 'nights',
+        moments: night,
       },
-      ...BIG_THREE_KG.map(([kg, name], i) => ({
-        ...stamp('big3', kg, name, `bench, squat and deadlift at ${kg} kg`, bigThreeAt[i]!),
-        lifts: lifts.filter(([lift]) => best[lift] >= kg).map(([lift]) => LIFT_NAMES[lift]),
-      })),
-      ...[
-        {
-          id: 'night',
-          name: 'Night train',
-          when: 'started from 21:00 (or in the small hours)',
-          badge: 'Night',
-          unit: 'train',
-          days: 'nights',
-          moments: night,
-        },
-        {
-          id: 'early',
-          name: 'Early commute',
-          when: 'started before 7:00 in the morning',
-          badge: 'Early',
-          unit: 'commute',
-          days: 'mornings',
-          moments: early,
-        },
-      ].flatMap((o) => [
-        // Once: the first one unlocks it.
-        again('hours', o.id, o.name, `Your first workout ${o.when}.`, o.moments.slice(0, 1), {
-          badge: o.badge,
-          unit: o.unit,
-        }),
-        again(
-          'hours',
-          `${o.id}-week`,
-          `${o.name} week`,
-          `Your weekly goal (${plural(line.target, 'workout')}) reached in one week with workouts ${o.when}.`,
-          weeksReaching(o.moments, line.target),
-          { badge: o.badge, unit: 'week' },
-        ),
-        again(
-          'hours',
-          `${o.id}-7`,
-          `${o.name}, 7 in a row`,
-          `Workouts ${o.when}, 7 days in a row.`,
-          daysInARow(o.moments, 7),
-          { badge: '7', unit: o.days },
-        ),
-      ]),
+      {
+        id: 'early',
+        name: 'Early commute',
+        when: 'started before 7:00 in the morning',
+        badge: 'Early',
+        unit: 'commute',
+        days: 'mornings',
+        moments: early,
+      },
+    ].flatMap((o) => [
+      // Once: the first one unlocks it.
+      again('hours', o.id, o.name, `Your first workout ${o.when}.`, o.moments, {
+        badge: o.badge,
+        unit: o.unit,
+        once: true,
+      }),
       again(
         'hours',
-        'marathon',
-        'Marathon line',
-        `A workout of ${MARATHON_HOURS} hours or more, from start to finish.`,
-        marathons,
-        { badge: `${MARATHON_HOURS}h+`, unit: 'marathon' },
-      ),
-      ...EXPRESS_DAYS.map((n, i) =>
-        again(
-          'express',
-          String(n),
-          `${n} days in a row`,
-          `Workouts on ${n} days in a row.`,
-          express[i]!,
-          { goal: n },
-        ),
+        `${o.id}-week`,
+        `${o.name} week`,
+        `Your weekly goal (${plural(line.target, 'workout')}) reached in one week with workouts ${o.when}.`,
+        weeksReaching(o.moments, line.target),
+        { badge: o.badge, unit: 'week' },
       ),
       again(
-        'express',
-        'weekend',
-        'Weekend express',
-        'A workout on both Saturday and Sunday of one weekend.',
-        weekends,
-        { badge: 'Sa+Su', unit: 'weekend' },
+        'hours',
+        `${o.id}-7`,
+        `${o.name}, 7 in a row`,
+        `Workouts ${o.when}, 7 days in a row.`,
+        daysInARow(o.moments, 7),
+        { badge: '7', unit: o.days },
       ),
+    ]),
+    again(
+      'hours',
+      'marathon',
+      'Marathon line',
+      `A workout of ${MARATHON_HOURS} hours or more, from start to finish.`,
+      marathons,
+      { badge: `${MARATHON_HOURS}h+`, unit: 'marathon' },
+    ),
+    ...fast,
+    again(
+      'hours',
+      'lunch',
+      'Lunch break line',
+      'A workout started between 11:30 and 13:30: a lunch break well spent.',
+      lunch,
+      { badge: 'Lunch', unit: 'break' },
+    ),
+    again(
+      'hours',
+      'rush-hour',
+      'Rush hour',
+      'A workout started between 17:00 and 20:00, with the commuters.',
+      rushHour,
+      { badge: 'Rush', unit: 'hour' },
+    ),
+    ...EXPRESS_DAYS.map((n, i) =>
       again(
         'express',
-        'mondays',
-        'Blue Monday line',
-        `A workout on ${MONDAYS} Mondays in a row: the line that beats the Monday blues.`,
-        blueMondays,
-        { badge: 'Blue', unit: 'monday' },
+        String(n),
+        `${n} days in a row`,
+        `Workouts on ${n} days in a row.`,
+        express[i]!,
+        { goal: n },
       ),
-      again(
-        'express',
-        'double-decker',
-        'Double decker',
-        'Two workouts on one day.',
-        doubleDeckers,
-        { badge: '2', unit: 'in a day' },
-      ),
-      ...holidays,
-      ...features,
-    ],
+    ),
+    again(
+      'express',
+      'weekend',
+      'Weekend express',
+      'A workout on both Saturday and Sunday of one weekend.',
+      weekends,
+      { badge: 'Sa+Su', unit: 'weekend' },
+    ),
+    again(
+      'express',
+      'mondays',
+      'Blue Monday line',
+      `A workout on ${MONDAYS} Mondays in a row: the line that beats the Monday blues.`,
+      blueMondays,
+      { badge: 'Blue', unit: 'monday' },
+    ),
+    again(
+      'express',
+      'return',
+      'Return ticket',
+      `Your first workout after a break of ${BREAK_DAYS / 7} weeks or more.`,
+      returns,
+      { badge: 'Return', unit: 'ticket' },
+    ),
+    again(
+      'express',
+      'back-on-track',
+      'Back on track',
+      `After a break of ${BREAK_DAYS / 7} weeks or more, your weekly goal reached in the week you came back.`,
+      backOnTrack,
+      { badge: 'Back', unit: 'on track' },
+    ),
+    again('express', 'double-decker', 'Double decker', 'Two workouts on one day.', doubleDeckers, {
+      badge: '2',
+      unit: 'in a day',
+    }),
+    ...holidays,
+    ...features,
+    ...gear,
+    ...navigators,
+  ]
+
+  // Stamp collection: the moment you got your 10th, 50th, … stamp (these don't count themselves)
+  const place = new Map(done.map((w, i) => [w.id, i]))
+  const collected = stamps
+    .filter((s) => s.earnedOn)
+    .sort(
+      (a, b) =>
+        a.earnedOn!.localeCompare(b.earnedOn!) ||
+        (a.earnedBy ? place.get(a.earnedBy)! : -1) - (b.earnedBy ? place.get(b.earnedBy)! : -1),
+    )
+  const collection = COLLECTION.map((c): Stamp => {
+    const goal = c.goal === 'all' ? stamps.length - (c.minus ?? 0) : c.goal
+    const reached = collected[goal - 1]
+    const all = c.goal === 'all' && !c.minus
+    return {
+      id: `collection-${c.goal === 'all' ? `all${c.minus ? `-${c.minus}` : ''}` : goal}`,
+      kind: 'collection',
+      goal,
+      title: c.title,
+      detail: all ? 'every other stamp in your passport' : `${goal} stamps in your passport`,
+      badge: all ? 'All' : undefined,
+      earnedOn: reached?.earnedOn ?? null,
+      earnedBy: reached?.earnedBy ?? null,
+    }
+  })
+
+  return {
+    stamps: [...stamps, ...collection],
     recordWorkouts: new Set(prMilestones.map((m) => m.workoutId)),
     progress: {
       rides: rides.length,
@@ -828,6 +1168,8 @@ export function passport(
       holiday: holidays.filter((s) => s.earnedOn).length,
       features: features.filter((s) => s.earnedOn).length,
       big3: Math.min(best.bench, best.squat, best.deadlift),
+      gear: [...gear, ...navigators].filter((s) => s.earnedOn).length,
+      collection: collected.length,
     },
   }
 }

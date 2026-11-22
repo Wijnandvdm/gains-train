@@ -18,8 +18,9 @@ describe('the passport', () => {
 
     const passport = await screen.findByRole('region', { name: 'Passport' })
     // Rides 1 and 10, and (ten days in a row) the Express stamps for 3, 5 and 7 days and the
-    // Weekend express (Saturday 15 and Sunday 16 August).
-    expect(within(passport).getByText('6 of 64 stamps')).toBeVisible()
+    // Weekend express (Saturday 15 and Sunday 16 August). And 7 rides in the first week with a
+    // goal of 3: bonus rides for Ticket to ride, Two-way ticket and Overbooked.
+    expect(within(passport).getByText('9 of 90 stamps')).toBeVisible()
     expect(
       within(passport).getByRole('img', {
         name: `Regular commuter (10 finished workouts), earned ${formatShortDay('2026-08-19')}`,
@@ -44,7 +45,7 @@ describe('the passport', () => {
         name: `7 days in a row, earned ${formatShortDay('2026-08-16')}`,
       }),
     ).toBeVisible()
-    expect(within(passport).getAllByRole('img')).toHaveLength(64)
+    expect(within(passport).getAllByRole('img')).toHaveLength(90)
   })
 
   it('explains a stamp when you tap it', async () => {
@@ -70,9 +71,18 @@ describe('the passport', () => {
     // Tap it again to close.
     await user.click(within(passport).getByRole('button', { name: /^40 t/ }))
     expect(within(passport).queryByRole('note')).toBeNull()
+
+    // Stamps you can earn again say so; one you earn once doesn't.
+    await user.click(within(passport).getByRole('button', { name: /^7 days in a row/ }))
+    expect(within(passport).getByRole('note')).toHaveTextContent(/↻ Repeatable$/)
+    await user.click(within(passport).getByRole('button', { name: /^Ticket to ride/ }))
+    expect(within(passport).getByRole('note')).not.toHaveTextContent('Repeatable')
   })
 
   it('announces a new stamp when you finish a workout', async () => {
+    // An ordinary Wednesday morning: no time-of-day or holiday stamps (only the clock is faked).
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 16, 10))
     await seedDevice()
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()

@@ -37,7 +37,12 @@ export function usePassport(): Passport | undefined {
             },
             new Set(library.keys()),
             count,
-            { preferences, lastBackupAt: settings.last_backup_at, routine },
+            {
+              preferences,
+              lastBackupAt: settings.last_backup_at,
+              routine,
+              exercises: library,
+            },
           )
         : undefined,
     [workouts, settings, library, count, preferences, routine],

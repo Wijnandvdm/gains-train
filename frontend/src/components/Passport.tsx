@@ -18,6 +18,8 @@ const KINDS: { kind: StampKind; name: string; unit: string }[] = [
   { kind: 'express', name: 'Express', unit: 'days' },
   { kind: 'holiday', name: 'Holiday specials', unit: 'special' },
   { kind: 'features', name: 'Off the beaten track', unit: 'found' },
+  { kind: 'gear', name: 'Train yard', unit: 'rides' },
+  { kind: 'collection', name: 'Stamp collection', unit: 'stamps' },
 ]
 const unitOf = (stamp: Stamp) => stamp.unit ?? KINDS.find((k) => k.kind === stamp.kind)!.unit
 /** Stamps you earn once and then keep counting (×3). */
@@ -47,8 +49,13 @@ function stampStory(stamp: Stamp, progress: number): string {
     express: stamp.detail,
     holiday: stamp.detail,
     features: stamp.detail,
+    gear: stamp.detail,
+    collection: `${stamp.detail[0]!.toUpperCase()}${stamp.detail.slice(1)}.`,
   }[stamp.kind]
-  if (repeats(stamp)) return `${stamp.detail} ${repeatStatus(stamp, progress)}`
+  if (repeats(stamp)) {
+    const again = stamp.repeatable ? ' ↻ Repeatable' : ''
+    return `${stamp.detail} ${repeatStatus(stamp, progress)}${again}`
+  }
   const status = stamp.earnedOn
     ? `Earned ${formatDay(stamp.earnedOn)}.`
     : stamp.kind === 'streak' || stamp.kind === 'steam'
@@ -69,6 +76,7 @@ function liftsSoFar(lifts: string[]): string {
 
 function repeatStatus(stamp: Stamp, progress: number): string {
   if (!stamp.earnedOn) {
+    if (stamp.soFar !== undefined) return `So far: ${stamp.soFar} of ${stamp.goal}.`
     return stamp.goal > 1 ? `Most so far: ${plural(progress, 'day')} in a row.` : 'Not yet.'
   }
   // Only your latest backup is known, so that's the date it shows.
@@ -202,7 +210,7 @@ export function StampBadge({
       ? `${name}: not yet`
       : stamp.lifts
         ? `${name}: ${stamp.lifts.length} of 3 exercises`
-        : `${name}: ${progress ?? 0} of ${stamp.goal}`
+        : `${name}: ${stamp.soFar ?? progress ?? 0} of ${stamp.goal}`
   // Words (Night, Xmas) in smaller letters than numbers, to fit the ring.
   const word = /^[^0-9]/.test(value) && value.length > 3
 
@@ -245,7 +253,7 @@ export function StampBadge({
             ? 'not yet'
             : stamp.lifts
               ? `${stamp.lifts.length}/3`
-              : `${progress ?? 0}/${stamp.goal}`}
+              : `${stamp.soFar ?? progress ?? 0}/${stamp.goal}`}
       </span>
     </div>
   )

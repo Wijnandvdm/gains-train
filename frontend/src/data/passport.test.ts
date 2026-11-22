@@ -35,6 +35,7 @@ describe('the passport', () => {
       'prs-1 2026-09-08 b',
       'prs-double 2026-09-22 d', // Double track: 1000 kg, ten times the start
       'streak-4 2026-09-22 d', // a ride every week, target 1
+      'streak-ticket-1 2026-09-22 d', // 4 weeks in a row: your first ticket
     ])
     expect(p.recordWorkouts).toEqual(new Set(['b', 'd']))
     expect(p.progress).toEqual({
@@ -49,6 +50,8 @@ describe('the passport', () => {
       holiday: 0,
       features: 0,
       big3: 0,
+      gear: 0,
+      collection: 7, // stamps earned (the collection's own don't count)
     })
   })
 
@@ -112,7 +115,7 @@ describe('the passport', () => {
 
   it('has every stamp still to earn on day one', () => {
     const p = passport([], LINE, LIB)
-    expect(p.stamps).toHaveLength(64)
+    expect(p.stamps).toHaveLength(90)
     expect(earned(p)).toEqual([])
   })
 })
@@ -286,6 +289,125 @@ describe('the stamps you can earn again', () => {
     ])
   })
 
+  it('stamps your whole routine day done fast', () => {
+    /** A Legs day workout: minutes from start to finish, and sets per exercise. */
+    const legs = (id: string, day: string, minutes: number, squats: number, curls: number) =>
+      workout(
+        {
+          id,
+          performed_on: day,
+          routine_day_id: 'legs',
+          started_at: `${day}T17:00:00Z`,
+          ended_at: new Date(Date.parse(`${day}T17:00:00Z`) + minutes * 60_000).toISOString(),
+        },
+        [
+          [
+            'Squat',
+            Array.from({ length: squats }, (_, i) => set(`${id}-s${i}`, `${id}-sq`, i + 1, 60, 8)),
+          ],
+          [
+            'Curl',
+            Array.from({ length: curls }, (_, i) => set(`${id}-c${i}`, `${id}-cu`, i + 1, 12, 10)),
+          ],
+        ].filter(([, sets]) => sets.length > 0) as [string, ReturnType<typeof set>[]][],
+      )
+    const p = passport(
+      [
+        legs('quick', '2026-09-01', 18, 2, 2), // under 20: a maglev (and a bullet train)
+        legs('fast', '2026-09-03', 25, 3, 2), // under 30: a bullet train
+        legs('skipped', '2026-09-05', 15, 3, 0), // the curls skipped: neither
+        legs('one-set', '2026-09-07', 10, 2, 1), // only one set of curls: neither
+        legs('slow', '2026-09-09', 40, 2, 2),
+      ],
+      LINE,
+      LIB,
+      undefined,
+      {
+        routine: {
+          days: [
+            {
+              id: 'legs',
+              name: 'Legs',
+              exercises: [
+                { exercise_id: 'Squat', sets: 3 },
+                { exercise_id: 'Curl', sets: 2 },
+              ],
+            },
+          ],
+        },
+      },
+    )
+    expect(counted(p, 'hours').filter((s) => /bullet|maglev/.test(s))).toEqual([
+      'hours-bullet 2026-09-01 quick ×2 (last fast)',
+      'hours-maglev 2026-09-01 quick ×1 (last quick)',
+    ])
+  })
+
+  it('stamps a workout in rush hour', () => {
+    const p = passport(
+      [
+        at('five', '2026-09-01', 17),
+        at('late', '2026-09-02', 19, 59),
+        at('eight', '2026-09-03', 20),
+      ],
+      LINE,
+      LIB,
+    )
+    expect(counted(p, 'hours').filter((s) => s.startsWith('hours-rush'))).toEqual([
+      'hours-rush-hour 2026-09-01 five ×2 (last late)',
+    ])
+  })
+
+  it('knows which stamps you can earn again', () => {
+    const p = passport([], LINE, LIB)
+    const repeatable = (id: string) => p.stamps.find((s) => s.id === id)!.repeatable
+    expect(repeatable('hours-rush-hour')).toBe(true)
+    expect(repeatable('express-weekend')).toBe(true)
+    // Earned once, by design.
+    expect(repeatable('hours-night')).toBe(false)
+    expect(repeatable('streak-ticket-1')).toBe(false)
+    expect(repeatable('streak-ticket-2')).toBe(false)
+    expect(repeatable('features-routine')).toBe(false)
+    // Plain milestone stamps aren't repeat stamps at all.
+    expect(repeatable('rides-10')).toBeUndefined()
+  })
+
+  it('stamps a workout in the lunch break', () => {
+    const p = passport(
+      [
+        at('early-lunch', '2026-09-01', 11, 30),
+        at('late-lunch', '2026-09-02', 13, 29),
+        at('afternoon', '2026-09-03', 13, 30), // 13:30: back at work
+        at('morning', '2026-09-04', 11, 15),
+      ],
+      LINE,
+      LIB,
+    )
+    expect(counted(p, 'hours').filter((s) => s.startsWith('hours-lunch'))).toEqual([
+      'hours-lunch 2026-09-01 early-lunch ×2 (last late-lunch)',
+    ])
+  })
+
+  it('stamps coming back after a break of 4 weeks, and a full week back', () => {
+    const p = passport(
+      [
+        ride('before', '2026-07-01', [[50, 10]]),
+        // 4 weeks and more without anything, then back on Monday 3 August …
+        ride('back', '2026-08-03', [[50, 10]]),
+        ride('wed', '2026-08-05', [[50, 10]]), // … the weekly goal of 2 reached: back on track
+        // Another break; back on 28 September with only one workout that week.
+        ride('again', '2026-09-28', [[50, 10]]),
+        ride('next-week', '2026-10-06', [[50, 10]]),
+      ],
+      { ...LINE, target: 2 },
+      LIB,
+    )
+    expect(counted(p, 'express').filter((s) => /return|back-on-track/.test(s))).toEqual([
+      'express-return 2026-08-03 back ×2 (last again)',
+      'express-back-on-track 2026-08-05 wed ×1 (last wed)',
+    ])
+  })
+
   it('stamps days in a row, once per run', () => {
     const days = ['01', '02', '03', '10', '11', '12', '13', '14', '15', '16', '20']
     const p = passport(
@@ -427,6 +549,181 @@ describe('the stamps you can earn again', () => {
     ])
   })
 
+  it('stamps every 10 workouts with a kind of equipment', () => {
+    const days = Array.from({ length: 12 }, (_, i) => `2026-09-${String(i + 1).padStart(2, '0')}`)
+    const p = passport(
+      [
+        ...days.map((d, i) => ride(`cable-${i + 1}`, d, [[50, 10]])), // Rows: a cable exercise
+        ...days.slice(0, 3).map((d, i) => ride(`curl-${i + 1}`, d, [[12, 10]], 'Curl')),
+        ride('smith-1', '2026-09-01', [[60, 8]], 'Smith'), // a machine, but by name a Smith one
+      ],
+      LINE,
+      LIB,
+      undefined,
+      {
+        exercises: new Map([
+          ['Rows', { equipment: 'cable', name: 'Seated Cable Rows' }],
+          ['Curl', { equipment: 'dumbbell', name: 'Dumbbell Curl' }],
+          ['Smith', { equipment: 'machine', name: 'Smith Machine Squat' }],
+        ]),
+      },
+    )
+    expect(counted(p, 'gear')).toEqual(['gear-cable 2026-09-10 cable-10 ×1 (last cable-10)'])
+    const stamp = (id: string) => p.stamps.find((s) => s.id === id)!
+    expect(stamp('gear-cable').soFar).toBe(12)
+    expect(stamp('gear-dumbbell')).toMatchObject({ earnedOn: null, soFar: 3, goal: 10 })
+    expect(stamp('gear-smith')).toMatchObject({ title: 'Fixed track', soFar: 1 })
+    expect(stamp('gear-kettlebell').detail).toMatch(/caboose is the little car at the very end/)
+  })
+
+  it('stamps 4 weeks in a row in the depot', () => {
+    const mondays = ['2026-07-06', '2026-07-13', '2026-07-20', '2026-07-27'] // in a row
+    const p = passport(
+      [],
+      {
+        ...LINE,
+        depot: new Set([...mondays, '2026-08-10', '2026-08-24', '2026-10-05']), // the rest: apart, or to come
+      },
+      LIB,
+    )
+    expect(counted(p, 'features').filter((s) => s.startsWith('features-roundhouse'))).toEqual([
+      'features-roundhouse 2026-07-27 null ×1 (last null)',
+    ])
+  })
+
+  it('gives no stamps for workouts in a week parked in the depot', () => {
+    const p = passport(
+      [ride('parked', '2026-09-08', [[50, 10]])], // the week of Monday 7 September
+      { ...LINE, depot: new Set(['2026-09-07']) },
+      LIB,
+    )
+    expect(earned(p)).toEqual(['features-depot 2026-09-07 null']) // only the depot one
+    expect(p.progress.rides).toBe(0)
+  })
+
+  it('stamps every kind of equipment in one week, and in one month', () => {
+    const kinds: [string, string, string][] = [
+      ['Bar', 'barbell', 'Squat'],
+      ['DB', 'dumbbell', 'Dumbbell Curl'],
+      ['Cable', 'cable', 'Cable Row'],
+      ['Smith', 'machine', 'Smith Machine Squat'],
+      ['KB', 'kettlebells', 'Kettlebell Swing'],
+    ]
+    const exercises = new Map(kinds.map(([id, equipment, name]) => [id, { equipment, name }]))
+    const p = passport(
+      [
+        ride('mon', '2026-09-07', [[50, 10]], 'Bar'),
+        ride('tue', '2026-09-08', [[20, 10]], 'DB'),
+        ride('wed', '2026-09-09', [[40, 10]], 'Cable'),
+        ride('thu', '2026-09-10', [[60, 10]], 'Smith'),
+        ride('sat', '2026-09-12', [[16, 10]], 'KB'), // all five this week (and this month)
+        // The next week: four kinds, then the fifth on Monday after (another week).
+        ride('w2-1', '2026-09-14', [[50, 10]], 'Bar'),
+        ride('w2-2', '2026-09-15', [[20, 10]], 'DB'),
+        ride('w2-3', '2026-09-16', [[40, 10]], 'Cable'),
+        ride('w2-4', '2026-09-17', [[60, 10]], 'Smith'),
+        ride('w3-1', '2026-09-21', [[16, 10]], 'KB'),
+      ],
+      LINE,
+      LIB,
+      undefined,
+      { exercises },
+    )
+    const title = (id: string) => p.stamps.find((s) => s.id === id)!.title
+    expect([title('gear-navigator-month'), title('gear-navigator-week')]).toEqual([
+      'Network newbie',
+      'Network navigator',
+    ])
+    expect(counted(p, 'gear').filter((s) => s.includes('navigator'))).toEqual([
+      'gear-navigator-month 2026-09-12 sat ×1 (last sat)', // September counts once
+      'gear-navigator-week 2026-09-12 sat ×1 (last sat)',
+    ])
+  })
+
+  it('stamps Friday the 13th, Pi Day and Halloween', () => {
+    const p = passport(
+      [
+        ride('friday', '2026-03-13', [[50, 10]]), // a Friday
+        ride('pi', '2026-03-14', [[50, 10]]),
+        ride('halloween', '2026-10-31', [[50, 10]]),
+        ride('not-friday', '2026-05-13', [[50, 10]]), // the 13th, but a Wednesday
+      ],
+      LINE,
+      LIB,
+    )
+    expect(counted(p, 'holiday').filter((s) => /friday|pi-day|halloween/.test(s))).toEqual([
+      'holiday-friday-13 2026-03-13 friday ×1 (last friday)',
+      'holiday-pi-day 2026-03-14 pi ×1 (last pi)',
+      'holiday-halloween 2026-10-31 halloween ×1 (last halloween)',
+    ])
+  })
+
+  it('stamps all three days of Christmas', () => {
+    const p = passport(
+      ['2025-12-24', '2025-12-25', '2025-12-26', '2026-12-24', '2026-12-26'].map((d) =>
+        ride(d, d, [[50, 10]]),
+      ), // 2026 misses the 25th
+      LINE,
+      LIB,
+    )
+    expect(counted(p, 'holiday').filter((s) => s.startsWith('holiday-polar'))).toEqual([
+      'holiday-polar-express 2025-12-26 2025-12-26 ×1 (last 2025-12-26)',
+    ])
+  })
+
+  it('stamps your first ticket, holding two, and a ticket with no room', () => {
+    const p = passport(
+      [
+        ride('a', '2026-09-07', [[50, 10]]),
+        ride('b', '2026-09-08', [[50, 10]]), // a bonus ride (goal 1): your first ticket
+        ride('c1', '2026-09-14', [[50, 10]]),
+        ride('c2', '2026-09-14', [[50, 10]]), // the same day, a bonus again: two tickets
+        ride('d1', '2026-09-21', [[50, 10]]),
+        ride('d2', '2026-09-22', [[50, 10]]), // a bonus, but no room: overbooked
+        ride('e', '2026-09-28', [[50, 10]]), // 4 weeks in a row earns one: overbooked again
+      ],
+      LINE,
+      LIB,
+    )
+    expect(counted(p, 'streak')).toEqual([
+      'streak-ticket-1 2026-09-08 b ×1 (last b)',
+      'streak-ticket-2 2026-09-14 c2 ×1 (last c2)',
+      'streak-overbooked 2026-09-22 d2 ×2 (last e)',
+    ])
+  })
+
+  it('stamps collecting stamps', () => {
+    const days = Array.from({ length: 10 }, (_, i) => `2026-08-${10 + i}`)
+    const p = passport(
+      [
+        ...days.map((d) => ride(d, d, [[100, 10]])),
+        workout({ id: 'all-three', performed_on: '2026-08-20' }, [
+          ['Curl', [set('c', 'cwe', 1, 12, 10)]],
+          ['Squat', [set('s', 'swe', 1, 60, 10)]],
+        ]),
+      ],
+      { ...LINE, target: 3 },
+      LIB,
+    )
+    const others = p.stamps.filter((s) => s.kind !== 'collection')
+    expect(others.filter((s) => s.earnedOn)).toHaveLength(10)
+    expect(p.progress.collection).toBe(10)
+    const stamp = (id: string) => p.stamps.find((s) => s.id === id)!
+    // The 10th was the whole library explored, with the last workout.
+    expect(stamp('collection-10')).toMatchObject({
+      title: 'Trainspotter',
+      earnedOn: '2026-08-20',
+      earnedBy: 'all-three',
+    })
+    expect(stamp('collection-50')).toMatchObject({ title: 'Railway Baron', earnedOn: null })
+    expect(stamp('collection-75').title).toBe('Track Tycoon')
+    expect(stamp('collection-all-5')).toMatchObject({
+      title: 'Last stop before the terminus',
+      goal: others.length - 5,
+    })
+    expect(stamp('collection-all')).toMatchObject({ title: 'End of the line', goal: others.length })
+  })
+
   it('knows when Easter is', () => {
     expect([2024, 2025, 2026, 2027].map(easterSunday)).toEqual(['03-31', '04-20', '04-05', '03-28'])
   })
@@ -450,7 +747,7 @@ describe('the stamps you can earn again', () => {
       { preferences: new Set(['Rows']), lastBackupAt: '2026-09-20T10:00:00Z' },
     )
     expect(counted(p, 'features')).toEqual([
-      'features-routine 2026-09-05 routine ×1 (last routine)',
+      'features-routine 2026-09-05 routine ×1 (last routine)', // once only
       'features-own 2026-09-02 own ×1 (last own)',
       'features-preferences 2026-09-03 prefs ×1 (last prefs)',
       'features-dumbbells 2026-09-01 dumbbells ×1 (last dumbbells)',
