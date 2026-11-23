@@ -8,6 +8,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Changed
+
+- The Off the beaten track stamps (Side-tracked, Your own exercise, Set up just right, Two
+  dumbbells, In the depot, Railway roundhouse, Safe and sound) are earned once, like Laid the
+  tracks: they're firsts, so they no longer count up (×5) with every workout.
+- Rush hour (a workout started between 17:00 and 20:00) counts on weekdays only: at the
+  weekend there are no commuters.
+
+### Fixed
+
+- Long workout names are no longer cut off during a workout: the name gets the full width and
+  wraps onto a second line, with Finish below it next to the time and sets.
+
 ## [1.3.0] - 2026-11-22
 
 ### Added
