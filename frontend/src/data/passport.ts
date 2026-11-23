@@ -596,16 +596,18 @@ export function passport(
     const hour = startHour(w)
     return hour !== null && hour >= 4 && hour < 7
   })
-  // Started between two clock times (minutes after midnight), on the phone's clock
-  const startedBetween = (from: number, to: number) =>
+  // Started between two clock times (minutes after midnight), on the phone's clock; for
+  // weekdays only, not on a Saturday or Sunday
+  const startedBetween = (from: number, to: number, weekdaysOnly = false) =>
     workoutsWhere(done, (w) => {
       if (!w.started_at) return false
       const start = new Date(w.started_at)
+      if (weekdaysOnly && (start.getDay() === 0 || start.getDay() === 6)) return false
       const minutes = start.getHours() * 60 + start.getMinutes()
       return minutes >= from && minutes < to
     })
   const lunch = startedBetween(11 * 60 + 30, 13 * 60 + 30) // Lunch break line
-  const rushHour = startedBetween(17 * 60, 20 * 60) // Rush hour
+  const rushHour = startedBetween(17 * 60, 20 * 60, true) // Rush hour: commuters, so weekdays
 
   // Marathon line: long workouts (only those with a start and an end time)
   const marathons = workoutsWhere(
@@ -784,7 +786,7 @@ export function passport(
         const planned = new Set(day.exercises.map((e) => e.exercise_id))
         return sets.some((s) => s.workout_id === w.id && !planned.has(s.exercise_id))
       }),
-      { badge: 'Side', unit: 'tracked' },
+      { badge: 'Side', unit: 'tracked', once: true },
     ),
     again(
       'features',
@@ -792,7 +794,7 @@ export function passport(
       'Your own exercise',
       'Logged an exercise you made yourself.',
       workoutsWith((s) => s.exercise_id.startsWith('custom-')),
-      { badge: 'Own', unit: 'exercise' },
+      { badge: 'Own', unit: 'exercise', once: true },
     ),
     again(
       'features',
@@ -800,7 +802,7 @@ export function passport(
       'Set up just right',
       'Logged an exercise with its exercise preferences (Seat 4, …).',
       workoutsWith((s) => preferences.has(s.exercise_id)),
-      { badge: 'Seat', unit: 'set up' },
+      { badge: 'Seat', unit: 'set up', once: true },
     ),
     again(
       'features',
@@ -808,7 +810,7 @@ export function passport(
       'Two dumbbells',
       'Logged two dumbbells as the weight of each.',
       workoutsWith((s) => s.count === 2),
-      { badge: '2×', unit: 'each' },
+      { badge: '2×', unit: 'each', once: true },
     ),
     again(
       'features',
@@ -816,7 +818,7 @@ export function passport(
       'In the depot',
       'Parked a week in the depot (holiday or injury: the streak waits).',
       depotWeeks.map((day) => ({ day, workoutId: null })),
-      { badge: 'Depot', unit: 'parked' },
+      { badge: 'Depot', unit: 'parked', once: true },
     ),
     again(
       'features',
@@ -824,7 +826,7 @@ export function passport(
       'Railway roundhouse',
       `${ROUNDHOUSE_WEEKS} weeks in a row in the depot: a long stay in the roundhouse, the round shed where locomotives rest and get repaired.`,
       roundhouse,
-      { badge: 'Round', unit: 'house' },
+      { badge: 'Round', unit: 'house', once: true },
     ),
     again(
       'features',
@@ -832,7 +834,7 @@ export function passport(
       'Safe and sound',
       'Made a backup of your workouts (Settings → Backup).',
       backupDay ? [{ day: backupDay, workoutId: null }] : [],
-      { badge: 'Safe', unit: 'backup' },
+      { badge: 'Safe', unit: 'backup', once: true },
     ),
   ]
 
@@ -1072,7 +1074,7 @@ export function passport(
       'hours',
       'rush-hour',
       'Rush hour',
-      'A workout started between 17:00 and 20:00, with the commuters.',
+      'A workout started between 17:00 and 20:00 on a weekday, with the commuters.',
       rushHour,
       { badge: 'Rush', unit: 'hour' },
     ),

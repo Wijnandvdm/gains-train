@@ -343,12 +343,14 @@ describe('the stamps you can earn again', () => {
     ])
   })
 
-  it('stamps a workout in rush hour', () => {
+  it('stamps a workout in rush hour, on weekdays', () => {
     const p = passport(
       [
         at('five', '2026-09-01', 17),
         at('late', '2026-09-02', 19, 59),
         at('eight', '2026-09-03', 20),
+        at('saturday', '2026-09-05', 18), // no commuters at the weekend
+        at('sunday', '2026-09-06', 18),
       ],
       LINE,
       LIB,
@@ -754,5 +756,44 @@ describe('the stamps you can earn again', () => {
       'features-depot 2026-09-14 null ×1 (last null)',
       'features-backup 2026-09-20 null ×1 (last null)',
     ])
+  })
+
+  it('stamps the less-known features once: they are firsts, not to repeat', () => {
+    const own = (id: string, day: string) =>
+      workout({ id, performed_on: day }, [['custom-sled', [set(id, `${id}-we`, 1, 80, 10)]]])
+    const back = (id: string, day: string) =>
+      workout({ id, performed_on: day, routine_day_id: 'back' }, [
+        ['Curl', [set(id, `${id}-we`, 1, 20, 10)]], // Curl isn't on the back day
+      ])
+    const p = passport(
+      [
+        ride('dumbbells-1', '2026-09-01', [[20, 10]], 'Curl'),
+        ride('dumbbells-2', '2026-09-08', [[20, 10]], 'Curl'),
+        ride('prefs-1', '2026-09-02', [[50, 10]]),
+        ride('prefs-2', '2026-09-09', [[50, 10]]),
+        own('own-1', '2026-09-03'),
+        own('own-2', '2026-09-10'),
+        back('side-1', '2026-09-04'),
+        back('side-2', '2026-09-11'),
+      ],
+      { ...LINE, depot: new Set(['2026-09-14', '2026-09-28']) },
+      LIB,
+      (id) => (id === 'Curl' ? 2 : 1),
+      {
+        preferences: new Set(['Rows']),
+        routine: {
+          days: [{ id: 'back', name: 'Back', exercises: [{ exercise_id: 'Rows', sets: 3 }] }],
+        },
+      },
+    )
+    expect(counted(p, 'features')).toEqual([
+      'features-routine 2026-09-04 side-1 ×1 (last side-1)',
+      'features-side-tracked 2026-09-04 side-1 ×1 (last side-1)',
+      'features-own 2026-09-03 own-1 ×1 (last own-1)',
+      'features-preferences 2026-09-02 prefs-1 ×1 (last prefs-1)',
+      'features-dumbbells 2026-09-01 dumbbells-1 ×1 (last dumbbells-1)',
+      'features-depot 2026-09-14 null ×1 (last null)',
+    ])
+    expect(p.stamps.filter((s) => s.kind === 'features' && s.repeatable)).toEqual([])
   })
 })

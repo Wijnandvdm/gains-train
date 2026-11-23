@@ -506,17 +506,21 @@ function ActiveWorkout({
 
   return (
     <section className="flex flex-col gap-4 pb-24">
-      <header className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="truncate text-2xl font-bold">{workout.name ?? 'Workout'}</h1>
+      {/* The name gets the full width and wraps (balanced) when long, instead of being cut
+          off; Finish sits below it, beside the time and sets. */}
+      <header className="flex flex-col gap-2">
+        <h1 className="text-2xl leading-tight font-bold text-balance break-words">
+          {workout.name ?? 'Workout'}
+        </h1>
+        <div className="flex items-center justify-between gap-3">
           <p className="flex flex-wrap items-center gap-x-3 text-sm text-neutral-500">
             {minutes !== null && <span>{minutes} min</span>}
             <span>{plural(doneSets, 'set')} done</span>
           </p>
+          <button type="button" className="btn btn-primary shrink-0" onClick={finish}>
+            Finish
+          </button>
         </div>
-        <button type="button" className="btn btn-primary shrink-0" onClick={finish}>
-          Finish
-        </button>
       </header>
 
       <WorkoutTrack
