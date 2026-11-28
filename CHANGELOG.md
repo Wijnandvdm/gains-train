@@ -8,6 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-28
+
 ### Added
 
 - 148 more exercises, 450 in all: barbell staples (Barbell Curl, Box Squat, Floor Press, Zercher
