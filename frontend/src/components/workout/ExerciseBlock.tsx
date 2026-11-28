@@ -60,7 +60,7 @@ export function ExerciseBlock({
     <section className="card flex flex-col gap-2 p-3" aria-label={exercise.name}>
       <header className="flex items-center gap-3">
         {dragHandle}
-        <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
+        <ExerciseThumb exercise={exercise} />
         <div className="min-w-0 flex-1">
           <Link to={`/exercises/${exercise.id}`} className="block truncate font-semibold">
             {exercise.name}

@@ -113,7 +113,7 @@ function Workout({ workout }: { workout: WorkoutDetail }) {
                 aria-label={we.exercise.name}
               >
                 <Link to={`/exercises/${we.exercise.id}`} className="flex items-center gap-3">
-                  <ExerciseThumb name={we.exercise.name} src={we.exercise.image_urls[0]} />
+                  <ExerciseThumb exercise={we.exercise} />
                   <span className="font-semibold">{we.exercise.name}</span>
                 </Link>
                 <ol className="flex flex-col gap-1">

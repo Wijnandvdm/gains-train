@@ -26,6 +26,17 @@ describe('keeping your data in step with the library', () => {
     expect(await syncWithLibrary()).toEqual({ kept: 0, merged: 0, suggested: 0 }) // nothing left to do
   })
 
+  it('hands a kept exercise back to the library when the library has it again', async () => {
+    setLibraryForTests([ROWS], [GONE])
+    await db.workouts.put(logged('a', 'Zottman_Curl'))
+    await syncWithLibrary() // kept as a custom exercise
+
+    setLibraryForTests([ROWS, GONE]) // an update brings it back, by the same id
+    expect(await syncWithLibrary()).toEqual({ kept: 0, merged: 1, suggested: 0 })
+    expect(await db.customExercises.get('Zottman_Curl')).toBeUndefined()
+    expect((await db.workouts.get('a'))!.exercise_ids).toEqual(['Zottman_Curl']) // still linked
+  })
+
   it('merges a custom exercise into the library one with the same name', async () => {
     setLibraryForTests([SQUAT, ROWS])
     await db.customExercises.put({ ...SQUAT, id: 'custom-1', is_custom: true, image_urls: [] })

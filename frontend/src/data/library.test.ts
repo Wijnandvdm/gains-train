@@ -86,13 +86,19 @@ describe('exercise library search', () => {
 // The real dataset, if downloaded (scripts/fetch-exercises.sh).
 const REAL = resolve(process.cwd(), 'public/exercises/exercises.json') // tests run in frontend/
 describe.skipIf(!existsSync(REAL))('the downloaded dataset', () => {
-  it('parses completely: unique ids and a drawing per pose', () => {
+  it('parses completely: unique ids, a drawing per pose or else muscles', () => {
     const exercises = (
       JSON.parse(readFileSync(REAL, 'utf8')) as Parameters<typeof fromRaw>[0][]
     ).map(fromRaw)
-    expect(exercises.length).toBe(302)
-    expect(new Set(exercises.map((e) => e.id)).size).toBe(302)
-    expect(exercises.every((e) => e.image_urls.length === 2)).toBe(true)
+    expect(exercises.length).toBe(450)
+    expect(new Set(exercises.map((e) => e.id)).size).toBe(450)
+    const drawn = exercises.filter((e) => e.image_urls.length > 0)
+    expect(drawn.length).toBe(302)
+    expect(drawn.every((e) => e.image_urls.length === 2)).toBe(true)
+    // The undrawn ones show their muscles instead: they must have some.
+    expect(exercises.filter((e) => e.image_urls.length === 0 && !e.primary_muscles.length)).toEqual(
+      [],
+    )
     const ids = new Set(exercises.map((e) => e.id))
     const yours = [
       'Hack_Squat',

@@ -46,7 +46,8 @@ phones, you keep the upload key.
 > and lunch breaks, holiday specials, the big three, fast trains and many more.
 >
 > A BIG EXERCISE LIBRARY
-> Every exercise has a drawing and shows which muscles it works. Add your own too.
+> Hundreds of exercises, from gym staples to kettlebell, calisthenics and strongman. Each
+> shows which muscles it works, most with a drawing. Add your own too.
 >
 > LIGHT OR DARK
 > Like the rest of your phone, or always light or always dark.
