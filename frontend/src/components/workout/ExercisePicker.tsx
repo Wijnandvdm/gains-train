@@ -111,7 +111,7 @@ export function ExercisePicker({
                     onClick={() => onPick(exercise)}
                     className="card flex w-full items-center gap-3 p-2 text-left transition hover:border-train-500"
                   >
-                    <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
+                    <ExerciseThumb exercise={exercise} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">{exercise.name}</span>
                       <span className="block truncate text-sm text-neutral-500 capitalize">

@@ -15,6 +15,7 @@ flowchart TB
     WG["Workout Guide<br/>302 drawn exercises"] --> BX["scripts/fetch-exercises.sh<br/>+ build-exercises.mjs"]
     FED["free-exercise-db<br/>instructions, muscles"] --> BX
     MAP["scripts/exercise-map.json<br/>which is which"] --> BX
+    EXTRA["scripts/exercise-extra.json<br/>148 undrawn exercises"] --> BX
     BX --> LIB["public/exercises/<br/>exercises.json + drawings"]
     SRC["frontend/src<br/>React app"] --> VITE["npm run build"]
     LIB --> VITE

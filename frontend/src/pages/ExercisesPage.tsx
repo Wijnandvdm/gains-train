@@ -178,7 +178,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseSummary }) {
       to={`/exercises/${exercise.id}`}
       className="card flex items-center gap-3 p-2 transition hover:border-train-500"
     >
-      <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
+      <ExerciseThumb exercise={exercise} />
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{exercise.name}</p>
         <p className="truncate text-sm text-neutral-500 capitalize">

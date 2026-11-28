@@ -6,6 +6,8 @@
  *    the same id, so your history, records and routine keep it.
  * 2. A custom exercise with the same name as a library exercise is merged into the library
  *    one (it gains the drawings); your data moves over to it.
+ *    And an exercise kept in 1 that the library has again (same id): the custom copy goes,
+ *    the library's takes over (your data already uses that id).
  * 3. New library exercises (added by an update) that look like one of your custom exercises
  *    are noted as suggestions: the Workout screen asks, and only "yes" merges them (as in 2).
  *
@@ -22,6 +24,10 @@ export async function syncWithLibrary(): Promise<{
   suggested: number
 }> {
   const library = await loadLibrary()
+
+  // Exercises kept in 1 before, now back in the library: the library's again.
+  const returned = (await db.customExercises.toArray()).filter((c) => library.has(c.id))
+  if (returned.length > 0) await db.customExercises.bulkDelete(returned.map((c) => c.id))
 
   // 1. Logged exercises that left the library → custom exercises (same id).
   const customs = new Map((await db.customExercises.toArray()).map((c) => [c.id, c]))
@@ -50,7 +56,7 @@ export async function syncWithLibrary(): Promise<{
   // 3. New library exercises that may be one of yours (not the same name): suggest them.
   const suggested = await noteNewExercises(library)
 
-  return { kept: kept.length, merged: merges.size, suggested }
+  return { kept: kept.length, merged: returned.length + merges.size, suggested }
 }
 
 /**

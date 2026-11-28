@@ -133,7 +133,7 @@ function OverviewCard({ row }: { row: ExerciseOverview }) {
       to={`/exercises/${exercise.id}#progress`}
       className="card flex items-center gap-3 p-2 transition hover:border-train-500"
     >
-      <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
+      <ExerciseThumb exercise={exercise} />
       <div className="min-w-0 flex-1">
         <p className="flex items-baseline justify-between gap-2">
           <span className="truncate font-medium">{exercise.name}</span>

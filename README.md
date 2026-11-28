@@ -70,3 +70,7 @@ Backup: every month, 3 months, 6 months, a year, or never).
 # TODO:
 1. Find a way to improve upon the images representing exercises.
 2. do we want to see during a workout, besides the previous weight, the all time best? So that you know what your best was? With the option to edit it if you realize your form was off in that best or something?
+3. Do we want to do something with supersets and dropsets? And if so, what?
+4. If you click the PR icon, it should briefly explain why you have this PR (more weigt/more reps)
+5. Scrolling down should refresh the page (e.g. so that progress picks up latest workout if this is just done) or can this be picked up another way?
+6. Ability to add notes, e.g. for when you feel a slight pain somewhere and you dont finish that set for that reason. Future notes need to suggest the same messages as you did in the past. Also need to be able to set these notes to past workouts

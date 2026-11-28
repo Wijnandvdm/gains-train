@@ -8,6 +8,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+
+- 148 more exercises, 450 in all: barbell staples (Barbell Curl, Box Squat, Floor Press, Zercher
+  Squat), the Olympic lifts (Clean, Snatch, Clean and Jerk), kettlebell (Turkish Get-Up,
+  Snatch, Windmill), calisthenics (Muscle-Up, Ring Dip, Rope Climb), strongman (Sled Push, Tire
+  Flip, Yoke Walk) and many single-arm and single-leg variants. They have no drawing: their
+  muscles show instead, front and back, also for your own exercises that have muscles.
+- One way of naming every exercise (scripts/check-exercise-names.mjs), which tidies some names:
+  Push-up is now Push-Up (also Pull-Up, Chin-Up), One-Arm Dumbbell Row is Single-Arm Dumbbell
+  Row, Skullcrusher is Skull Crusher. Your logged workouts keep their exercises.
+
 ## [1.3.1] - 2026-11-23
 
 ### Changed

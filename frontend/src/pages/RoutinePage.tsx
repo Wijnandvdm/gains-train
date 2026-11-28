@@ -107,7 +107,7 @@ function RoutineEditor({ routine }: { routine: Routine | null }) {
             {day.exercises.map((item, i) => (
               <li key={item.key} className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <ExerciseThumb name={item.exercise.name} src={item.exercise.image_urls[0]} />
+                  <ExerciseThumb exercise={item.exercise} />
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">
                     {item.exercise.name}
                   </span>

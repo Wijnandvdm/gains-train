@@ -17,6 +17,9 @@
 #   npm test                       the test suite (npm run test:watch keeps it running)
 #   npm run lint / npx knip        lint / unused code
 #   scripts/android.sh (repo root) the Android app: the product, see that script
+#   scripts/screenshots.sh         the Play Store screenshots (repo root)
+#   node scripts/check-exercise-names.mjs [names.json]
+#                                  check exercise names against the naming standards (repo root)
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"

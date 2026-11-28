@@ -38,6 +38,18 @@ repos:
         files: ^(release_scope\.env|CHANGELOG\.md|scripts/release\.py)$
         pass_filenames: false
 
+  # --- Exercise names ----------------------------------------------------------
+  # The names in exercise-extra.json must meet the naming standards. Only runs when that file
+  # or the checker changes (the library build checks all names anyway).
+  - repo: local
+    hooks:
+      - id: exercise-names
+        name: exercise names (scripts/check-exercise-names.mjs)
+        entry: scripts/frontend-run.sh node ../scripts/check-exercise-names.mjs ../scripts/exercise-extra.json
+        language: system
+        files: ^scripts/(exercise-extra\.json|check-exercise-names\.mjs)$
+        pass_filenames: false
+
   # --- Frontend (TypeScript/React) -------------------------------------------
   # scripts/frontend-run.sh runs each tool in frontend/ with the Node from frontend/.nvmrc.
   - repo: local

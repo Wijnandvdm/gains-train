@@ -45,7 +45,7 @@ export function FocusCard({ next, onConfirm, onSkipExercise }: Props) {
       className="card flex flex-col gap-4 border-train-500 p-4 shadow-sm"
     >
       <header className="flex items-center gap-3">
-        <ExerciseThumb name={exercise.name} src={exercise.image_urls[0]} />
+        <ExerciseThumb exercise={exercise} />
         <div className="min-w-0 flex-1">
           <p className="line-clamp-2 text-lg leading-snug font-semibold">{exercise.name}</p>
           {next.movedUp ? (
